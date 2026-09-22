@@ -1,0 +1,9 @@
+[project]
+name = "kaggriculture-counterfactual-eval"
+version = "0.1.0"
+description = "Local checkpoint/resume regression evaluator for Kaggriculture"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

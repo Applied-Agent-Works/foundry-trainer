@@ -1,53 +1,5 @@
-# OS files
-.DS_Store
-Thumbs.db
-
-# Editor temp files
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-*.swp
-*.swo
-*~
-
-# Local credentials
-.env
-.env.*
-!.env.example
-!.env.template
-
-# Logs and caches
-*.log
-logs/
-tmp/
-temp/
-.cache/
-
-# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-coverage.xml
-htmlcov/
 .venv/
-venv/
-env/
-
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.npm/
-.yarn/
-.parcel-cache/
-dist/
-build/
-
-# Test outputs
-test-results/
-playwright-report/
+var/
