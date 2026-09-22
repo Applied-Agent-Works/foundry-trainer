@@ -54,6 +54,19 @@ MATRIX: tuple[tuple[str, float, float], ...] = (
     ("seed_opportunity_value", 18.0, 22.0),
 )
 
+# A human-selected follow-up after the observed margin report.  Unlike the
+# default screen, seed opportunity has four deliberately coarse values because
+# the earlier 20 -> 80 demonstration established a threshold response.  The
+# pass values are the documented absolute pair around its zero baseline.
+COARSE_PREFERENCE_CASES: tuple[dict[str, float], ...] = (
+    {"seed_opportunity_value": 10.0},
+    {"seed_opportunity_value": 40.0},
+    {"seed_opportunity_value": 60.0},
+    {"seed_opportunity_value": 80.0},
+    {"pass_utility": -25.0},
+    {"pass_utility": 25.0},
+)
+
 
 def _cache_path(cache_dir: Path, seed: int, seat: int) -> Path:
     return cache_dir / f"seed-{seed}-seat-{seat}.json.gz"
@@ -70,6 +83,11 @@ def _validate_matrix(binding: Any) -> None:
             raise ValueError(f"matrix field is absent from target policy: {name}")
         if not negative < defaults[name] < positive:
             raise ValueError(f"matrix values do not bracket the default for {name}")
+    defaults = asdict(binding.shared.DEFAULT_PARAMETERS)
+    for override in COARSE_PREFERENCE_CASES:
+        name = next(iter(override))
+        if name not in defaults:
+            raise ValueError(f"coarse-screen field is absent from target policy: {name}")
 
 
 def _load_or_make_baselines(binding: Any, cache_dir: Path, seeds: range, steps: int) -> list[dict[str, Any]]:
@@ -155,7 +173,8 @@ def _run_candidate(cache_dir: str, override: dict[str, float], baseline_rewards:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "var" / "cache" / "perturbation-sensitivity-60")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "var" / "results" / "perturbation-sensitivity-60")
+    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--screen", choices=("fine", "coarse-preferences"), default="fine", help="Fixed human-reviewed candidate matrix to run.")
     parser.add_argument("--first-seed", type=int, default=42)
     parser.add_argument("--last-seed", type=int, default=71)
     parser.add_argument("--steps", type=int, default=720)
@@ -172,7 +191,9 @@ def main() -> None:
     if len(baselines) != expected_matches:
         raise RuntimeError("baseline suite is incomplete")
     baseline_rewards = {(b["match"]["seed"], b["match"]["decision_player"]): b["outcome"]["decision_reward"] for b in baselines}
-    cases = _candidate_cases()
+    cases = _candidate_cases() if args.screen == "fine" else list(COARSE_PREFERENCE_CASES)
+    if args.output_dir is None:
+        args.output_dir = ROOT / "var" / "results" / ("perturbation-sensitivity-60" if args.screen == "fine" else "coarse-preferences-60")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     completed = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=args.workers) as pool:
@@ -193,7 +214,7 @@ def main() -> None:
     completed.sort(key=lambda row: (row["parameter"]["name"], row["parameter"]["new_value"]))
     report = {
         "schema_version": 1,
-        "purpose": "fixed +/-10 percent CarrotParameters local sensitivity screen; not automatic policy mutation or search",
+        "purpose": f"fixed human-reviewed {args.screen} CarrotParameters screen; not automatic policy mutation or search",
         "binding": {"target_root": str(binding.root), "target_revision": binding.revision, "shared_sha256": binding.shared_sha256, "engine_sha256": binding.engine_sha256},
         "opponent": "target.agents.carrot.shared.carrot_conveyor_agent",
         "suite": {"seeds": list(seeds), "seats": [0, 1], "steps": args.steps, "matches_per_candidate": expected_matches},

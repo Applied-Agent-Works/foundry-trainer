@@ -58,6 +58,18 @@ write only disposable, ignored artifacts under `var/`.
 # Compare the 0.30 and 0.40 opponent-supply belief variants head to head.
 ../kaggriculture/.venv/bin/python scripts/head_to_head_seed_opportunity_values.py \
   --parameter supply_high_given_one_to_three_ripe --left-value 0.30 --right-value 0.40
+
+# Run the fixed 22-candidate, 60-match (+/-10%) sensitivity matrix.  Every
+# checkpoint result receives a clean full-suite audit; this is not a search.
+../kaggriculture/.venv/bin/python scripts/perturbation_sensitivity_suite.py --workers 4
+
+# Read the observed investment-decision margins from the 60-match cache.
+../kaggriculture/.venv/bin/python scripts/decision_margin_report.py
+
+# Run the fixed coarse preference bracket (seed opportunity 10/40/60/80 and
+# pass utility -25/+25), again with a clean audit for every match.
+../kaggriculture/.venv/bin/python scripts/perturbation_sensitivity_suite.py \
+  --screen coarse-preferences --workers 4
 ```
 
 The first script is a baseline/timing fixture. The second demonstrates the
