@@ -1,0 +1,3 @@
+seed,decision_player,opponent,steps,total_seconds,decision_seconds,opponent_seconds,engine_seconds,decision_calls,opponent_calls,decision_reward,opponent_reward,decision_status,opponent_status
+42,0,conveyor,24,0.10423413399985293,0.005121582027641125,0.0008363220331375487,0.09827622993907426,23,23,2500.0,2500.0,DONE,DONE
+42,1,conveyor,24,0.10642938599630725,0.005592352994426619,0.0009078230068553239,0.0999292099950253,23,23,2500.0,2500.0,DONE,DONE

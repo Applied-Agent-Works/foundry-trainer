@@ -1,0 +1,122 @@
+[
+  {
+    "trace": "trace-cache/conveyor-42-44/conveyor/seed-42-decision-player-0.json.gz",
+    "seed": 42,
+    "decision_player": 0,
+    "opponent": "conveyor",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.7439177699998254,
+    "replay_seconds": 0.0336541139986366,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 8849.0,
+      "opponent_reward": 8729.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/conveyor-42-44/conveyor/seed-42-decision-player-1.json.gz",
+    "seed": 42,
+    "decision_player": 1,
+    "opponent": "conveyor",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.802878458998748,
+    "replay_seconds": 0.03498474200023338,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 8809.0,
+      "opponent_reward": 8789.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/conveyor-42-44/conveyor/seed-43-decision-player-0.json.gz",
+    "seed": 43,
+    "decision_player": 0,
+    "opponent": "conveyor",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.801405154001259,
+    "replay_seconds": 0.04928746299992781,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 5722.0,
+      "opponent_reward": 5643.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/conveyor-42-44/conveyor/seed-43-decision-player-1.json.gz",
+    "seed": 43,
+    "decision_player": 1,
+    "opponent": "conveyor",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.7206284290004987,
+    "replay_seconds": 0.039499625003372785,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 5703.0,
+      "opponent_reward": 5662.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/conveyor-42-44/conveyor/seed-44-decision-player-0.json.gz",
+    "seed": 44,
+    "decision_player": 0,
+    "opponent": "conveyor",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.6925734910037136,
+    "replay_seconds": 0.0405001630060724,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7432.0,
+      "opponent_reward": 7372.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/conveyor-42-44/conveyor/seed-44-decision-player-1.json.gz",
+    "seed": 44,
+    "decision_player": 1,
+    "opponent": "conveyor",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.9036968080035876,
+    "replay_seconds": 0.0337225719995331,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7452.0,
+      "opponent_reward": 7352.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  }
+]

@@ -1,0 +1,3 @@
+seed,decision_player,opponent,steps,total_seconds,decision_seconds,opponent_seconds,engine_seconds,decision_calls,opponent_calls,decision_reward,opponent_reward,decision_status,opponent_status
+42,0,random,24,0.0955353679964901,0.0015512139943893999,0.000695508009812329,0.09328864599228837,23,23,2500.0,2980.0,DONE,DONE
+42,1,random,24,0.09086927699536318,0.0013411939798970707,0.0006995619914960116,0.0888285210239701,23,23,2500.0,2970.0,DONE,DONE

@@ -1,0 +1,79 @@
+{
+  "opponent": "conveyor",
+  "seeds": [
+    42
+  ],
+  "steps": 720,
+  "matches": 2,
+  "function_profile_match": {
+    "seed": 42,
+    "decision_player": 0,
+    "note": "Separate representative match; excluded from timing averages."
+  },
+  "mean_total_ms": 3350.599602497823,
+  "mean_engine_ms": 3292.2207514093316,
+  "mean_decision_ms": 40.486856531060766,
+  "mean_opponent_ms": 17.891994557430735,
+  "top_decision_functions": [
+    {
+      "function": "decision.py:16:agent",
+      "calls": 719,
+      "own_seconds": 0.0011772730000000002,
+      "cumulative_seconds": 0.160278406
+    },
+    {
+      "function": "shared.py:446:carrot_decision_agent",
+      "calls": 719,
+      "own_seconds": 0.005990303000000001,
+      "cumulative_seconds": 0.159101133
+    },
+    {
+      "function": "shared.py:278:should_plant_carrot",
+      "calls": 672,
+      "own_seconds": 0.000817015,
+      "cumulative_seconds": 0.091834012
+    },
+    {
+      "function": "shared.py:265:carrot_plant_utility",
+      "calls": 672,
+      "own_seconds": 0.000968918,
+      "cumulative_seconds": 0.091016997
+    },
+    {
+      "function": "shared.py:249:expected_carrot_sale_price",
+      "calls": 672,
+      "own_seconds": 0.0030288000000000003,
+      "cumulative_seconds": 0.090048079
+    },
+    {
+      "function": "shared.py:205:carrot_price_distribution",
+      "calls": 672,
+      "own_seconds": 0.0045914070000000005,
+      "cumulative_seconds": 0.08638195700000001
+    },
+    {
+      "function": "shared.py:185:probability_of_high_opponent_carrot_supply",
+      "calls": 672,
+      "own_seconds": 0.001100934,
+      "cumulative_seconds": 0.075439082
+    },
+    {
+      "function": "shared.py:136:visible_opponent_ripe_carrots",
+      "calls": 672,
+      "own_seconds": 0.001502887,
+      "cumulative_seconds": 0.074338148
+    },
+    {
+      "function": "shared.py:139:<genexpr>",
+      "calls": 5847,
+      "own_seconds": 0.016562153,
+      "cumulative_seconds": 0.07085802000000001
+    },
+    {
+      "function": "shared.py:126:_is_ripe_or_nearly_ripe_carrot",
+      "calls": 67200,
+      "own_seconds": 0.021838763,
+      "cumulative_seconds": 0.054295867000000005
+    }
+  ]
+}

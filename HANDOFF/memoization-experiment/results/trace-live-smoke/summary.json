@@ -1,0 +1,80 @@
+{
+  "opponent": "conveyor",
+  "seeds": [
+    42
+  ],
+  "steps": 24,
+  "matches": 2,
+  "function_profile_match": {
+    "seed": 42,
+    "decision_player": 0,
+    "note": "Separate representative match; excluded from timing averages."
+  },
+  "mean_total_ms": 105.33175999808009,
+  "mean_engine_ms": 99.10271996704978,
+  "mean_decision_ms": 5.356967511033872,
+  "mean_opponent_ms": 0.8720725199964363,
+  "top_decision_functions": [
+    {
+      "function": "decision.py:16:agent",
+      "calls": 23,
+      "own_seconds": 3.1606e-05,
+      "cumulative_seconds": 0.0062452
+    },
+    {
+      "function": "shared.py:446:carrot_decision_agent",
+      "calls": 23,
+      "own_seconds": 0.00018704800000000002,
+      "cumulative_seconds": 0.006213594
+    },
+    {
+      "function": "shared.py:278:should_plant_carrot",
+      "calls": 23,
+      "own_seconds": 2.5167e-05,
+      "cumulative_seconds": 0.002835331
+    },
+    {
+      "function": "shared.py:265:carrot_plant_utility",
+      "calls": 23,
+      "own_seconds": 5.2578000000000004e-05,
+      "cumulative_seconds": 0.002810164
+    },
+    {
+      "function": "shared.py:249:expected_carrot_sale_price",
+      "calls": 23,
+      "own_seconds": 0.00010467400000000001,
+      "cumulative_seconds": 0.0027575860000000002
+    },
+    {
+      "function": "shared.py:205:carrot_price_distribution",
+      "calls": 23,
+      "own_seconds": 0.00012957300000000001,
+      "cumulative_seconds": 0.0026321120000000003
+    },
+    {
+      "function": "shared.py:361:_farm_action",
+      "calls": 23,
+      "own_seconds": 0.000136031,
+      "cumulative_seconds": 0.002477347
+    },
+    {
+      "function": "shared.py:185:probability_of_high_opponent_carrot_supply",
+      "calls": 23,
+      "own_seconds": 3.5703e-05,
+      "cumulative_seconds": 0.002359234
+    },
+    {
+      "function": "shared.py:136:visible_opponent_ripe_carrots",
+      "calls": 23,
+      "own_seconds": 4.7207000000000004e-05,
+      "cumulative_seconds": 0.002323531
+    },
+    {
+      "function": "shared.py:315:_nearest_tile",
+      "calls": 24,
+      "own_seconds": 0.0007541690000000001,
+      "cumulative_seconds": 0.002245645
+    }
+  ],
+  "trace_recording": true
+}

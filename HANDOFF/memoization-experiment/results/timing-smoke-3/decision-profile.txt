@@ -1,0 +1,45 @@
+         854830 function calls in 0.329 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     1438    0.002    0.000    0.301    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/decision.py:16(agent)
+     1438    0.011    0.000    0.299    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:446(carrot_decision_agent)
+     1344    0.002    0.000    0.175    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:278(should_plant_carrot)
+     1344    0.002    0.000    0.174    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:265(carrot_plant_utility)
+     4032    0.020    0.000    0.173    0.000 {built-in method builtins.sum}
+     1344    0.005    0.000    0.172    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:249(expected_carrot_sale_price)
+     1344    0.008    0.000    0.165    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:205(carrot_price_distribution)
+     1344    0.002    0.000    0.145    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:185(probability_of_high_opponent_carrot_supply)
+     1344    0.003    0.000    0.143    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:136(visible_opponent_ripe_carrots)
+    11694    0.032    0.000    0.136    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:139(<genexpr>)
+   134400    0.042    0.000    0.104    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:126(_is_ripe_or_nearly_ripe_carrot)
+   188654    0.052    0.000    0.084    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:111(_is_carrot)
+     1438    0.007    0.000    0.071    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:361(_farm_action)
+      548    0.017    0.000    0.057    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:315(_nearest_tile)
+     1438    0.007    0.000    0.039    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:405(_carrot_market_orders)
+    48838    0.015    0.000    0.038    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:347(_carrot_needs_water)
+     1344    0.001    0.000    0.030    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:400(_empty_unlocked_tile_count)
+     1438    0.028    0.000    0.028    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+   188654    0.024    0.000    0.024    0.000 {built-in method builtins.isinstance}
+   135744    0.013    0.000    0.013    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:402(<genexpr>)
+    62176    0.012    0.000    0.012    0.000 {method 'get' of 'dict' objects}
+     1344    0.002    0.000    0.007    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:147(active_carrot_demand_per_day)
+     5416    0.002    0.000    0.005    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:352(_carrot_ready_at_peak)
+     4600    0.001    0.000    0.004    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:384(<lambda>)
+     6912    0.002    0.000    0.004    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:149(<genexpr>)
+    12798    0.003    0.000    0.003    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:116(_carrot_age)
+     5376    0.003    0.000    0.003    0.000 {built-in method builtins.max}
+     4644    0.002    0.000    0.002    0.000 {built-in method builtins.min}
+     1344    0.001    0.000    0.002    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:169(expected_new_shop_carrot_demand_per_day)
+     4314    0.002    0.000    0.002    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:100(_my_farm)
+     1344    0.001    0.000    0.001    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:156(_next_shop_can_unlock_before_peak_harvest)
+     1438    0.001    0.000    0.001    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:121(_can_still_reach_first_carrot_yield)
+     5144    0.001    0.000    0.001    0.000 {built-in method builtins.abs}
+     2780    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
+     1344    0.001    0.000    0.001    0.000 {built-in method math.floor}
+     1438    0.001    0.000    0.001    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:105(_tile_at)
+      456    0.000    0.000    0.000    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:330(_move_toward)
+     2800    0.000    0.000    0.000    0.000 /home/experiments/frontier-week/kaggriculture/agents/carrot/shared.py:390(<lambda>)
+
+

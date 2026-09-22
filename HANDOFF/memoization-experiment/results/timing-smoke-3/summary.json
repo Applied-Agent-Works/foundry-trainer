@@ -1,0 +1,74 @@
+{
+  "opponent": "conveyor",
+  "seeds": [
+    42
+  ],
+  "steps": 720,
+  "matches": 2,
+  "mean_total_ms": 3550.265183501324,
+  "mean_engine_ms": 3337.094643022283,
+  "mean_decision_ms": 189.01493601879338,
+  "mean_opponent_ms": 24.15560446024756,
+  "top_decision_functions": [
+    {
+      "function": "decision.py:16:agent",
+      "calls": 1438,
+      "own_seconds": 0.002170679,
+      "cumulative_seconds": 0.300860142
+    },
+    {
+      "function": "shared.py:446:carrot_decision_agent",
+      "calls": 1438,
+      "own_seconds": 0.011426899,
+      "cumulative_seconds": 0.298689463
+    },
+    {
+      "function": "shared.py:278:should_plant_carrot",
+      "calls": 1344,
+      "own_seconds": 0.001519677,
+      "cumulative_seconds": 0.175418085
+    },
+    {
+      "function": "shared.py:265:carrot_plant_utility",
+      "calls": 1344,
+      "own_seconds": 0.0020269420000000003,
+      "cumulative_seconds": 0.173898408
+    },
+    {
+      "function": "shared.py:249:expected_carrot_sale_price",
+      "calls": 1344,
+      "own_seconds": 0.005443807,
+      "cumulative_seconds": 0.17187146600000003
+    },
+    {
+      "function": "shared.py:205:carrot_price_distribution",
+      "calls": 1344,
+      "own_seconds": 0.008347836,
+      "cumulative_seconds": 0.165243821
+    },
+    {
+      "function": "shared.py:185:probability_of_high_opponent_carrot_supply",
+      "calls": 1344,
+      "own_seconds": 0.002109713,
+      "cumulative_seconds": 0.144770111
+    },
+    {
+      "function": "shared.py:136:visible_opponent_ripe_carrots",
+      "calls": 1344,
+      "own_seconds": 0.0028801850000000004,
+      "cumulative_seconds": 0.14266039800000002
+    },
+    {
+      "function": "shared.py:139:<genexpr>",
+      "calls": 11694,
+      "own_seconds": 0.032135676,
+      "cumulative_seconds": 0.136086955
+    },
+    {
+      "function": "shared.py:126:_is_ripe_or_nearly_ripe_carrot",
+      "calls": 134400,
+      "own_seconds": 0.04162250000000001,
+      "cumulative_seconds": 0.10395127900000001
+    }
+  ]
+}

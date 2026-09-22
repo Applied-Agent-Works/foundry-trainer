@@ -1,0 +1,42 @@
+[
+  {
+    "trace": "trace-cache/smoke/conveyor/seed-42-decision-player-0.json.gz",
+    "seed": 42,
+    "decision_player": 0,
+    "opponent": "conveyor",
+    "steps": 24,
+    "turns_checked": 23,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 0.10423413399985293,
+    "replay_seconds": 0.0013906410022173077,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 2500.0,
+      "opponent_reward": 2500.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/smoke/conveyor/seed-42-decision-player-1.json.gz",
+    "seed": 42,
+    "decision_player": 1,
+    "opponent": "conveyor",
+    "steps": 24,
+    "turns_checked": 23,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 0.10642938599630725,
+    "replay_seconds": 0.0013314899988472462,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 2500.0,
+      "opponent_reward": 2500.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  }
+]

@@ -1,0 +1,402 @@
+[
+  {
+    "trace": "trace-cache/full-step8/pass/seed-42-decision-player-0.json.gz",
+    "seed": 42,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 2.9841132090004976,
+    "replay_seconds": 0.04012076100480044,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6425.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-42-decision-player-1.json.gz",
+    "seed": 42,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.159703819997958,
+    "replay_seconds": 0.03539805299806176,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6405.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-43-decision-player-0.json.gz",
+    "seed": 43,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.1818775390056544,
+    "replay_seconds": 0.0341015489975689,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 9692.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-43-decision-player-1.json.gz",
+    "seed": 43,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.213918638000905,
+    "replay_seconds": 0.03257261900580488,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 10999.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-44-decision-player-0.json.gz",
+    "seed": 44,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.2517018569997163,
+    "replay_seconds": 0.032009651004045736,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7126.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-44-decision-player-1.json.gz",
+    "seed": 44,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.1192309110047063,
+    "replay_seconds": 0.03277732899732655,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7166.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-45-decision-player-0.json.gz",
+    "seed": 45,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.2094738820014754,
+    "replay_seconds": 0.035419848994934,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6398.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-45-decision-player-1.json.gz",
+    "seed": 45,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.1166887090003,
+    "replay_seconds": 0.03459578200272517,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6338.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-46-decision-player-0.json.gz",
+    "seed": 46,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.213790791000065,
+    "replay_seconds": 0.032916071999352425,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 10506.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-46-decision-player-1.json.gz",
+    "seed": 46,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.3175953539976035,
+    "replay_seconds": 0.03208506800001487,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 10486.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-47-decision-player-0.json.gz",
+    "seed": 47,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.661035526005435,
+    "replay_seconds": 0.07177004400000442,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7323.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-47-decision-player-1.json.gz",
+    "seed": 47,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.3449061930004973,
+    "replay_seconds": 0.03324514999985695,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7658.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-48-decision-player-0.json.gz",
+    "seed": 48,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.275904157999321,
+    "replay_seconds": 0.03445917299541179,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6407.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-48-decision-player-1.json.gz",
+    "seed": 48,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.454115735999949,
+    "replay_seconds": 0.03499505200306885,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 8307.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-49-decision-player-0.json.gz",
+    "seed": 49,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 2.9340477470032056,
+    "replay_seconds": 0.035983607995149214,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6505.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-49-decision-player-1.json.gz",
+    "seed": 49,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.34900454399758,
+    "replay_seconds": 0.03458080799464369,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6485.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-50-decision-player-0.json.gz",
+    "seed": 50,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.441791209996154,
+    "replay_seconds": 0.03509829800168518,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7773.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-50-decision-player-1.json.gz",
+    "seed": 50,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.583185149000201,
+    "replay_seconds": 0.03364658800273901,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 7793.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-51-decision-player-0.json.gz",
+    "seed": 51,
+    "decision_player": 0,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 2.975993546002428,
+    "replay_seconds": 0.03399341899785213,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6525.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  },
+  {
+    "trace": "trace-cache/full-step8/pass/seed-51-decision-player-1.json.gz",
+    "seed": 51,
+    "decision_player": 1,
+    "opponent": "pass",
+    "steps": 720,
+    "turns_checked": 719,
+    "trace_reused": true,
+    "first_divergence": null,
+    "baseline_total_seconds": 3.5780149909987813,
+    "replay_seconds": 0.0404099799998221,
+    "baseline_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "candidate_fingerprint": "097585297ba776eda7a10aaa7fc4d7654d5b6dd8dfae714bceb4c4b91826a29d",
+    "baseline_outcome": {
+      "decision_reward": 6525.0,
+      "opponent_reward": 3000.0,
+      "decision_status": "DONE",
+      "opponent_status": "DONE"
+    }
+  }
+]
