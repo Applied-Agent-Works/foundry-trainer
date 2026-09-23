@@ -20,6 +20,14 @@ For a high-level executable mock of the intended inner loop, outer evals and
 reasoning loop, and graph-integration seam, see the
 [initial system-model notebook](./notebooks/01_system_model.ipynb).
 
+For the step-by-step implementation workbench that exercises the real local
+adapter framework, see the
+[local inner-loop adapter notebook](./notebooks/02_local_inner_loop_adapter.ipynb).
+
+The source-controlled historical JSON remains the canonical experiment record.
+The notebooks load it for explanation and direct-check work; they do not
+generate, replace, or authorize that record.
+
 ### How to maintain explanatory notebooks
 
 The system-model notebook is a design and teaching artifact, not the canonical
@@ -458,6 +466,18 @@ that call the already-proven parent evaluator through an explicit target
 binding. Start with the historical record as a human-authorized reproduction
 smoke test: it must produce the existing coarse classifications and passing
 clean audits. Its output should conform to the evidence-packet contract above.
+
+An intentionally inert framework now lives in [evaluator/](./evaluator/). It defines the
+request boundary and the reviewed implementation sequence, but its only entry
+point raises `NotImplementedError`: it does not read a specification, bind a
+target, call the simulator, write a report, or modify source. The first
+implementation task is therefore schema and lifecycle validation, with a
+reviewed direct check, before any evaluator call is added.
+
+For these initial stages, use the adapter workbench notebook to exercise the
+real Python entry point directly and inspect its result. We are deliberately
+not introducing a pytest dependency yet; reusable pytest coverage can follow
+once the first behavior beyond the fail-closed framework is implemented.
 
 Do not start Azure provisioning, deploy a Foundry agent, create credentials,
 or add unbounded candidate generation yet. The first human decision is whether

@@ -58,6 +58,11 @@ as presentation or loaded from a file—not as a substitute for schema
 validation. The canonical machine-readable record is the experiment JSON
 described below.
 
+The separate [local adapter workbench](../notebooks/02_local_inner_loop_adapter.ipynb)
+starts the next phase. It imports and directly exercises the real adapter
+framework while each implementation stage is reviewed. It is a guided testing
+surface, not a notebook-only runner or an authorization to run Kaggriculture.
+
 ### 3. Step 9.1 is complete as a design and source-control artifact
 
 The notebook's step 9.1 called for one versioned, bounded experiment
@@ -91,6 +96,13 @@ components.
 
 ## What is deliberately not built yet
 
+- The [evaluator/](../evaluator/) directory is an intentionally inert framework only. Its
+  `run()` entry point documents the reviewed sequence and raises
+  `NotImplementedError`; it does not read a spec, bind a target, run a game,
+  write a report, or mutate source.
+- No pytest dependency is being introduced for this initial framework stage.
+  The adapter workbench directly verifies the fail-closed entry point; reusable
+  test-suite coverage follows after the first real adapter behavior exists.
 - No real `ExperimentSpec` parser or validator is wired into a runner.
 - No runner in `carrot-tuning-system/` invokes the parent checkpoint evaluator.
 - No generic evidence-packet writer exists yet; the notebook's packet is a

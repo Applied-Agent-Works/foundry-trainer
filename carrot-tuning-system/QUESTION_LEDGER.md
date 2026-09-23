@@ -192,6 +192,36 @@ deterministic suite, checkpoint/audit requirements, and governance boundaries.
 The notebook may explain or load a spec, but it is not the execution authority.
 See the [experiment guide](./experiments/README.md) and [current-state snapshot](./docs/current-state-and-next-slice.md).
 
+### Where does the local inner-loop adapter live?
+
+It belongs in the `evaluator/` package in this project, not in a notebook and
+not as a rewrite of the parent evaluator. That adapter owns specification and
+governance validation, explicit target checks, bounded orchestration, and
+evidence-packet writing. It calls the proven parent binding and checkpoint
+evaluator only after those checks pass. The current
+[`evaluator/runner.py`](./evaluator/runner.py) is an intentionally inert
+framework: it documents the sequence and refuses to run until each stage is
+implemented and reviewed.
+
+### How do we test the first adapter stages before adding pytest?
+
+Use the [local adapter workbench](./notebooks/02_local_inner_loop_adapter.ipynb)
+to call the actual Python entry point and present its result separately from
+the code. At the current fail-closed stage, the useful assertion is that the
+adapter refuses to bind a target, run a simulator, or write a report. We are
+not adding a pytest dependency yet; introduce reusable test-suite coverage
+after the first real behavior, schema and lifecycle validation, is implemented.
+
+### Is the historical experiment JSON generated from a notebook?
+
+No. The [historical specification](./experiments/historical/carrot_investment/seed_opportunity_coarse_v1.json)
+is the source-controlled canonical record, created from the completed local
+coarse-evaluation evidence. The [system-model notebook](./notebooks/01_system_model.ipynb)
+and [adapter workbench](./notebooks/02_local_inner_loop_adapter.ipynb) load it
+for explanation and direct checks. The framework does not read it yet because
+its entry point intentionally stops before implementation; neither notebook
+generates, replaces, or authorizes the record.
+
 ### Why is historical material separate from approved future experiments?
 
 Historical records preserve what was actually run and become regression
