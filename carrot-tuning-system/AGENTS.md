@@ -1,6 +1,8 @@
 # Future-agent continuity requirements
 
-Read [README.md](./README.md) in full before working in this directory.
+Read [README.md](./README.md) and the
+[current-state snapshot](./docs/current-state-and-next-slice.md) in full before
+working in this directory.
 
 This project owner needs detailed continuity documentation, especially after
 technical interruptions. Do not replace reasoning with a terse status summary.

@@ -122,6 +122,17 @@ checkpoint evaluator. Once equivalent direct executions were compared, early
 divergence correctly required a long simulator suffix; gzip trace writing was
 not the explanation. See [timing lesson](./README.md#timing-lesson-that-must-not-be-lost).
 
+### Should experiment inputs use a universal 0–1 control scale?
+
+Not for the first local runner. The declared values already have different
+meanings: some are probabilities, some multipliers, and some coin-scale utility
+terms. A universal normalized number would hide those units and can make the
+approved envelope harder to audit. The initial experiment specification should
+therefore name the parameter and record its actual resolved value. If a later
+human-facing control needs normalization, give each parameter a versioned,
+monotonic mapping with explicit endpoint semantics, and record both the input
+and resolved raw value in the evidence packet.
+
 ### Are the carrot policy’s decisions continuous or threshold-based?
 
 Threshold-based. The investment branch plants only when
@@ -171,6 +182,51 @@ After one immutable baseline cache exists, complete candidate suites can run in
 separate processes because each has independent replay, suffix, clean audit,
 and report output. Four local workers have been demonstrated safely. Do not
 have concurrent workers write the same cache or result file. See [parallelism plan](./README.md#parallelism-plan).
+
+### How are experiments recorded now?
+
+The canonical record is a source-controlled versioned JSON specification,
+validated by [schema v1](./experiments/schema/experiment-spec-v1.schema.json).
+It pins the target fingerprint, graph, one-field candidate envelope,
+deterministic suite, checkpoint/audit requirements, and governance boundaries.
+The notebook may explain or load a spec, but it is not the execution authority.
+See the [experiment guide](./experiments/README.md) and [current-state snapshot](./docs/current-state-and-next-slice.md).
+
+### Why is historical material separate from approved future experiments?
+
+Historical records preserve what was actually run and become regression
+oracles; their presence alone must not authorize a rerun. Draft and approved
+directories serve different purposes: a draft is still being shaped, while an
+approved specification is the only bounded schedule a future runner may
+execute. See the [historical seed-opportunity record](./experiments/historical/carrot_investment/seed_opportunity_coarse_v1.json).
+
+### Is step 9.1 of the system-model notebook fully implemented?
+
+It is complete as a design and source-control artifact: schema v1, a validated
+historical coarse-bracket spec, a narrative, and a historical notebook exist.
+It is not yet a runnable spec-driven evaluator. The next implementation is a
+local loader/validator and runner that reads this JSON and calls the proven
+parent checkpoint evaluator. See [current status and acceptance criteria](./docs/current-state-and-next-slice.md#the-next-narrow-implementation-slice).
+
+### Where are the diagrams, and what are they for?
+
+The [architecture diagrams](./docs/architecture-diagrams.md) are visual
+continuity aids: system authority boundaries, checkpoint/audit sequence,
+outer-loop interaction, conceptual entities, multi-graph integration, and
+experiment lifecycle. They complement the detailed documents; they do not
+override schema or evaluator behavior.
+
+### How should the system-model notebook be read and maintained?
+
+It is an executable explanatory mock, not the execution authority. Each
+substantial concept should have a short description of its purpose and limits,
+focused code that is the source of truth, and—when raw output would obscure the
+idea—a separate presentation-only Markdown view. That view can be cleared or
+hidden without changing the specification or evidence. Add comments in response
+to real reader confusion, especially to explain safety boundaries and why a
+mock does not perform a real policy or evaluator action. See the [notebook
+convention](./README.md#how-to-maintain-explanatory-notebooks) and the
+[system-model notebook](./notebooks/01_system_model.ipynb).
 
 ## Next work
 

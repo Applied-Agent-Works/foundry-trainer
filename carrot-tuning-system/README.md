@@ -20,6 +20,26 @@ For a high-level executable mock of the intended inner loop, outer evals and
 reasoning loop, and graph-integration seam, see the
 [initial system-model notebook](./notebooks/01_system_model.ipynb).
 
+### How to maintain explanatory notebooks
+
+The system-model notebook is a design and teaching artifact, not the canonical
+runner contract. Build and revise it one concept at a time: explain the
+purpose and boundary in Markdown, place the executable source of truth in a
+focused code cell, then use a separate presentation-only cell for a compact,
+human-readable summary. The presentation cell may be cleared or hidden without
+changing the model or evidence it displays. Comments belong where they answer a
+reader's likely “why?” about an invariant, safety boundary, or deliberately
+mocked behavior—not on every line. The reusable `iterative-notebook-authoring`
+skill preserves this convention for future notebook work.
+
+For a visual reference to the system boundaries, execution sequences, core
+records, graph interactions, and experiment lifecycle, see the
+[architecture diagrams](./docs/architecture-diagrams.md).
+
+For the exact line between completed local evidence, current architecture
+artifacts, and the next real implementation slice, see the
+[current-state snapshot](./docs/current-state-and-next-slice.md).
+
 ## Why this document is unusually detailed
 
 This project began after a productive period of design and implementation was
@@ -365,6 +385,9 @@ Generated checkpoints, result payloads, timing logs, and temporary artifacts
 must remain disposable and ignored. Experiment specifications, schemas,
 documentation, and tests are source-controlled.
 
+For the lifecycle and layout of source-controlled experiment contracts, see
+[experiments/README.md](./experiments/README.md).
+
 ## The automatic workflow to implement next
 
 The first automated workflow should implement the inner loop through a
@@ -429,13 +452,15 @@ here, not a universal requirement.
 
 ## Immediate next safe step
 
-Implement the versioned experiment-spec schema and local inner-loop runner in
-this directory that calls the already-proven parent evaluator through an
-explicit target binding. Start with a single human-approved smoke
-specification that reproduces the existing coarse preference bracket and its
+The versioned experiment-spec schema and historical coarse-bracket record now
+exist. Implement the local **spec loader, validator, and inner-loop runner**
+that call the already-proven parent evaluator through an explicit target
+binding. Start with the historical record as a human-authorized reproduction
+smoke test: it must produce the existing coarse classifications and passing
 clean audits. Its output should conform to the evidence-packet contract above.
 
 Do not start Azure provisioning, deploy a Foundry agent, create credentials,
 or add unbounded candidate generation yet. The first human decision is whether
-the local inner-loop workflow reproduces existing evidence clearly enough to
-become the stable foundation for the Foundry evals and reasoning outer loop.
+the local spec-driven inner-loop workflow reproduces existing evidence clearly
+enough to become the stable foundation for the Foundry evals and reasoning
+outer loop.

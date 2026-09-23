@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "experiment_id": "carrot-seed-opportunity-coarse-v1",
+  "lifecycle_status": "historical_reproduction",
+  "decision_graph": {
+    "id": "carrot_investment",
+    "parameter_namespace": "CarrotParameters",
+    "actions": [
+      "invest-and-plant",
+      "preserve-option-do-not-invest"
+    ],
+    "eligibility_summary": "An available carrot planting opportunity with an owned carrot seed and enough remaining season to reach first yield."
+  },
+  "target": {
+    "binding_mode": "explicit_sibling_target",
+    "expected_revision": "6ace5fed9018fef45642b41ea11d0bd741a508a4",
+    "expected_shared_sha256": "9abb01678ad20a30927594a92c5234d8db798c85a2e8bc85391fbb72b4bf5a36",
+    "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
+  },
+  "parameter": {
+    "name": "seed_opportunity_value",
+    "baseline_value": 20.0,
+    "candidate_values": [10.0, 40.0, 60.0, 80.0],
+    "mutation_mode": "in_memory_single_field_override"
+  },
+  "suite": {
+    "opponent_id": "target.agents.carrot.shared.carrot_conveyor_agent",
+    "opponent_deterministic": true,
+    "seeds": [42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
+    "seats": [0, 1],
+    "steps": 720
+  },
+  "evaluation": {
+    "checkpoint_policy": "before_every_decision",
+    "reuse_no_divergence_baseline": true,
+    "clean_audit_required": true,
+    "result_storage": "local_ignored_var_directory"
+  },
+  "purpose": "Historical reproduction of the first coarse static seed-opportunity bracket. It establishes a regression oracle for the first real inner-loop runner; it is not automatic authorization to rerun or modify target policy.",
+  "governance": {
+    "human_decision_required": true,
+    "source_policy_mutation_authorized": false,
+    "candidate_expansion_authorized": false
+  },
+  "historical_expectations": {
+    "baseline_mean_reward": 6469.016666666666,
+    "all_clean_audits_passed": true,
+    "candidates": [
+      {
+        "value": 10.0,
+        "classification": "inert-at-scale",
+        "mean_reward": 6469.016666666666,
+        "mean_paired_reward_delta": 0.0,
+        "clean_audits_passed": 60
+      },
+      {
+        "value": 40.0,
+        "classification": "directional-harm",
+        "mean_reward": 6416.65,
+        "mean_paired_reward_delta": -52.36666666666667,
+        "clean_audits_passed": 60
+      },
+      {
+        "value": 60.0,
+        "classification": "directional-harm",
+        "mean_reward": 5631.283333333334,
+        "mean_paired_reward_delta": -837.7333333333333,
+        "clean_audits_passed": 60
+      },
+      {
+        "value": 80.0,
+        "classification": "directional-harm",
+        "mean_reward": 4845.733333333334,
+        "mean_paired_reward_delta": -1623.2833333333333,
+        "clean_audits_passed": 60
+      }
+    ]
+  },
+  "provenance": {
+    "recorded_from": "../../../../var/results/coarse-preferences-60/summary.json",
+    "notes": "Recorded after the local coarse preference screen. Generated result data is intentionally ignored/disposable; this source-controlled historical spec preserves the experiment contract and aggregate regression expectations."
+  }
+}
