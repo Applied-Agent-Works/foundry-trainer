@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "experiment_id": "carrot-seed-opportunity-baseline-smoke-v1",
+  "lifecycle_status": "approved",
+  "decision_graph": {
+    "id": "carrot_investment",
+    "parameter_namespace": "CarrotParameters",
+    "actions": [
+      "invest-and-plant",
+      "preserve-option-do-not-invest"
+    ],
+    "eligibility_summary": "An available carrot planting opportunity with an owned carrot seed and enough remaining season to reach first yield."
+  },
+  "target": {
+    "binding_mode": "explicit_sibling_target",
+    "expected_revision": "6ace5fed9018fef45642b41ea11d0bd741a508a4",
+    "expected_shared_sha256": "9abb01678ad20a30927594a92c5234d8db798c85a2e8bc85391fbb72b4bf5a36",
+    "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
+  },
+  "parameter": {
+    "name": "seed_opportunity_value",
+    "baseline_value": 20.0,
+    "candidate_values": [10.0, 40.0, 60.0, 80.0],
+    "mutation_mode": "in_memory_single_field_override"
+  },
+  "suite": {
+    "opponent_id": "target.agents.carrot.shared.carrot_conveyor_agent",
+    "opponent_deterministic": true,
+    "seeds": [42],
+    "seats": [0, 1],
+    "steps": 720
+  },
+  "evaluation": {
+    "checkpoint_policy": "before_every_decision",
+    "reuse_no_divergence_baseline": true,
+    "clean_audit_required": true,
+    "result_storage": "local_ignored_var_directory"
+  },
+  "purpose": "Human-approved, smallest matched baseline-cache smoke test for the local inner-loop adapter. It may create and validate only the seed 42 baseline caches in seats 0 and 1 against the pinned target. It does not evaluate candidates, establish aggregate reward evidence, authorize source-policy mutation, or expand the suite.",
+  "governance": {
+    "human_decision_required": true,
+    "source_policy_mutation_authorized": false,
+    "candidate_expansion_authorized": false
+  },
+  "provenance": {
+    "recorded_from": "../../historical/carrot_investment/seed_opportunity_coarse_v1.json",
+    "notes": "A deliberately smaller approved smoke-test contract derived from the historical coarse experiment's target and baseline controls. Its one matched seed (two seats) is a runner-infrastructure check, not a replacement for the historical aggregate evidence."
+  }
+}

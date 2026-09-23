@@ -199,18 +199,231 @@ not as a rewrite of the parent evaluator. That adapter owns specification and
 governance validation, explicit target checks, bounded orchestration, and
 evidence-packet writing. It calls the proven parent binding and checkpoint
 evaluator only after those checks pass. The current
-[`evaluator/runner.py`](./evaluator/runner.py) is an intentionally inert
-framework: it documents the sequence and refuses to run until each stage is
-implemented and reviewed.
+[`evaluator/runner.py`](./evaluator/runner.py) now reads a requested JSON file
+and validates its schema-v1 shape, then binds only the supplied target checkout
+and compares its revision, policy hash, and engine hash to the contract. It
+then enforces lifecycle authorization and the declared local controls before
+baseline-cache or simulator work. Later stages remain separately reviewed.
 
 ### How do we test the first adapter stages before adding pytest?
 
 Use the [local adapter workbench](./notebooks/02_local_inner_loop_adapter.ipynb)
-to call the actual Python entry point and present its result separately from
-the code. At the current fail-closed stage, the useful assertion is that the
-adapter refuses to bind a target, run a simulator, or write a report. We are
-not adding a pytest dependency yet; introduce reusable test-suite coverage
-after the first real behavior, schema and lifecycle validation, is implemented.
+to prototype one narrow function, explain and exercise it, and only then move
+its reviewed form into the actual Python entry point. The first source check
+showed that the historical contract passes schema v1, its recorded target
+fingerprint matches the explicit sibling checkout, and a missing required
+`suite` or changed engine hash is rejected. The same `run()` call then refuses
+the historical record because `historical_reproduction` is archival evidence,
+not rerun permission; it does not run a simulator or write a report. We are
+not adding tests at that early notebook stage; once the adapter accumulated
+several reusable gates, the fast pytest suite below became the complementary
+regression check.
+
+The workbench's first function prototype is now `read_spec`: it reads the
+historical JSON into a value for the later schema gate and distinguishes an
+unreadable file from malformed JSON. It deliberately makes no assertion about
+the contract's shape, lifecycle, or target.
+
+`validate_spec_schema` is the second prototype. It self-checks the checked-in
+Draft 2020-12 schema, then returns a structured result instead of printing raw
+validator diagnostics. The historical contract passes with zero issues; a
+missing required `suite` is represented as a `required` rule failure. This
+still establishes contract shape only—not lifecycle authorization, target
+identity, or a simulator result.
+
+### How do we keep track of the adapter stages?
+
+The [local adapter workbench](./notebooks/02_local_inner_loop_adapter.ipynb)
+contains the implementation checklist. A checked item means its notebook
+prototype was reviewed and the reusable function was moved into
+[`evaluator/runner.py`](./evaluator/runner.py); it does not grant permission to
+run an experiment. The reviewed single-entry baseline materializer is now in
+the source runner, but the runner's top-level `run()` deliberately does not
+orchestrate that side effect yet.
+
+That target prototype now binds the explicit sibling checkout and presents the
+expected and observed Git revision, carrot-policy hash, and engine hash. All
+three match the historical contract. A nonexistent target path becomes a
+structured binding failure; it does not fall back to an ambient directory or
+environment-selected target. It awaits review before being transferred into the
+reusable runner.
+
+The reviewed target and lifecycle functions have now moved into
+[`evaluator/runner.py`](./evaluator/runner.py). The lifecycle function
+interprets only the schema-valid lifecycle status: the historical contract
+returns “not authorized” because it is archival evidence, while an in-memory
+`approved` status returns “authorized for the next local stage.” Neither case
+authorizes source-policy mutation or starts a simulator.
+
+The reviewed local-control function now checks the controls that remain after
+target identity and lifecycle: actual parameter field/default, a nonempty
+unique candidate envelope that excludes the baseline, the fixed opponent,
+matched seed/seat suite, checkpoint/audit settings, and governance locks. The
+historical contract passes every control. An in-memory candidate envelope that
+contains its baseline fails, demonstrating that the check is not merely a
+summary.
+
+The reviewed baseline-cache planner derives a deterministic, content-addressed
+cache group from the target fingerprint, baseline parameter, suite, and
+checkpoint policy. It lists 60 cache paths for the historical suite, but creates
+no directory or cache file and does not run a baseline game.
+
+The reviewed cache-state preflight reads only whether those planned paths are
+present or missing. It finds 60 missing paths in the current local state. A
+present path remains untrusted until a payload-validation stage accepts its
+contents; the preflight does not open a cache or materialize a baseline.
+
+The reviewed structural cache-payload validator validates an already-decoded
+cache mapping against the target fingerprint and its exact planned seed/seat
+match before reuse. Its notebook example is a clearly labeled in-memory
+structural shape, not a cache file or simulator result; changing the example's
+seed makes validation fail.
+
+The reviewed gzip-reader handoff reads a present cache with the parent
+`read_baseline` helper and sends the decoded mapping to that validator. Its
+exercise uses temporary synthetic files that are removed before the cell exits:
+a matching fixture passes while a decoded wrong-seed fixture fails. The parent
+cache module lazy-loads simulator-only imports, so this pure read/write boundary
+remains testable without running Kaggriculture.
+
+The reviewed preparation planner turns the cache state and reader results into
+an explicit plan. It permits reuse only when a present file decoded and passed
+every structural check; every other entry is marked for later materialization
+with a reason. The current historical group has zero reusable entries and 60
+later-materialization decisions. A compact in-memory mixed example demonstrates
+one reuse and two materializations without creating files or running a game.
+
+The reviewed materializer handles exactly one selected missing cache. It
+refuses a non-`materialize` action and refuses to overwrite an existing path
+before it calls the proven baseline evaluator and writer. Focused guard cases
+exercise those two failures without importing or running the simulator. A new
+[approved smallest-matched smoke contract](./experiments/approved/carrot_investment/seed_opportunity_baseline_smoke_v1.json)
+now passes the runner's schema, target, lifecycle, and local-control gates. It
+contains only seed 42, both required seats, and 720 steps; the first selected
+entry is seed 42 / seat 0. It does not authorize candidate evaluation or policy
+source mutation. The sibling `kaggle-environments` checkout is now installed
+editable into the local virtual environment only, leaving both source checkouts
+unchanged. The notebook then executed exactly the first selected action, seed
+42 / seat 0, once. It produced an ignored local gzip baseline cache with 719
+checkpoints and decision/opponent rewards 8849.0 / 8729.0; immediate reopening
+passed all five structural/provenance checks. That is cache-infrastructure
+evidence only, not a candidate comparison, clean audit, aggregate result, or
+policy source change. The next decision still belongs to the human: execute and
+reopen the matching seed 42 / seat 1 cache, or stop with this first verified
+cache boundary. That action has now been approved and executed: it recorded 719
+checkpoints with decision/opponent rewards 8809.0 / 8789.0, and reopening again
+passed all five structural/provenance checks. Both seed-42 seats are now valid
+reusable caches for this exact approved contract. The next reviewed slice is
+bounded candidate checkpoint/replay evaluation with clean audits, not a source
+change or candidate-envelope expansion. The exact one-match workflow, audit
+stop condition, and proposed notebook progression are documented in the
+[candidate evaluation and audit slice](./docs/candidate-evaluation-and-audit-slice.md).
+
+The first notebook gate for that slice now accepts the declared `10.0` override
+and rejects undeclared `25.0` before it can read a cache or start a simulator.
+It is a notebook prototype pending review and has not been promoted into the
+runner; it proves only envelope enforcement, not candidate evidence.
+
+The first fast checkpoint/replay exercise now applies the declared `10.0`
+override to seed 42 / seat 0. It found no action divergence and reused the
+validated baseline outcome with zero suffix actions. Its status is still
+`not-run` for audit, so it is not candidate evidence or a basis for a ranking.
+The next required component is the matching clean full rerun and comparison.
+
+That clean rerun has now completed for `10.0`, seed 42, seat 0. Its 719-action
+independent full run produced the same 8849.0 / 8729.0 outcome as the fast
+result, so this one audit passed. It is audited evidence for one matched game,
+not a two-seat or aggregate conclusion. The next bounded action is the same
+candidate's fast-result/audit pair for seat 1. That pair and the six remaining
+declared pairs have now run as one bounded batch. All eight candidate/seat
+audits passed. Values 10.0, 40.0, and 60.0 reused the baseline in both seats;
+80.0 diverged at turn 107 and used a 612-action restored suffix in both seats.
+These are per-match, one-seed smoke facts—not a mean, ranking, or reason to
+revise the historical aggregate conclusion. The notebook now prototypes a
+strict local smoke evidence packet: exact candidate/seed/seat coverage and
+passing audits are required, per-match fast-path/timing/provenance facts are
+retained, and paired aggregates are labeled descriptive only. The visible
+`80.0` smoke delta therefore cannot override the historical 60-match result or
+authorize a policy change. That evidence shape and its fail-closed immutable
+local writer are now in the reusable adapter. A temporary-fixture
+write/reopen passed, while a second same-path write was refused; no durable
+packet was created. The already-prototyped bounded candidate-evaluation/audit
+wrapper is now in the reusable adapter as well. It rejects undeclared values
+before cache access and refuses a duplicate audit before simulation. The next
+component is orchestration of reviewed components through `run()`, not
+additional candidate values or a source change.
+
+### Is the local-adapter notebook finished, and has pytest earned its keep?
+
+Yes. The [local adapter workbench](./notebooks/02_local_inner_loop_adapter.ipynb)
+has completed its component-design role: its reviewed loader, target/control
+gates, cache boundaries, one-entry materializer, candidate helpers, evidence
+model, and immutable writer are all in [`evaluator/runner.py`](./evaluator/runner.py).
+It should remain a component record rather than grow into an end-to-end log.
+
+The transition to `run()` exposed a needed stop: the existing
+[baseline-only smoke contract](./experiments/approved/carrot_investment/seed_opportunity_baseline_smoke_v1.json)
+explicitly says it does not evaluate candidates. Its candidate fields and the
+prior interactive notebook approvals are not durable authority for an automatic
+full candidate/evidence execution. The next operation needs a new
+source-controlled, human-approved candidate-evidence contract and a new
+end-to-end-run notebook.
+
+Pytest has now earned its keep because multiple reusable safety gates must stay
+aligned as `run()` is wired. It is now the required pre-real-system regression
+gate between a completed component workbench and real-system integration. The
+fast suite in
+[`tests/test_local_inner_loop_adapter.py`](../tests/test_local_inner_loop_adapter.py)
+now exercises declared-value and out-of-suite rejection before cache access,
+validated-cache refusal, duplicate/mismatched-audit refusal before a clean
+rerun, exact evidence coverage, malformed cache/spec input, JSON round-trip,
+aggregate safety, and packet-overwrite refusal. Its synthetic records are only
+contract fixtures, not game evidence. The default command,
+`.venv/bin/python -m pytest -q`, passed 19 tests and deselected the one
+explicitly marked simulator regression; actual Kaggriculture games stay in
+approved smoke commands or notebooks.
+
+### What is the next execution authority after the baseline-only smoke contract?
+
+The human-approved
+[candidate-evidence smoke contract](./experiments/approved/carrot_investment/seed_opportunity_candidate_evidence_smoke_v1.json)
+is a separate bounded authorization for exactly seed 42 in seats 0 and 1, 720 steps, and the
+already-declared `seed_opportunity_value` values 10, 40, 60, and 80. Its future
+operation would require a clean audit for every candidate/match pair and would
+permit one immutable local evidence packet only after all audits pass. It does
+not authorize a source edit, candidate expansion, a ranking, or a historical
+reproduction claim.
+
+The human approved this exact envelope on 2026-09-23. No candidate evaluation
+occurred at approval time. The next artifact is the separate end-to-end notebook
+that wires this contract through `run()`; it must stop on any failed preflight,
+clean audit, or immutable-packet guard. Its
+[first preflight-only section](./notebooks/03_spec_driven_smoke_run.ipynb) is
+deliberately unrun and does not inspect caches or evaluate a candidate yet.
+
+### How should future notebook agents preserve this workflow?
+
+The reusable `iterative-notebook-authoring` and
+`notebook-first-component-development` skills have been revised from this work.
+They now give a constrained agent an explicit sequence: inspect the real
+workspace and its instructions first; change one bounded concept; separate
+model code from presentation; test a meaningful guard before external work;
+wait for explicit review before source promotion; and record what actually ran.
+They also require an agent to stop when a contract's purpose/lifecycle conflicts
+with a technically possible operation, to use temporary artifacts for writer
+tests, to avoid fabricating stored notebook output, and to start a new notebook
+when the work changes from component design to an approved end-to-end run.
+
+### Can the adapter be debugged directly without a notebook?
+
+Yes. [`evaluator/runner.py`](./evaluator/runner.py) has a small direct command
+entry point for its current contract-and-target boundary. From the repository
+root, run `PYTHONPATH=src:carrot-tuning-system .venv/bin/python
+carrot-tuning-system/evaluator/runner.py <spec-path> --target-root
+../kaggriculture`, or use VS Code's Run Python File/debugger with those
+arguments. The historical record deliberately stops at lifecycle authorization
+and before simulation, making breakpoints in the loader, schema checks,
+fingerprint comparison, and lifecycle gate safe.
 
 ### Is the historical experiment JSON generated from a notebook?
 
@@ -218,8 +431,11 @@ No. The [historical specification](./experiments/historical/carrot_investment/se
 is the source-controlled canonical record, created from the completed local
 coarse-evaluation evidence. The [system-model notebook](./notebooks/01_system_model.ipynb)
 and [adapter workbench](./notebooks/02_local_inner_loop_adapter.ipynb) load it
-for explanation and direct checks. The framework does not read it yet because
-its entry point intentionally stops before implementation; neither notebook
+for explanation and direct checks. The real adapter now reads and validates it
+before checking the target fingerprint, lifecycle authorization, and local
+controls, baseline-cache planning, cache-state inspection, structural
+cache-payload validation, gzip cache reading, and cache preparation decisions,
+then stops before baseline-cache creation or simulation; neither notebook
 generates, replaces, or authorizes the record.
 
 ### Why is historical material separate from approved future experiments?

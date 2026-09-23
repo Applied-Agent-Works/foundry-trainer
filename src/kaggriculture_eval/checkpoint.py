@@ -10,9 +10,6 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any, Callable
 
-from kaggle_environments import make
-from kaggle_environments.utils import structify
-
 from .binding import TargetBinding
 
 
@@ -45,6 +42,11 @@ def _configuration(steps: int, seed: int) -> dict[str, int]:
 
 
 def _environment(steps: int, seed: int) -> Any:
+    # Cache serialization helpers do not need the simulator package.  Keep this
+    # import local so read_baseline/write_baseline remain usable for cache
+    # inspection in a lightweight environment.
+    from kaggle_environments import make
+
     environment = make("kaggriculture", configuration=_configuration(steps, seed), debug=True)
     environment.reset(2)
     # The game intentionally scrubs configuration.seed after initialization.
@@ -127,12 +129,14 @@ def write_baseline(cache: dict[str, Any], destination: Path) -> None:
 def read_baseline(source: Path) -> dict[str, Any]:
     with gzip.open(source, "rt", encoding="utf-8") as stream:
         cache = json.load(stream)
-    if cache.get("schema_version") != CACHE_SCHEMA_VERSION:
+    if not isinstance(cache, dict) or cache.get("schema_version") != CACHE_SCHEMA_VERSION:
         raise ValueError("unsupported baseline cache schema")
     return cache
 
 
 def _restore_environment(cache: dict[str, Any], checkpoint_state: list[dict[str, Any]]) -> Any:
+    from kaggle_environments.utils import structify
+
     match = cache["match"]
     environment = _environment(match["steps"], match["seed"])
     environment.state = structify(checkpoint_state)

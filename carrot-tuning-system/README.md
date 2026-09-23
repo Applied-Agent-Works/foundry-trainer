@@ -20,8 +20,8 @@ For a high-level executable mock of the intended inner loop, outer evals and
 reasoning loop, and graph-integration seam, see the
 [initial system-model notebook](./notebooks/01_system_model.ipynb).
 
-For the step-by-step implementation workbench that exercises the real local
-adapter framework, see the
+For the step-by-step implementation workbench that prototypes and reviews each
+real local-adapter function before it is moved into the reusable source, see the
 [local inner-loop adapter notebook](./notebooks/02_local_inner_loop_adapter.ipynb).
 
 The source-controlled historical JSON remains the canonical experiment record.
@@ -39,6 +39,12 @@ changing the model or evidence it displays. Comments belong where they answer a
 reader's likely “why?” about an invariant, safety boundary, or deliberately
 mocked behavior—not on every line. The reusable `iterative-notebook-authoring`
 skill preserves this convention for future notebook work.
+
+For the real local adapter, use the same pattern more deliberately: prototype
+one small function in the workbench notebook, exercise it with the checked-in
+contract, and decide which facts deserve a separate presentation cell. Only
+then move the reviewed function into `evaluator/runner.py`, where `run()`
+orchestrates functions but does not duplicate notebook explanation or output.
 
 For a visual reference to the system boundaries, execution sequences, core
 records, graph interactions, and experiment lifecycle, see the
@@ -461,23 +467,118 @@ here, not a universal requirement.
 ## Immediate next safe step
 
 The versioned experiment-spec schema and historical coarse-bracket record now
-exist. Implement the local **spec loader, validator, and inner-loop runner**
+exist. The local **spec loader, validator, and inner-loop runner** now enforce
 that call the already-proven parent evaluator through an explicit target
-binding. Start with the historical record as a human-authorized reproduction
-smoke test: it must produce the existing coarse classifications and passing
-clean audits. Its output should conform to the evidence-packet contract above.
+binding. Start with the historical record as a regression
+oracle: it preserves the expected coarse classifications and clean-audit facts,
+but its `historical_reproduction` lifecycle never authorizes an automatic
+rerun. A separately approved future reproduction contract must produce those
+classifications and audits. Its output should conform to the evidence-packet
+contract above.
 
-An intentionally inert framework now lives in [evaluator/](./evaluator/). It defines the
-request boundary and the reviewed implementation sequence, but its only entry
-point raises `NotImplementedError`: it does not read a specification, bind a
-target, call the simulator, write a report, or modify source. The first
-implementation task is therefore schema and lifecycle validation, with a
-reviewed direct check, before any evaluator call is added.
+The local adapter in [evaluator/](./evaluator/) now reads a requested JSON
+specification, validates its complete shape against the checked-in Draft
+2020-12 schema, binds only the explicitly supplied Kaggriculture checkout, and
+enforces lifecycle authorization. It compares the recorded Git revision and
+both source hashes, then rejects archival, draft, or retired specifications
+before a simulator could run. It also validates the declared local controls:
+the policy field and baseline default, candidate envelope, deterministic suite,
+checkpoint/audit settings, and governance locks. It derives deterministic
+baseline-cache identities and paths, performs read-only cache-state preflight,
+which classifies planned paths as present or missing without opening them. The
+runner can structurally validate an already-decoded cache payload against its
+target and planned match, and it can read a present gzip cache through the
+parent cache reader. It records a fail-closed reuse/materialize preparation
+decision. The reviewed source runner now also exposes a one-entry materializer:
+it accepts only a previous `materialize` action, refuses to overwrite a cache,
+then delegates exactly that match to the proven parent baseline evaluator and
+writer. `run()` deliberately does not orchestrate that side effect yet.
 
-For these initial stages, use the adapter workbench notebook to exercise the
-real Python entry point directly and inspect its result. We are deliberately
-not introducing a pytest dependency yet; reusable pytest coverage can follow
-once the first behavior beyond the fail-closed framework is implemented.
+A separate [approved smallest-matched smoke contract](./experiments/approved/carrot_investment/seed_opportunity_baseline_smoke_v1.json)
+now passes the schema, explicit target fingerprint, lifecycle, and local-control
+gates. It bounds the first cache-writing exercise to seed 42 in both seats at
+720 steps and materializes entries one at a time. The sibling
+[`kaggle-environments`](../../kaggle-environments) checkout is installed editable
+into the local `.venv`; neither source checkout was modified. The first action,
+seed 42 / seat 0, has now run once and produced an ignored local baseline cache.
+It recorded 719 checkpoints with decision/opponent rewards 8849.0 / 8729.0, and
+the runner reopened the gzip file and passed all five structural/provenance
+checks. The matching seed 42 / seat 1 action has now also run once, recorded
+719 checkpoints, produced rewards 8809.0 / 8789.0, and passed the same five
+reopen checks. Both caches are ignored local artifacts and are now reusable for
+this exact contract. This is cache-infrastructure evidence, not a candidate
+result, aggregate claim, source modification, or report. The next reviewed
+implementation slice is checkpoint/replay candidate evaluation with a required
+clean audit for every declared candidate match. See the [candidate evaluation
+and audit slice](./docs/candidate-evaluation-and-audit-slice.md) before
+implementing that boundary. The first notebook-only fast exercise has now run
+the declared `10.0` override against seed 42 / seat 0: it found no action
+divergence, reused the cached baseline outcome, and correctly reports its audit
+as `not-run`. This is not a candidate conclusion; the next required component
+is its matching clean full-run audit. That audit has now run for the exact same
+`10.0`, seed-42/seat-0 match: its independent 719-action full rerun produced
+the identical 8849.0 / 8729.0 outcome, so this one fast result has a passing
+audit. It is still only one seat and one declared candidate; the next bounded
+action is the matching seat-1 fast-result/audit pair. That pair and the six
+remaining declared candidate/seat pairs have now completed as one bounded
+batch: all eight candidate/seat audits passed. Values 10, 40, and 60 reused
+their respective baseline outcomes in both seats; 80 first diverged at turn 107
+and ran 612-action restored suffixes in both seats. These are per-match,
+one-seed smoke facts only—not a mean, ranking, or replacement for the
+historical 60-match aggregate. The notebook now has an in-memory local smoke
+evidence-packet prototype that verifies exact approved coverage and passing
+audits, retains per-match provenance/timing facts, and produces descriptive
+paired aggregates. Its one-seed aggregates are explicitly non-conclusive: they
+are not a ranking, recommendation, or source-policy authority. That reviewed
+shape and a fail-closed immutable JSON writer now live in the reusable adapter.
+A temporary-fixture exercise wrote and reopened one packet, then confirmed a
+second write to the same destination is refused; it did not create a durable
+smoke artifact. The reviewed declared-candidate selection, validated-cache fast
+evaluation, and mandatory clean-audit helpers now also live in the adapter.
+Their source-level guard exercise confirms that an undeclared value fails
+before cache access and an already-audited result fails before a duplicate
+clean rerun. An attempted transition to `run()` identified a remaining
+authority boundary: the current approved smoke contract says it may create
+baseline caches and does not authorize candidate evaluation. The next artifact
+must therefore be a new, separately approved candidate-evidence smoke contract;
+`run()` must not infer authority from candidate-value fields or prior notebook
+work. The component workbench is now complete; the next review is that new
+contract and a separate end-to-end-run notebook.
+
+The reusable source now has its required **pre-real-system regression gate**:
+a fast, simulator-free pytest suite in
+[`tests/test_local_inner_loop_adapter.py`](../tests/test_local_inner_loop_adapter.py).
+It covers declared-value and matched-suite rejection before cache access,
+validated-cache requirements, duplicate/mismatched-audit refusal before a clean
+rerun, exact evidence coverage, malformed cache/spec input, packet JSON
+round-trip, aggregate/audit safety, and overwrite refusal. Install the local
+test extra with `.venv/bin/python -m pip install -e '.[test]'`, then run
+`.venv/bin/python -m pytest -q`. The default suite excludes the explicitly
+marked real-simulator regression, so it remains a fast source-boundary check;
+actual Kaggriculture matches still belong in explicitly approved smoke work.
+Passing this gate preserves the reviewed source boundaries during integration;
+it does not grant candidate-execution authority or create simulator evidence.
+The next execution envelope is the separately human-approved
+[candidate-evidence smoke contract](./experiments/approved/carrot_investment/seed_opportunity_candidate_evidence_smoke_v1.json).
+It is intentionally separate from the baseline-only approval. It authorizes
+only its four declared candidate values across seed 42 and both seats, with a
+required clean audit for every match and one immutable packet only after all
+audits pass. No simulator work occurred when this contract was promoted. The
+new [spec-driven smoke-run notebook](./notebooks/03_spec_driven_smoke_run.ipynb)
+begins with a deliberately unrun, preflight-only section; its later cache,
+evaluation, audit, and packet stages remain separate review gates.
+
+During this implementation stage, the adapter module is directly runnable for
+local debugging. From the repository root, run
+`PYTHONPATH=src:carrot-tuning-system .venv/bin/python carrot-tuning-system/evaluator/runner.py <spec-path> --target-root ../kaggriculture`.
+For the historical record it prints the schema and target-fingerprint results,
+then deliberately reports lifecycle denial because an archival record is not
+rerun permission; it is not a simulator command.
+
+For these initial stages, use the adapter workbench notebook to prototype each
+function before moving its reviewed form into the real Python entry point.
+Pytest now protects the reviewed reusable boundaries; the notebook remains the
+human-readable component-design record rather than a replacement for tests.
 
 Do not start Azure provisioning, deploy a Foundry agent, create credentials,
 or add unbounded candidate generation yet. The first human decision is whether

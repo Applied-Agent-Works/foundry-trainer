@@ -3,12 +3,15 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from kaggriculture_eval.binding import bind_target
 from kaggriculture_eval.checkpoint import audit_cached, baseline_match, evaluate_cached
 
 
+@pytest.mark.simulator
 def test_checkpoint_resume_matches_clean_reruns() -> None:
     """Prove reuse plus restored early and late suffixes on one deterministic match."""
     binding = bind_target()

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "experiment_id": "carrot-seed-opportunity-candidate-evidence-smoke-v1",
+  "lifecycle_status": "approved",
+  "decision_graph": {
+    "id": "carrot_investment",
+    "parameter_namespace": "CarrotParameters",
+    "actions": [
+      "invest-and-plant",
+      "preserve-option-do-not-invest"
+    ],
+    "eligibility_summary": "An available carrot planting opportunity with an owned carrot seed and enough remaining season to reach first yield."
+  },
+  "target": {
+    "binding_mode": "explicit_sibling_target",
+    "expected_revision": "6ace5fed9018fef45642b41ea11d0bd741a508a4",
+    "expected_shared_sha256": "9abb01678ad20a30927594a92c5234d8db798c85a2e8bc85391fbb72b4bf5a36",
+    "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
+  },
+  "parameter": {
+    "name": "seed_opportunity_value",
+    "baseline_value": 20.0,
+    "candidate_values": [10.0, 40.0, 60.0, 80.0],
+    "mutation_mode": "in_memory_single_field_override"
+  },
+  "suite": {
+    "opponent_id": "target.agents.carrot.shared.carrot_conveyor_agent",
+    "opponent_deterministic": true,
+    "seeds": [42],
+    "seats": [0, 1],
+    "steps": 720
+  },
+  "evaluation": {
+    "checkpoint_policy": "before_every_decision",
+    "reuse_no_divergence_baseline": true,
+    "clean_audit_required": true,
+    "result_storage": "local_ignored_var_directory"
+  },
+  "purpose": "Human-approved smallest matched candidate-evidence smoke test for the local inner-loop adapter. It may evaluate only the declared seed_opportunity_value candidates (10.0, 40.0, 60.0, and 80.0) against the already validated seed 42 baseline caches in seats 0 and 1 at the pinned target. Every fast result requires a matching clean audit. It may write one new immutable local evidence packet only after every required audit passes. This one-seed smoke result is descriptive infrastructure evidence, not a ranking, a replacement for the historical 60-match result, an authorization to expand the envelope, or an authorization to alter policy source.",
+  "governance": {
+    "human_decision_required": true,
+    "source_policy_mutation_authorized": false,
+    "candidate_expansion_authorized": false
+  },
+  "provenance": {
+    "recorded_from": "./seed_opportunity_baseline_smoke_v1.json",
+    "notes": "Approved successor to the baseline-only smoke contract. It retains exactly the pinned target, baseline value, four declared candidates, deterministic opponent, one seed, two seats, and 720-step suite from that contract. The human approved this specific candidate-evidence envelope on 2026-09-23. Earlier interactive notebook work is supporting context, not the execution authority; this approved source-controlled contract is the bounded authorization."
+  }
+}
