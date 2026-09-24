@@ -565,15 +565,135 @@ only its four declared candidate values across seed 42 and both seats, with a
 required clean audit for every match and one immutable packet only after all
 audits pass. No simulator work occurred when this contract was promoted. The
 new [spec-driven smoke-run notebook](./notebooks/03_spec_driven_smoke_run.ipynb)
-begins with a deliberately unrun, preflight-only section; its later cache,
-evaluation, audit, and packet stages remain separate review gates.
+now has passing contract-preflight and baseline-cache-reuse gates, followed by
+the one authorized eight-match batch. The source `run()` method repeats those
+gates with separate cache/report roots, then revalidates each cache immediately
+before it evaluates only the declared 10/40/60/80 values for seed 42 in both
+seats. Every fast result received its required clean audit: 10, 40, and 60
+reused their baselines in both seats, while 80 first diverged at turn 107 and
+used a 612-action restored suffix in both seats. All eight audits passed. No
+cache or source file changed. The notebook's reviewed pure builder has now
+accepted the in-memory batch and produced an exact-coverage descriptive packet:
+each candidate has two passing audited matches; 80 has a +937.0 mean paired
+delta on this one-seed smoke sample, while 10/40/60 are unchanged. This does
+not turn that value into a ranking or recommendation. The packet has not been
+written, and no interpretation, candidate expansion, or policy mutation has
+occurred. The immutable local packet has now been exclusively created under the
+ignored report directory. Its first notebook reopen check exposed a harmless
+representation mismatch—frozen dataclass tuples become JSON arrays—not a
+content mismatch. The corrected cell compared canonical JSON bytes, reopened
+the exact in-memory packet successfully, verified 6,105 bytes and SHA-256
+`3c9d7f17ea48be41d821c5d6832fa61eb8473645c0f5688877a6812cebc3505a`, and
+proved the second write was refused. The smoke notebook is therefore complete.
+It supplies local infrastructure evidence only; the next action remains a
+human choice to stop or approve a separate bounded confirmation contract.
+
+The completed smoke-run notebook now hands off to the separate
+[evaluator-completion workbench](./notebooks/04_evaluator_completion.ipynb).
+That workbench continues notebook-first development for the remaining reusable
+evaluator capabilities: source-level completion/result orchestration,
+baseline-only preparation, repeat semantics, and a clear command/API boundary.
+The owner has authorized this bounded development phase to progress through
+prototypes, promotion, and simulator-free tests without a separate approval for
+each small component. A new/revised experiment contract, an unapproved
+simulator or baseline run, a durable-artifact overwrite/reuse decision, a
+source-policy change, scope expansion, or failed-guard recovery remains a
+human stop point.
+
+The first evaluator-completion component is now promoted: the source-level
+[`complete_local_candidate_batch`](./evaluator/runner.py) seam consumes an
+already-audited [`LocalCandidateBatch`](./evaluator/runner.py), validates its
+exact coverage into a descriptive packet, and delegates its only side effect to
+the existing exclusive writer. It returns a frozen completed-run record with
+the original batch, packet, and write receipt. It does not rerun a simulator,
+materialize a cache, read a new contract, interpret the evidence, or overwrite
+a packet. Its synthetic temporary-directory success and guard cases are now in
+the fast suite: incomplete evidence creates no evidence directory and a second
+completion call is refused. `run()` intentionally still returns the audited
+batch; wiring the completion seam into a user-facing command remains a later,
+separate evaluator-completion item. The default fast suite now reports 25
+passed with the one real-simulator regression deselected.
+
+The next Book 4 review found a necessary fail-closed boundary for baseline-only
+preparation. Schema v1 has no machine-readable operation authorization: the
+baseline-only and candidate-evidence contracts differ in `purpose` prose, not
+in a field an orchestrator can safely enforce. The evaluator must not infer
+permission from prose, experiment IDs, or a candidate envelope. The workbench
+therefore records a guard that refuses baseline materialization before the
+simulator boundary. A future baseline-preparation capability needs a new,
+versioned schema/contract that explicitly declares its allowed operation; that
+is a human-owned contract decision, not a backward change to completed smoke
+records.
+
+That authorization model is now implemented without changing a completed
+contract: schema v1 accepts an optional `execution_authorization.operations`
+field, and the reusable evaluator gate fails closed when the requested
+operation is missing. The new
+[baseline-preparation v2 contract](./experiments/approved/carrot_investment/seed_opportunity_baseline_preparation_v2.json)
+now lists only `baseline_cache_preparation`, is explicitly approved, and
+anchors reuse to the original baseline cache identity. It rejects the
+candidate-evidence operation. This resolves the contract-shape ambiguity while
+preventing duplicate baseline work when the original cache group is valid.
+
+That planner is now implemented as
+[`plan_baseline_preparation`](./evaluator/runner.py). It returns a frozen
+selection record only after schema, target, approved-lifecycle, explicit
+operation, controls, and every present-cache validation gate pass. It chooses
+at most the first missing cache action in contract order. A present invalid
+cache stops for diagnosis rather than becoming overwrite permission, and the
+method never calls the materializer. The Book 4 exercise uses a synthetic
+approved fixture and temporary paths; no cache or simulator action occurred.
+The fast suite now has 29 passing tests and one deselected simulator regression.
+Repeat/existing-artifact semantics are the next evaluator component.
+
+Repeat semantics are now explicit and read-only. The new
+[`inspect_local_smoke_evidence_packet_repeat`](./evaluator/runner.py) reports
+`missing`, `exact_match`, or `conflict` for a proposed immutable packet
+destination. An exact match is surfaced for review, not treated as a rerun
+success or implicit reuse; a conflict is a stop. The exclusive writer still
+refuses either existing state. The Book 4 fixture uses only a temporary
+directory and a synthetic packet. The fast suite now has 30 passing tests and
+one deselected simulator regression. The final evaluator-completion slice is a
+clear command/API boundary that cannot accidentally run a simulator.
+
+That final boundary is now complete. The CLI exposes only `preflight` and
+`baseline-plan`; there is intentionally no broad `run`, `materialize`, or
+packet-write command. The first reads/schema-checks a contract and may validate
+its target; the second fully gates and selects at most one cache action, but
+does not materialize it. The public adapter methods retain their narrower
+source-level roles. The Book 4 preflight exercise uses the existing approved
+contract and stops after lifecycle authorization. The default suite now has 32
+passing tests and one deselected real-simulator regression. Book 4 is complete
+as evaluator infrastructure; it produced no new game evidence.
+
+For the eventual automated workflow, the owner has chosen **deferred human
+review**, not invisible autonomy: within a predeclared automation envelope, an
+agent may make a bounded decision and proceed, but it must emit a review record
+showing the selected option, inputs/evidence, alternatives, authority,
+artifacts/side effects, and `review_status: pending_human_review`. Those flags
+are gathered for review afterward. This does not override the existing stops
+for undeclared execution, immutable-artifact overwrite/reuse, policy-source
+mutation, experiment expansion, or failed-guard recovery.
+
+Each pending review must also appear as an unchecked Markdown task—for example,
+`- [ ] Review automated decision: approve the selected cache action`—in the
+notebook or review ledger. It is checked only when the human review and its
+disposition have been recorded.
+
+The notebook-first workflow is what makes that review practical: each flagged
+choice must have a readable explanation, focused source behavior, a separate
+hideable result view, and the meaningful guard cases beside it. The reviewer
+should be able to verify or alter a choice from that context rather than infer
+it from opaque agent reasoning or raw logs.
 
 During this implementation stage, the adapter module is directly runnable for
 local debugging. From the repository root, run
-`PYTHONPATH=src:carrot-tuning-system .venv/bin/python carrot-tuning-system/evaluator/runner.py <spec-path> --target-root ../kaggriculture`.
+`PYTHONPATH=src:carrot-tuning-system .venv/bin/python carrot-tuning-system/evaluator/runner.py preflight <spec-path> --target-root ../kaggriculture`.
 For the historical record it prints the schema and target-fingerprint results,
 then deliberately reports lifecycle denial because an archival record is not
-rerun permission; it is not a simulator command.
+rerun permission; it is not a simulator command. Run
+`... runner.py baseline-plan <spec-path> --target-root ../kaggriculture --cache-root var/carrot-tuning-system`
+only to inspect a baseline-preparation plan; it has no cache-write mode.
 
 For these initial stages, use the adapter workbench notebook to prototype each
 function before moving its reviewed form into the real Python entry point.

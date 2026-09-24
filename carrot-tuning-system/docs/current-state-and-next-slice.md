@@ -232,9 +232,146 @@ workbench. It authorizes only the specified local candidate/evidence operation;
 no simulator work occurred at approval time. The next implementation artifact
 is the separate end-to-end-run notebook that wires this exact contract through
 `run()` and stops on any failed preflight, audit, or packet-write guard. Its
-new [first preflight section](../notebooks/03_spec_driven_smoke_run.ipynb) is
-intentionally unrun and cannot evaluate a candidate; cache inspection is the
-next review gate.
+new [preflight and cache section](../notebooks/03_spec_driven_smoke_run.ipynb)
+has now run only read-only gates: the contract passed preflight and both
+seed-42 caches decoded and passed structural/provenance validation. The
+contract explicitly anchors that reuse to the baseline-only contract identity.
+The source `run()` orchestration is now complete for the bounded batch: it
+returns only after each cache has been revalidated immediately before use and
+each of the eight declared candidate/seat pairs has completed its clean audit.
+The exact one-seed batch ran once. Values 10.0, 40.0, and 60.0 reused their
+baseline outcome in both seats; 80.0 first diverged at turn 107 and ran a
+612-action restored suffix in both seats. All eight clean audits passed. This
+is one-seed smoke evidence only. The pure packet builder has now accepted the
+real in-memory batch and verified exact eight-match audited coverage before it
+created descriptive aggregates. Values 10.0, 40.0, and 60.0 each have a mean
+paired delta of 0.0; 80.0 has +937.0 across its two matches, with two divergent
+matches and 1,224 total suffix actions. These facts are neither a ranking nor a
+recommendation. No interpretation, source-policy mutation, candidate expansion,
+or durable packet has occurred. The next review gate is immutable local packet
+writing and reopen/overwrite-refusal verification. The writer created the
+contract-named ignored local JSON file exclusively. Its initial notebook
+verification compared a deserialized JSON list with an in-memory tuple and
+raised after the write; the corrected cell normalized through canonical JSON,
+then reopened the exact in-memory packet successfully. It verified 6,105 bytes
+and SHA-256 `3c9d7f17ea48be41d821c5d6832fa61eb8473645c0f5688877a6812cebc3505a`,
+and a second write was refused. The end-to-end smoke notebook is complete.
+Its narrow outcome is durable local infrastructure evidence, not a candidate
+ranking, a replacement for historical evidence, or a source-policy decision.
+The next human-owned choice is to stop here or approve a separate versioned
+confirmation envelope.
+
+## Evaluator completion phase
+
+The smoke-run notebook has completed its execution role. The next local work is
+the [evaluator-completion workbench](../notebooks/04_evaluator_completion.ipynb),
+which begins by characterizing the current source boundary: `run()` returns an
+audited `LocalCandidateBatch`, while exact-coverage packet construction and
+immutable writing remain separately reviewed source helpers. The first
+completion component will make that handoff explicit in reusable source without
+rerunning the smoke suite or touching its existing packet.
+
+That first completion component is now complete. The reusable
+[`complete_local_candidate_batch`](../evaluator/runner.py) function accepts an
+already-audited `LocalCandidateBatch`, builds the exact-coverage descriptive
+packet from its retained preflight/baseline/audit facts, and invokes the
+existing immutable writer once. It returns a frozen completed-run record that
+retains the input batch, packet, and writer receipt. Packet validation precedes
+directory creation, so an incomplete batch cannot create an evidence directory;
+an already-existing packet destination is refused rather than overwritten. The
+notebook exercises this only with synthetic results in a temporary directory.
+No simulator ran, cache was created, durable smoke packet was touched, or
+interpretation was made. `run()` deliberately remains an audited-batch boundary
+until the later command/API and repeat-semantics design is complete. The fast
+simulator-free suite now has 25 passing tests and one explicitly deselected
+real-simulator regression.
+
+The attempted next component—baseline-only preparation orchestration—has an
+intentional contract-model stop. Schema v1 contains no machine-readable field
+for operation authority. The completed baseline-only and candidate-evidence
+contracts describe their differing permissions only in natural-language
+`purpose` fields, and the evaluator must not parse prose or recognize an ID as
+an authorization shortcut. The Book 4 prototype therefore refuses operation
+authority before a materializer can be reached. No simulator, cache creation,
+or source change occurred. The next material decision is whether to introduce
+a new versioned schema and contract that declares an explicit baseline-cache
+preparation operation; completed contracts remain immutable either way.
+
+The owner approved that contract-model improvement. Schema v1 now accepts an
+optional machine-readable `execution_authorization.operations` list and the
+source evaluator exposes a fail-closed operation gate. Existing completed
+contracts were not edited, so their absent field grants nothing. A new
+[baseline-preparation v2 contract](../experiments/approved/carrot_investment/seed_opportunity_baseline_preparation_v2.json)
+declares only `baseline_cache_preparation`, is now approved, and rejects
+`candidate_evidence_run`. Its explicit baseline-cache anchor points to the
+original smoke cache identity. The real read-only plan decoded and validated
+both seed-42 caches as reusable, selecting no materialization action; no
+simulator or cache write occurred. The schema and source tests cover missing,
+allowed, and denied operation authority.
+
+The planning-only baseline-preparation orchestrator is now present in source.
+[`LocalInnerLoopAdapter.plan_baseline_preparation`](../evaluator/runner.py)
+requires schema validation, explicit target binding, approved lifecycle,
+`baseline_cache_preparation` authorization, local controls, and validation of
+every present cache. It returns a frozen selection containing at most the first
+missing seed/seat action in contract order. A present invalid cache is a hard
+diagnostic stop and cannot be replaced; the materializer remains unwired, so
+the planner cannot create a cache. Notebook and test exercises use only
+synthetic approved fixtures and temporary paths. The default suite reports 29
+passing tests and one deselected real-simulator regression. The next component
+is explicit repeat/existing-artifact semantics for immutable evidence packets.
+
+That repeat boundary is now implemented as a read-only inspection helper.
+[`inspect_local_smoke_evidence_packet_repeat`](../evaluator/runner.py) compares
+the expected canonical bytes with a contract-named destination and reports
+`missing`, `exact_match`, or `conflict`. Exact bytes are not silently reused as
+a rerun success, and differing bytes are a stop; the exclusive writer continues
+to refuse every pre-existing destination. The Book 4 exercise uses temporary
+synthetic evidence only, with no real packet inspection or modification. The
+default suite now has 30 passing tests and one deselected real-simulator
+regression. The final remaining completion component is a clear command/API
+boundary with those same fail-closed distinctions.
+
+The evaluator-completion workbench is now complete. Its final component exposes
+only two CLI modes: `preflight` and `baseline-plan`. Neither has a simulator,
+materializer, candidate-evaluation, or packet-write path. `preflight` stops
+after the requested read/schema/lifecycle and optional target/control gates;
+`baseline-plan` requires the fully gated baseline-preparation authority but
+returns only one selected action or an explicit refusal. The notebook exercises
+the real approved-contract preflight and verifies the command list, while the
+source tests reject a nonexistent broad `run` command. The default suite now
+has 32 passing tests and one deselected real-simulator regression. This closes
+the evaluator as reusable infrastructure; it does not authorize new execution
+or create new game evidence.
+
+The owner also decided how this work should later behave under full automation:
+eligible bounded decisions may proceed without an immediate pause, but each
+must create a pending human-review record with its choice, evidence/contract
+inputs, alternatives, authority, effects, and changed artifacts. Review flags
+are not retroactive authority and do not relax the hard stops for undeclared
+execution, overwrites/reuse, source-policy edits, scope expansion, or failed
+guard recovery. The notebook skills now carry this rule for future agents.
+
+The owner has granted a bounded phase-level autonomy envelope for this evaluator
+work. Agents may move through explanatory notebooks, pure/in-memory prototypes,
+source promotion, and simulator-free regression checks without asking for every
+small component. They must still stop for a new/revised contract, a simulator
+or baseline action not already approved, durable-artifact overwrite/reuse
+semantics, source-policy mutation, scope expansion, or failed-guard recovery.
+This replaces repetitive review with explicit material decision points; it does
+not authorize silent scope growth.
+
+The packet-builder section is now present in the end-to-end notebook. It calls
+the already-reviewed pure source builder with the in-memory completed batch and
+has a separate hideable renderer for the resulting per-candidate descriptive
+facts. It deliberately stops with a clear kernel-state error rather than
+silently rerunning the simulator if `CANDIDATE_BATCH` is unavailable after a
+notebook restart. The source-level fixture tests continue to exercise the
+builder's success, incomplete/duplicate coverage, failed-audit, wrong-target,
+and writer-safety guards. The actual packet cell has now run in the notebook
+kernel holding the completed batch and its hideable renderer displays the
+validated descriptive facts. It still does not write a file; a restarted kernel
+must not silently rerun the simulator merely to recreate the transient object.
 
 ### 3. Step 9.1 is complete as a design and source-control artifact
 

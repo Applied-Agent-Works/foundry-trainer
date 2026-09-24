@@ -36,6 +36,7 @@
     "clean_audit_required": true,
     "result_storage": "local_ignored_var_directory"
   },
+  "baseline_cache_contract_id": "carrot-seed-opportunity-baseline-smoke-v1",
   "purpose": "Human-approved smallest matched candidate-evidence smoke test for the local inner-loop adapter. It may evaluate only the declared seed_opportunity_value candidates (10.0, 40.0, 60.0, and 80.0) against the already validated seed 42 baseline caches in seats 0 and 1 at the pinned target. Every fast result requires a matching clean audit. It may write one new immutable local evidence packet only after every required audit passes. This one-seed smoke result is descriptive infrastructure evidence, not a ranking, a replacement for the historical 60-match result, an authorization to expand the envelope, or an authorization to alter policy source.",
   "governance": {
     "human_decision_required": true,

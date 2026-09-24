@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "experiment_id": "carrot-seed-opportunity-baseline-preparation-v2",
+  "lifecycle_status": "approved",
+  "baseline_cache_contract_id": "carrot-seed-opportunity-baseline-smoke-v1",
+  "execution_authorization": {
+    "operations": ["baseline_cache_preparation"]
+  },
+  "decision_graph": {
+    "id": "carrot_investment",
+    "parameter_namespace": "CarrotParameters",
+    "actions": [
+      "invest-and-plant",
+      "preserve-option-do-not-invest"
+    ],
+    "eligibility_summary": "An available carrot planting opportunity with an owned carrot seed and enough remaining season to reach first yield."
+  },
+  "target": {
+    "binding_mode": "explicit_sibling_target",
+    "expected_revision": "6ace5fed9018fef45642b41ea11d0bd741a508a4",
+    "expected_shared_sha256": "9abb01678ad20a30927594a92c5234d8db798c85a2e8bc85391fbb72b4bf5a36",
+    "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
+  },
+  "parameter": {
+    "name": "seed_opportunity_value",
+    "baseline_value": 20.0,
+    "candidate_values": [10.0, 40.0, 60.0, 80.0],
+    "mutation_mode": "in_memory_single_field_override"
+  },
+  "suite": {
+    "opponent_id": "target.agents.carrot.shared.carrot_conveyor_agent",
+    "opponent_deterministic": true,
+    "seeds": [42],
+    "seats": [0, 1],
+    "steps": 720
+  },
+  "evaluation": {
+    "checkpoint_policy": "before_every_decision",
+    "reuse_no_divergence_baseline": true,
+    "clean_audit_required": true,
+    "result_storage": "local_ignored_var_directory"
+  },
+  "purpose": "Human-approved baseline-cache preparation successor. It may validate and, only if absent, create the seed-42 baseline caches in both seats for the pinned target. It explicitly reuses the already approved baseline smoke cache identity when those caches remain valid. It does not evaluate candidates, produce an evidence packet, interpret results, expand the suite, or authorize source-policy mutation.",
+  "governance": {
+    "human_decision_required": true,
+    "source_policy_mutation_authorized": false,
+    "candidate_expansion_authorized": false
+  },
+  "provenance": {
+    "recorded_from": "../../approved/carrot_investment/seed_opportunity_baseline_smoke_v1.json",
+    "notes": "Promoted from the reviewed v2 draft after human approval. The explicit baseline-cache anchor prevents duplicate baseline work when the original cache group remains valid. Its execution_authorization field permits baseline-cache preparation only."
+  }
+}

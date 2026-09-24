@@ -379,7 +379,7 @@ validated-cache refusal, duplicate/mismatched-audit refusal before a clean
 rerun, exact evidence coverage, malformed cache/spec input, JSON round-trip,
 aggregate safety, and packet-overwrite refusal. Its synthetic records are only
 contract fixtures, not game evidence. The default command,
-`.venv/bin/python -m pytest -q`, passed 19 tests and deselected the one
+`.venv/bin/python -m pytest -q`, now passes 23 tests and deselects the one
 explicitly marked simulator regression; actual Kaggriculture games stay in
 approved smoke commands or notebooks.
 
@@ -398,8 +398,146 @@ The human approved this exact envelope on 2026-09-23. No candidate evaluation
 occurred at approval time. The next artifact is the separate end-to-end notebook
 that wires this contract through `run()`; it must stop on any failed preflight,
 clean audit, or immutable-packet guard. Its
-[first preflight-only section](./notebooks/03_spec_driven_smoke_run.ipynb) is
-deliberately unrun and does not inspect caches or evaluate a candidate yet.
+[preflight/cache section](./notebooks/03_spec_driven_smoke_run.ipynb) has now
+passed the read-only contract gates and reopened both seed-42 baseline caches.
+Each gzip payload passed structural/provenance validation and is reusable. The
+successor contract names the baseline-only contract as its explicit cache-reuse
+anchor, preventing accidental reuse by merely similar envelopes. The source
+`run()` method now owns the complete approved batch: it uses distinct cache and
+report roots, validates every cache before reuse, and runs only the declared
+candidate/seed/seat cross-product. On 2026-09-23, the exact eight-match batch
+completed once and all clean audits passed. Values 10, 40, and 60 had no action
+divergence and reused the baseline in both seats; 80 first diverged at turn 107
+and ran a 612-action suffix in both seats. The pure evidence-packet builder
+then accepted exact audited coverage and produced descriptive aggregates. This
+does not create a ranking or authorize a source change.
+
+The smoke-run notebook's pure packet builder has now consumed the existing
+in-memory batch and passed its exact-coverage checks. Its presentation-only
+renderer shows two audited matches each for 10, 40, 60, and 80; the first three
+have a 0.0 mean paired delta, while 80 has +937.0, two divergent matches, and
+1,224 suffix actions. That is descriptive one-seed smoke evidence—not a
+ranking, recommendation, or source-edit authority. The immutable local JSON
+packet has now been written, reopened, and checksum-verified at 6,105 bytes
+with SHA-256 `3c9d7f17ea48be41d821c5d6832fa61eb8473645c0f5688877a6812cebc3505a`.
+The first reopen comparison correctly surfaced the normal tuple-to-JSON-array
+representation difference; the corrected canonical-byte check then confirmed
+the exact in-memory packet, while the deliberate second write was refused. The
+notebook is complete. The next decision belongs to the human: stop with this
+smoke evidence or approve a separate versioned confirmation envelope.
+
+### How can evaluator work advance without approving every notebook cell?
+
+The owner has approved a bounded evaluator-completion phase documented in
+[the evaluator-completion workbench](./notebooks/04_evaluator_completion.ipynb).
+Within that phase, agents may advance through explanation, prototypes, source
+promotion, and simulator-free tests without a separate per-component approval.
+They must still stop for the decisions that change authority or external state:
+a new/revised experiment contract, unapproved simulator/baseline work,
+durable-artifact overwrite or reuse, source-policy mutation, scope expansion,
+or recovery from a failed guard. The notebook skills now encode this autonomy
+envelope, alongside canonical-JSON immutable-write verification and safe
+interrupted-verification recovery.
+
+### What completes an audited candidate batch without rerunning it?
+
+[`complete_local_candidate_batch`](./evaluator/runner.py) is the explicit
+source-level seam. It accepts only an existing `LocalCandidateBatch`, builds
+the packet from that batch's already-established preflight, baseline, and clean
+audit facts, and uses the exclusive packet writer exactly once. It returns a
+frozen completed-run record containing the original batch, the descriptive
+packet, and the write receipt. It cannot evaluate another candidate,
+materialize a baseline, read a new contract, interpret a ranking, alter source
+policy, reuse a prior packet, or overwrite an existing one. Its tests use
+synthetic fixtures and temporary directories: complete exact evidence writes
+once, incomplete evidence creates no directory, and a second attempt is
+refused. This is source behavior verification, not new Kaggriculture evidence
+or permission to create a durable report. `run()` still intentionally ends at
+the audited batch while repeat and command/API semantics are designed.
+
+### Why can’t the evaluator orchestrate baseline-only preparation yet?
+
+The current answer is deliberately **it must not**. Schema v1 has no
+machine-readable operation-authorization field. The baseline-only and
+candidate-evidence contracts state their different permissions in `purpose`
+prose, which is not a safe execution gate. The Book 4 prototype refuses to
+infer that authority from prose, contract identity, or candidate fields before
+the materializer boundary. A future preparation command requires a newly
+versioned schema and contract with an explicit allowed operation; that is a
+human-owned authorization choice, not an edit to a completed contract. No
+simulator run, cache write, or source modification occurred while establishing
+this guard.
+
+### How is operation authority represented now?
+
+Schema v1 now permits an optional `execution_authorization.operations` list.
+The source gate accepts a requested operation only when it is explicitly
+listed; missing authority and a different listed operation are both refusals.
+This is separate from lifecycle: a contract may declare its intended operation
+while still being a non-executable `draft`. The new
+[baseline-preparation v2 contract](./experiments/approved/carrot_investment/seed_opportunity_baseline_preparation_v2.json)
+declares only `baseline_cache_preparation` and explicitly does not authorize
+candidate evidence. Existing completed contracts were not changed and so do
+not gain permission. The promoted contract's real read-only plan reused both
+validated seed-42 baseline caches through its explicit cache-identity anchor;
+there was no selected materialization action and no game run occurred.
+
+### How will bounded decisions work under future automation?
+
+The owner chose deferred human review. Within an explicit automation envelope,
+an agent may make an eligible bounded decision and continue, but it must create
+a record marked `review_status: pending_human_review`. That record will include
+the selected option, evidence/contract inputs, alternatives, authority, and
+changed artifacts or side effects, then be surfaced together for later review.
+Every such pending review also has a visible unchecked Markdown task; it is
+checked only after the human review and disposition are recorded.
+This is not silent autonomy and does not relax hard stops for undeclared
+execution, immutable-artifact overwrite/reuse, source-policy mutation,
+experiment expansion, or recovery from a failed guard.
+
+### How will a person review or alter an automated decision?
+
+The notebook is the review packet. Before a choice is automated, its notebook
+section must provide the plain-language context, the focused source behavior,
+a separate hideable human-readable decision record, and the tests/guards that
+show why unsafe alternatives were rejected. That lets the owner verify or alter
+the decision from the visible artifact rather than reconstructing hidden model
+context or parsing logs.
+
+### What does baseline-preparation orchestration do now?
+
+[`plan_baseline_preparation`](./evaluator/runner.py) is planning only. It
+requires both approved lifecycle and explicit `baseline_cache_preparation`
+authority, then validates every present cache and selects at most the first
+missing cache action in contract order. It never calls the simulator or cache
+writer. A present invalid cache produces a diagnostic refusal rather than
+replacement permission. The notebook's success case is synthetic and uses
+temporary paths; the real v2 contract is approved but its real inspection is
+recorded separately in Notebook 05. The fast suite has 32 passing tests plus
+one deselected real-simulator regression.
+
+### What happens if an immutable evidence-packet destination already exists?
+
+[`inspect_local_smoke_evidence_packet_repeat`](./evaluator/runner.py) answers
+without writing: `missing` means an exclusive first write may be attempted;
+`exact_match` means identical canonical bytes already exist and must be
+reviewed rather than silently reused; `conflict` means the bytes differ and the
+caller stops. The writer still refuses all existing destinations. This behavior
+is covered with temporary synthetic packets only; no real smoke packet was
+inspected, changed, reused, or overwritten. The fast suite now has 30 passing
+tests and one deselected real-simulator regression.
+
+### What command-line interface can safely be used now?
+
+[`evaluator/runner.py`](./evaluator/runner.py) exposes only `preflight` and
+`baseline-plan`. There is no broad `run`, cache-materialization, candidate, or
+packet-write CLI command. `preflight` reads/schema-checks and optionally binds
+the target; `baseline-plan` performs the reviewed gates and selects at most one
+action without invoking the materializer. The Book 4 exercise confirms this
+command surface against the approved contract, and source tests reject `run` as
+an invalid command. The evaluator completion workbench is therefore complete
+as infrastructure, with 32 passing fast tests and one deselected real-simulator
+regression; it did not create new game evidence.
 
 ### How should future notebook agents preserve this workflow?
 

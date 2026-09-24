@@ -22,18 +22,24 @@ from jsonschema.exceptions import SchemaError
 
 @dataclass(frozen=True)
 class LocalRunRequest:
-    """Locations supplied to the future local runner, not evaluator results."""
+    """Explicit locations supplied to the local runner."""
 
     # The source-controlled JSON contract the future runner must read.
     spec_path: Path
     # An explicit sibling checkout prevents ambiguous imports of ``agents``.
     target_root: Path
+    # Baseline caches are reused only from this explicit ignored local root.
+    cache_root: Path
     # Generated evidence belongs in an ignored local directory, never in the spec.
     report_directory: Path
 
 
 class ExperimentSpecValidationError(ValueError):
     """A declared experiment cannot safely proceed to later runner stages."""
+
+
+class BaselineCachePreparationError(ExperimentSpecValidationError):
+    """A required baseline cache cannot safely be reused by this run."""
 
 
 class SpecReadError(ExperimentSpecValidationError):
@@ -243,6 +249,59 @@ def authorize_lifecycle(specification: dict[str, Any]) -> LifecycleAuthorization
 
 class LifecycleAuthorizationError(ExperimentSpecValidationError):
     """The declared lifecycle does not permit simulator execution."""
+
+
+@dataclass(frozen=True)
+class ExecutionOperationAuthorization:
+    """One operation-level decision derived from an already-valid contract."""
+
+    operation: str
+    declared_operations: tuple[str, ...]
+    is_authorized: bool
+    reason: str
+
+
+def authorize_execution_operation(
+    specification: dict[str, Any], operation: str
+) -> ExecutionOperationAuthorization:
+    """Return a fail-closed operation decision without doing any work.
+
+    Lifecycle approval permits bounded local execution in principle. This
+    separate gate prevents an orchestrator from inferring *which* simulator or
+    evidence operation is allowed from a prose purpose, contract identifier, or
+    similarly shaped candidate envelope.
+    """
+    authorization = specification.get("execution_authorization")
+    operations = (
+        tuple(authorization["operations"])
+        if isinstance(authorization, dict)
+        and isinstance(authorization.get("operations"), list)
+        else ()
+    )
+    if not operations:
+        return ExecutionOperationAuthorization(
+            operation=operation,
+            declared_operations=(),
+            is_authorized=False,
+            reason=(
+                "Contract has no machine-readable execution authorization; "
+                "refusing to infer operation authority from prose."
+            ),
+        )
+    return ExecutionOperationAuthorization(
+        operation=operation,
+        declared_operations=operations,
+        is_authorized=operation in operations,
+        reason=(
+            "Operation is explicitly declared by the contract."
+            if operation in operations
+            else "Operation is not declared by the contract."
+        ),
+    )
+
+
+class ExecutionOperationAuthorizationError(ExperimentSpecValidationError):
+    """The approved lifecycle does not grant the requested operation."""
 
 
 @dataclass(frozen=True)
@@ -469,6 +528,26 @@ class BaselineCachePreparationPlan:
 
 
 @dataclass(frozen=True)
+class BaselinePreparationSelection:
+    """One fully gated baseline-preparation plan with at most one next action.
+
+    This is deliberately a planning record. It establishes the exact action
+    that a later, separately authorized materialization call could perform, but
+    it does not invoke the simulator or create a cache.
+    """
+
+    specification: dict[str, Any]
+    binding: Any
+    lifecycle: LifecycleAuthorization
+    operation: ExecutionOperationAuthorization
+    controls: LocalControlValidation
+    cache_plan: BaselineCachePlan
+    cache_state: BaselineCacheState
+    cache_preparation: BaselineCachePreparationPlan
+    selected_action: BaselineCacheAction | None
+
+
+@dataclass(frozen=True)
 class BaselineMaterializationResult:
     """Facts returned only after one baseline cache has been written."""
 
@@ -476,6 +555,32 @@ class BaselineMaterializationResult:
     cache_path: Path
     checkpoint_count: int
     outcome: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class LocalRunPreflight:
+    """All reviewed non-simulator facts required before candidate evaluation."""
+
+    specification: dict[str, Any]
+    binding: Any
+    lifecycle: LifecycleAuthorization
+    controls: LocalControlValidation
+    cache_plan: BaselineCachePlan
+    cache_preparation: BaselineCachePreparationPlan
+
+
+@dataclass(frozen=True)
+class LocalCandidateBatch:
+    """Exact audited results for one approved candidate envelope.
+
+    This is intentionally an intermediate execution record. It contains the
+    per-match facts needed by a later evidence-packet stage, but it does not
+    aggregate, write a packet, choose a candidate, or authorize a source edit.
+    """
+
+    preflight: LocalRunPreflight
+    baseline_outcomes: dict[tuple[int, int], dict[str, Any]]
+    audited_results: tuple[dict[str, Any], ...]
 
 
 def plan_baseline_caches(
@@ -491,7 +596,12 @@ def plan_baseline_caches(
     parameter = specification["parameter"]
     identity = {
         "cache_format": "baseline-match-v1",
-        "experiment_id": specification["experiment_id"],
+        # A successor must name the baseline envelope it intends to reuse.
+        # The fallback preserves pre-existing cache locations for contracts
+        # created before that explicit reuse anchor existed.
+        "experiment_id": specification.get(
+            "baseline_cache_contract_id", specification["experiment_id"]
+        ),
         "target_revision": binding.revision,
         "shared_sha256": binding.shared_sha256,
         "engine_sha256": binding.engine_sha256,
@@ -619,6 +729,25 @@ def read_and_validate_baseline_cache(
         cache, entry, specification, binding
     )
     return BaselineCacheReadResult(entry, True, None, payload_validation)
+
+
+def read_validated_baseline_outcome(
+    entry: BaselineCacheEntry, specification: dict[str, Any], binding: Any
+) -> dict[str, Any]:
+    """Return an outcome only after revalidating its exact reusable cache.
+
+    This is deliberately a second execution-boundary check. A cache that was
+    valid during a prior preflight can still be replaced before the batch runs.
+    """
+    cache_read = read_and_validate_baseline_cache(entry, specification, binding)
+    if not cache_read.is_reusable_candidate:
+        raise BaselineCachePreparationError(
+            "Candidate evaluation is blocked because a baseline cache changed or "
+            f"became invalid: seed {entry.seed}, seat {entry.seat}"
+        )
+    from kaggriculture_eval.checkpoint import read_baseline
+
+    return read_baseline(entry.path)["outcome"]
 
 
 def plan_baseline_cache_preparation(
@@ -769,6 +898,34 @@ class EvidencePacketWriteResult:
     sha256: str
 
 
+@dataclass(frozen=True)
+class EvidencePacketRepeatInspection:
+    """Read-only facts about a proposed packet destination on a repeat call."""
+
+    path: Path
+    status: str
+    expected_sha256: str
+    observed_sha256: str | None
+    expected_byte_count: int
+    observed_byte_count: int | None
+    detail: str
+
+
+@dataclass(frozen=True)
+class LocalCompletedRun:
+    """One batch whose evidence packet was newly written and recorded.
+
+    The batch remains available for callers that need the audited per-match
+    facts, while the packet and write receipt make the durable boundary
+    explicit. This record does not interpret the packet or authorize policy
+    mutation.
+    """
+
+    batch: LocalCandidateBatch
+    evidence_packet: LocalSmokeEvidencePacket
+    packet_write: EvidencePacketWriteResult
+
+
 def build_local_smoke_evidence_packet(
     specification: dict[str, Any],
     binding: Any,
@@ -913,15 +1070,102 @@ def write_local_smoke_evidence_packet(
     if destination.exists():
         raise FileExistsError(f"refusing to overwrite existing evidence packet: {destination}")
 
-    encoded = json.dumps(packet.as_jsonable(), indent=2, sort_keys=True) + "\n"
+    encoded = _canonical_packet_bytes(packet)
     destination.parent.mkdir(parents=True, exist_ok=True)
     # Exclusive creation preserves the packet as an immutable evidence artifact.
     with destination.open("x", encoding="utf-8") as stream:
-        stream.write(encoded)
+        stream.write(encoded.decode("utf-8"))
     return EvidencePacketWriteResult(
         path=destination,
-        byte_count=len(encoded.encode("utf-8")),
-        sha256=hashlib.sha256(encoded.encode("utf-8")).hexdigest(),
+        byte_count=len(encoded),
+        sha256=hashlib.sha256(encoded).hexdigest(),
+    )
+
+
+def _canonical_packet_bytes(packet: LocalSmokeEvidencePacket) -> bytes:
+    """Return the reviewed JSON representation used by writer and inspection."""
+    return (json.dumps(packet.as_jsonable(), indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def inspect_local_smoke_evidence_packet_repeat(
+    packet: LocalSmokeEvidencePacket, report_directory: Path
+) -> EvidencePacketRepeatInspection:
+    """Describe a packet destination without reusing, replacing, or writing it.
+
+    An exact existing packet proves only that the same canonical bytes are
+    already present. It is deliberately not returned as a successful rerun or
+    an implicit reuse decision. A caller must surface the status for review;
+    the exclusive writer remains the only creation path and will still refuse
+    every existing destination.
+    """
+    destination = report_directory / "evidence-packets" / f"{packet.experiment_id}.json"
+    expected = _canonical_packet_bytes(packet)
+    expected_sha256 = hashlib.sha256(expected).hexdigest()
+    if not destination.exists():
+        return EvidencePacketRepeatInspection(
+            path=destination,
+            status="missing",
+            expected_sha256=expected_sha256,
+            observed_sha256=None,
+            expected_byte_count=len(expected),
+            observed_byte_count=None,
+            detail="No existing packet; an exclusive first write may be attempted.",
+        )
+    try:
+        observed = destination.read_bytes()
+    except OSError as error:
+        return EvidencePacketRepeatInspection(
+            path=destination,
+            status="unreadable",
+            expected_sha256=expected_sha256,
+            observed_sha256=None,
+            expected_byte_count=len(expected),
+            observed_byte_count=None,
+            detail=f"Existing packet could not be read: {error}",
+        )
+    observed_sha256 = hashlib.sha256(observed).hexdigest()
+    exact_match = observed == expected
+    return EvidencePacketRepeatInspection(
+        path=destination,
+        status="exact_match" if exact_match else "conflict",
+        expected_sha256=expected_sha256,
+        observed_sha256=observed_sha256,
+        expected_byte_count=len(expected),
+        observed_byte_count=len(observed),
+        detail=(
+            "Existing canonical bytes match; human review is required before any follow-up."
+            if exact_match
+            else "Existing bytes differ; stop without overwrite or reuse."
+        ),
+    )
+
+
+def complete_local_candidate_batch(
+    batch: LocalCandidateBatch, report_directory: Path
+) -> LocalCompletedRun:
+    """Persist one exact, already-audited batch as immutable local evidence.
+
+    This is deliberately a completion seam, not a second evaluator. It uses
+    only the batch's established preflight, baseline outcomes, and clean-audit
+    results. Packet validation runs before the writer, so incomplete or
+    mismatched evidence cannot create a file. The writer then creates one
+    contract-named packet exclusively and refuses a pre-existing destination.
+
+    It does not read a specification, bind a target, materialize a cache, run
+    Kaggriculture, interpret aggregate results, or alter source policy.
+    """
+    packet = build_local_smoke_evidence_packet(
+        batch.preflight.specification,
+        batch.preflight.binding,
+        batch.audited_results,
+        batch.baseline_outcomes,
+    )
+    # The only side effect is delegated to the reviewed exclusive writer.
+    packet_write = write_local_smoke_evidence_packet(packet, report_directory)
+    return LocalCompletedRun(
+        batch=batch,
+        evidence_packet=packet,
+        packet_write=packet_write,
     )
 
 
@@ -1118,6 +1362,17 @@ class LocalInnerLoopAdapter:
             )
         return authorization
 
+    def authorize_execution_operation(
+        self, specification: dict[str, Any], operation: str
+    ) -> ExecutionOperationAuthorization:
+        """Enforce explicit operation authority before an orchestration side effect."""
+        authorization = authorize_execution_operation(specification, operation)
+        if not authorization.is_authorized:
+            raise ExecutionOperationAuthorizationError(
+                f"Operation '{operation}' is not authorized: {authorization.reason}"
+            )
+        return authorization
+
     def validate_local_controls(
         self, specification: dict[str, Any], binding: Any
     ) -> LocalControlValidation:
@@ -1162,6 +1417,12 @@ class LocalInnerLoopAdapter:
         """Read and structurally validate a cache without making a reuse decision."""
         return read_and_validate_baseline_cache(entry, specification, binding)
 
+    def read_validated_baseline_outcome(
+        self, entry: BaselineCacheEntry, specification: dict[str, Any], binding: Any
+    ) -> dict[str, Any]:
+        """Revalidate one cache at execution time and return its baseline outcome."""
+        return read_validated_baseline_outcome(entry, specification, binding)
+
     def plan_baseline_cache_preparation(
         self,
         state: BaselineCacheState,
@@ -1169,6 +1430,63 @@ class LocalInnerLoopAdapter:
     ) -> BaselineCachePreparationPlan:
         """Record reuse/materialize-later decisions without materializing caches."""
         return plan_baseline_cache_preparation(state, read_results)
+
+    def plan_baseline_preparation(
+        self, request: LocalRunRequest
+    ) -> BaselinePreparationSelection:
+        """Select at most one missing baseline action without materializing it.
+
+        The request must name a schema-valid, explicitly approved contract that
+        authorizes only the baseline-cache-preparation operation. Every present
+        cache is decoded and structurally checked. A present but invalid cache
+        is a diagnostic stop—not permission to replace evidence. Missing caches
+        are considered in the contract's deterministic seed/seat order, and
+        only the first is selected for a later materialization boundary.
+        """
+        specification = self.read_and_validate_spec(request.spec_path)
+        binding = self.bind_and_validate_target(specification, request.target_root)
+        lifecycle = self.authorize_lifecycle(specification)
+        operation = self.authorize_execution_operation(
+            specification, "baseline_cache_preparation"
+        )
+        controls = self.validate_local_controls(specification, binding)
+        cache_plan = self.plan_baseline_caches(
+            specification, binding, request.cache_root
+        )
+        cache_state = self.inspect_baseline_cache_state(cache_plan)
+        read_results = tuple(
+            self.read_and_validate_baseline_cache(entry, specification, binding)
+            for entry in cache_state.present_entries
+        )
+
+        invalid_existing = tuple(
+            result for result in read_results if not result.is_reusable_candidate
+        )
+        if invalid_existing:
+            details = "; ".join(
+                f"seed {result.entry.seed}, seat {result.entry.seat}: "
+                f"{result.read_error or 'structural validation failed'}"
+                for result in invalid_existing
+            )
+            raise BaselineCachePreparationError(
+                "Baseline preparation refuses to replace a present invalid cache: "
+                + details
+            )
+
+        preparation = self.plan_baseline_cache_preparation(cache_state, read_results)
+        # Cache planning follows the contract's seed/seat order, not outcomes.
+        selected_action = next(iter(preparation.materialize_actions), None)
+        return BaselinePreparationSelection(
+            specification=specification,
+            binding=binding,
+            lifecycle=lifecycle,
+            operation=operation,
+            controls=controls,
+            cache_plan=cache_plan,
+            cache_state=cache_state,
+            cache_preparation=preparation,
+            selected_action=selected_action,
+        )
 
     def materialize_selected_baseline(
         self, action: BaselineCacheAction, specification: dict[str, Any], binding: Any
@@ -1212,8 +1530,20 @@ class LocalInnerLoopAdapter:
         """Write one reviewed immutable local packet once orchestration reaches it."""
         return write_local_smoke_evidence_packet(packet, report_directory)
 
-    def run(self, request: LocalRunRequest) -> None:
-        """Run one approved experiment once the steps below are implemented.
+    def inspect_local_smoke_evidence_packet_repeat(
+        self, packet: LocalSmokeEvidencePacket, report_directory: Path
+    ) -> EvidencePacketRepeatInspection:
+        """Inspect a repeat destination without making it a reuse decision."""
+        return inspect_local_smoke_evidence_packet_repeat(packet, report_directory)
+
+    def complete_local_candidate_batch(
+        self, batch: LocalCandidateBatch, report_directory: Path
+    ) -> LocalCompletedRun:
+        """Complete an already-audited batch without rerunning the evaluator."""
+        return complete_local_candidate_batch(batch, report_directory)
+
+    def run(self, request: LocalRunRequest) -> LocalCandidateBatch:
+        """Run the exact approved candidate/seat batch with a clean audit each.
 
         Implementation sequence:
 
@@ -1224,59 +1554,134 @@ class LocalInnerLoopAdapter:
         5. Validate the declared parameter, suite, and one-field candidate envelope.
         6. Plan and inspect the deterministic baseline-cache paths.
         7. Read and validate any present cache payload before reuse.
-        8. Materialize only the missing or invalid baseline caches.
-        9. Call the proven checkpoint evaluator for exactly the declared values.
-        10. Require a clean full-run audit for every fast result; fail closed on a mismatch.
-        11. Write one local ignored evidence packet under ``request.report_directory``.
-        12. Compare a historical reproduction with its recorded expectations.
+        8. Re-read each reusable cache immediately before execution and retain
+           its baseline outcome for a later evidence-packet stage.
+        9. For every declared candidate and planned seed/seat entry, run one
+           fast checkpoint result and its matching clean audit.
+
+        A missing, unreadable, or structurally invalid cache raises before a
+        candidate helper can be reached. A candidate-evaluation or audit error
+        stops the batch immediately: no later candidate, aggregate, packet, or
+        policy decision is attempted here. The returned batch is intentionally
+        not evidence-packet writing or interpretation.
 
         Each step needs its own tests and review. Do not skip directly to a
         simulator call, unbounded candidate generation, or a policy source edit.
         """
         specification = self.read_and_validate_spec(request.spec_path)
         binding = self.bind_and_validate_target(specification, request.target_root)
-        self.authorize_lifecycle(specification)
-        self.validate_local_controls(specification, binding)
+        lifecycle = self.authorize_lifecycle(specification)
+        controls = self.validate_local_controls(specification, binding)
         cache_plan = self.plan_baseline_caches(
-            specification, binding, request.report_directory
+            specification, binding, request.cache_root
         )
         cache_state = self.inspect_baseline_cache_state(cache_plan)
         read_results = tuple(
             self.read_and_validate_baseline_cache(entry, specification, binding)
             for entry in cache_state.present_entries
         )
-        self.plan_baseline_cache_preparation(cache_state, read_results)
-        raise NotImplementedError(
-            "The experiment specification passed schema v1, target fingerprint, and "
-            "lifecycle and local-control validation and has a baseline-cache plan. "
-            "Baseline materialization, bounded candidate clean-audit evaluation, and "
-            "evidence-packet writing are reviewed helpers but are not yet orchestrated "
-            "by run(), so the local inner-loop adapter stopped before simulation or "
-            "durable evidence writing."
+        preparation = self.plan_baseline_cache_preparation(cache_state, read_results)
+        if preparation.materialize_actions:
+            details = "; ".join(
+                f"seed {action.entry.seed}, seat {action.entry.seat}: {action.reason}"
+                for action in preparation.materialize_actions
+            )
+            raise BaselineCachePreparationError(
+                "Candidate evaluation is blocked because every required baseline cache "
+                f"must be reusable: {details}"
+            )
+        preflight = LocalRunPreflight(
+            specification=specification,
+            binding=binding,
+            lifecycle=lifecycle,
+            controls=controls,
+            cache_plan=cache_plan,
+            cache_preparation=preparation,
+        )
+
+        # Re-read at the execution boundary. A cache that changed after the
+        # preflight is not silently trusted just because it passed earlier.
+        baseline_outcomes: dict[tuple[int, int], dict[str, Any]] = {}
+        for entry in cache_plan.entries:
+            baseline_outcomes[(entry.seed, entry.seat)] = (
+                self.read_validated_baseline_outcome(entry, specification, binding)
+            )
+
+        audited_results: list[dict[str, Any]] = []
+        for candidate_value in specification["parameter"]["candidate_values"]:
+            for entry in cache_plan.entries:
+                # This reviewed order is the entire approved envelope. No search,
+                # retry, or result-dependent expansion is possible in this loop.
+                audited_results.append(
+                    self.evaluate_and_audit_declared_candidate(
+                        specification, binding, entry, candidate_value
+                    )
+                )
+        return LocalCandidateBatch(
+            preflight=preflight,
+            baseline_outcomes=baseline_outcomes,
+            audited_results=tuple(audited_results),
         )
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Run the current local boundary directly while developing this module.
-
-    The command calls only reviewed pre-simulation boundaries: reading, schema
-    validation, optional explicit target fingerprinting, lifecycle authorization,
-    and local-control validation. This lets a developer inspect failures without
-    accidentally progressing to an unreviewed cache or simulator stage.
-    """
+def build_cli_parser() -> argparse.ArgumentParser:
+    """Build the deliberately small CLI; no command can invoke the simulator."""
     parser = argparse.ArgumentParser(
-        description="Read and validate a Carrot Tuning experiment schema v1 contract."
+        description=(
+            "Inspect bounded Carrot Tuning contracts without running the simulator. "
+            "There is intentionally no broad run or materialize command."
+        )
     )
-    parser.add_argument(
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    preflight = commands.add_parser(
+        "preflight", help="Read/schema-check a contract and optionally validate its target."
+    )
+    preflight.add_argument(
         "spec_path",
         type=Path,
         help="Path to the source-controlled experiment JSON specification.",
     )
-    parser.add_argument(
+    preflight.add_argument(
         "--target-root",
         type=Path,
         help="Optionally bind and fingerprint this Kaggriculture checkout after schema validation.",
     )
+
+    baseline_plan = commands.add_parser(
+        "baseline-plan",
+        help="Fully gate and select at most one baseline action; never materialize it.",
+    )
+    baseline_plan.add_argument(
+        "spec_path",
+        type=Path,
+        help="Path to the source-controlled baseline-preparation specification.",
+    )
+    baseline_plan.add_argument(
+        "--target-root",
+        type=Path,
+        required=True,
+        help="Explicit Kaggriculture checkout to bind and fingerprint.",
+    )
+    baseline_plan.add_argument(
+        "--cache-root",
+        type=Path,
+        required=True,
+        help="Ignored local run root whose baseline-caches child is inspected only.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Expose only named, reviewed read-only evaluator boundaries.
+
+    ``preflight`` reads and validates a contract, with optional target/control
+    checks. ``baseline-plan`` additionally performs all baseline-preparation
+    gates and selects at most one missing action. Neither command imports the
+    simulator, creates a cache, evaluates a candidate, writes a packet, or
+    changes source. Those side effects intentionally have no CLI mode yet.
+    """
+    parser = build_cli_parser()
     arguments = parser.parse_args(argv)
 
     adapter = LocalInnerLoopAdapter()
@@ -1290,6 +1695,31 @@ def main(argv: list[str] | None = None) -> int:
         "Schema validation passed: "
         f"{specification['experiment_id']} (schema v{specification['schema_version']})"
     )
+    if arguments.command == "baseline-plan":
+        request = LocalRunRequest(
+            spec_path=arguments.spec_path,
+            target_root=arguments.target_root,
+            cache_root=arguments.cache_root,
+            # The planner never consults this field. It remains explicit because
+            # the shared request model is also used by later source boundaries.
+            report_directory=Path("unused-by-baseline-plan"),
+        )
+        try:
+            selection = adapter.plan_baseline_preparation(request)
+        except ExperimentSpecValidationError as error:
+            print(f"Baseline-preparation plan refused: {error}")
+            return 1
+        action = selection.selected_action
+        if action is None:
+            print("Baseline-preparation plan passed: every required cache is reusable.")
+        else:
+            print(
+                "Baseline-preparation plan passed: selected one missing action "
+                f"(seed {action.entry.seed}, seat {action.entry.seat})."
+            )
+        print("Stopped after planning; no cache was created and no simulator was invoked.")
+        return 0
+
     binding = None
     if arguments.target_root is not None:
         try:
