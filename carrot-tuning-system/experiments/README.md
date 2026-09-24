@@ -110,3 +110,13 @@ new-experiment authorization.
 
 For the conceptual entity relationships and experiment lifecycle that this
 directory implements, see [architecture diagrams](../docs/architecture-diagrams.md).
+
+## Current boundary
+
+The local evaluator and its bounded contracts are complete enough to serve as
+the trusted evidence plane for the first Foundry analyst. The next workstream
+does not alter or broaden these experiment records; it builds a separately
+source-controlled no-tools prompt analyst that consumes their immutable packet shape.
+See [Foundry transition handoff](../docs/foundry-transition-handoff.md) for the
+required modifiable source layout and the external decisions that must precede
+provisioning.

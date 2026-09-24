@@ -404,6 +404,114 @@ relationships, future multi-graph interaction, and experiment lifecycle. Use
 them to regain orientation before editing evaluator, schema, or Foundry-facing
 components.
 
+## Current authoritative handoff: Foundry transition
+
+The evaluator-completion workbench is complete. The local evaluator now has
+reviewed, tested boundaries for contract/schema validation, target binding,
+operation authorization, baseline-cache planning and validation, bounded
+candidate evaluation with clean audits, immutable packet construction/writing,
+repeat inspection, and an intentionally narrow CLI. The fast regression suite
+has 32 passing tests and one separately marked real-simulator regression.
+
+The approved baseline-preparation v2 contract was planned against the real
+local cache group; both required seed-42 caches were structurally valid and
+reusable, so it selected no materialization action. No simulator or cache write
+occurred in that planning operation. The one-seed candidate smoke packet remains
+bounded infrastructure evidence, not a policy recommendation.
+
+The next goal is a real Microsoft Foundry refinement analyst. This is a change
+of workstream, not unfinished evaluator work. The owner-created
+`foundry-trainer` project is reachable through Foundry MCP and had no registered
+agents at the last read-only inspection. No prompt agent, applied model deployment,
+`azure.yaml`, prompt-agent source configuration, or cloud connection has yet been added to
+this repository. The full handoff—including the required modifiable source
+layout and the decision record that must precede deployment—is [Foundry
+transition handoff](./foundry-transition-handoff.md).
+
+The [evidence analyst workbench](../notebooks/06_evidence_analyst.ipynb) has
+now established five pure prototypes: immutable submitted-packet and
+analyst-response shapes, a deterministic eligibility gate, a compact
+packet-backed brief, constrained analyst instructions, and a deterministic
+structured-response gate. The workbench exercised those boundaries by reading
+the existing immutable smoke packet and changing only in-memory copies to prove
+failed-audit and proposed-value refusal. `gpt-5.6-luna` is the selected model
+candidate and is now deployed as `evidence-analyst-luna-v1`; no model
+invocation has occurred. Those reviewed behaviors are now
+promoted into the local [`analyst/`](../analyst/) package and covered by eight
+fast, simulator-free tests: accepted packet/brief construction; failed audit;
+wrong packet binding; unknown planning field; uncited claim; dropped limitation;
+non-pending review state; and source-controlled model/instruction status. That
+source-promotion step invoked no simulator or model and wrote no evidence; it
+also created no prompt-agent entry point. The next explicit review
+boundary is the Foundry provisioning decision record. That record now exists:
+the owner selected East US 2, a low-cost prompt-agent path, no tools or
+connectors, and retained redacted 30-day traces for evaluation insight. The
+owner also selected a $5 monthly ceiling and approved moving the Foundry
+account/project, Log Analytics workspace, Application Insights component, and
+alert rule into the dedicated `rg-foundry-trainer-eastus2` group. Azure
+validated and completed that move; the resulting stale Application Insights
+workspace reference was repaired and reread, while the workspace's 30-day
+retention and enabled alert rule remained intact. A resource-group-scoped $5
+monthly actual-cost budget now begins 2026-10-01, alerting the owner at 50%,
+80%, and 100%. A read-only capacity check confirms the selected East US 2 Data
+Zone Standard fallback for `gpt-5.6-luna`; Regional Standard is unavailable.
+The Evidence Analysis Foundry Component Build now records the exact deployment
+request, the approved Azure apply, and the successful readback. There is still
+no prompt agent, tool, connector, Knowledge index, or model invocation. See the
+[provisioning decision record](./foundry-provisioning-decision-record.md).
+
+The next focused task is not deployment. A successor should use the
+[next-agent Foundry notebook handoff](./next-agent-foundry-notebook-handoff.md)
+to study the local FrontierWeekHack claims sample read-only and set up the next
+non-mutating discovery component in
+[07. Evidence Analysis Foundry Component Build](../notebooks/07_foundry_component_build.ipynb).
+The context-holding agent acts as orchestrator: any subagent receives one
+small bounded task, explicit allowed/prohibited actions, verification, and a
+stop point; its report never grants authority for the next step.
+
+Notebook 07 opens with a self-contained handoff that repeats the intended
+prompt-agent boundary, authority map, current cloud posture, reviewed sequence,
+and claims-sample limits. Component 2 now has a pure first slice: a frozen
+read-only discovery plan derived from the validated desired-state record. It
+names project identity/reachability, existing deployments, and existing prompt
+agents as future observations while allowing no environment change, cloud
+mutation, model invocation, or stored cloud output. A missing SDK remains an
+environment prerequisite to record, not permission to install or repair
+packages. The next human decision is which bounded action to authorize after
+review: a pure local check, an environment change, or one authenticated cloud
+read. None authorizes request construction or a cloud mutation. The notebook
+also has a separate hideable descriptive renderer for the in-memory plan; it
+has no stored output and cannot be mistaken for project inventory. Component 2a
+now has a recorded local SDK-prerequisite result: `azure-ai-projects 2.7.0` and
+`azure-identity 1.25.3` are present and their module specs are available. The
+check performed no installation, Azure-client import, credential construction,
+network access, or cloud read. The renderer records this as local metadata only.
+Notebook 07 then executed the approved pure request record against the exact
+account/project target. The project was reachable and returned zero model
+deployments and zero prompt agents; no mutation or model invocation occurred.
+The pure deployment-request construction, validation, and presentation slice
+is now complete. It matches the approved model/configuration and empty
+preflight, remains `pending_human_review`, and has made no Azure apply call.
+The next boundary is explicit approval for deployment.
+
+The [mock graduation protocol](./mock-graduation-protocol.md) governs the
+remaining illustrative system-model components. It prevents a rush to replace
+teaching code with unproven behavior: deterministic assessment is the next
+local component, the reasoning mock graduates through the constrained Foundry
+analyst, and contextual opportunity-value logic remains deferred until it has
+authoritative inputs and calibration evidence.
+
+The Foundry project submission is due tonight, while the farming-agent and
+policy-tuning work has a separate one-week window. The immediate deliverable is
+therefore a real, modifiable Foundry control-plane vertical slice, not a rushed
+new carrot experiment or contextual-policy implementation. The later farming
+work must continue through bounded contracts and clean audits without changing
+the submission's authority boundaries.
+
+The older sections below preserve the implementation history. Where their
+"next slice" language conflicts with this handoff, this section is the current
+source of truth.
+
 ## What is deliberately not built yet
 
 - The [evaluator/](../evaluator/) directory now has reviewed reusable

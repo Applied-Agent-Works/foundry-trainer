@@ -24,9 +24,58 @@ For the step-by-step implementation workbench that prototypes and reviews each
 real local-adapter function before it is moved into the reusable source, see the
 [local inner-loop adapter notebook](./notebooks/02_local_inner_loop_adapter.ipynb).
 
+For the next notebook-first component workbench—the constrained Foundry-facing
+evidence analyst—see the [evidence analyst workbench](./notebooks/06_evidence_analyst.ipynb).
+Its first five components are now pure, simulator-free prototypes: immutable
+submitted-packet/response shapes, a fail-closed eligibility gate, a compact
+packet-backed brief, constrained analyst instructions, and a deterministic
+structured-response gate. They were exercised against the existing smoke
+packet plus in-memory failed-audit and proposed-value guards. `gpt-5.6-luna`
+is now deployed as the reviewed model candidate. The reviewed
+local boundary is now promoted to the [analyst package](./analyst/), with a
+source-import notebook check and fast simulator-free regression tests;
+prompt-agent creation and model calls remain later explicit steps.
+
+The separate [Evidence Analysis Foundry Component Build](./notebooks/07_foundry_component_build.ipynb)
+now records the exact deployment configuration, the approved apply, and the
+readback verification. The `DataZoneStandard` deployment is `Succeeded` with
+the recorded model, capacity, RAI policy, and `NoAutoUpgrade` settings.
+Component 2 now has a
+pure first slice: a frozen read-only discovery plan derived from the validated
+desired state. It names the future observations without inspecting packages,
+constructing credentials, calling Azure, or storing cloud output. SDK
+installation, environment repair, and cloud reads remain separate explicit
+decisions, not prerequisites an agent may perform automatically. A dormant
+component-2a local SDK-prerequisite check and descriptive renderer are now
+recorded. It found `azure-ai-projects 2.7.0` and `azure-identity 1.25.3`, with
+both module specs available. It cannot install or repair anything, and its
+result is not evidence of Foundry reachability.
+The approved authenticated read then confirmed the project was reachable with
+zero model deployments and zero prompt agents. It made no mutation or model
+invocation. Component 3's pure deployment-request construction and validation
+slice is recorded, and component 4 has applied and verified that deployment.
+The next explicit boundary is the no-tools prompt-agent definition; no agent
+has been created or invoked.
+
+For a clean successor brief that names the immediate notebook-07 task, the
+read-only claims-sample boundary, and the constrained orchestration rules, see
+the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md).
+
+The competition requirements are summarized in the local
+[Virtual Agent-a-thon reference](./references/foundry-competition/README.md).
+They require a clear-purpose AI agent, a short description, example
+interactions/lessons, and a three-minute demonstration video; they do not
+require Python or `azure-identity`. Direct Azure SDK authentication remains an
+optional implementation path, not a contest requirement.
+
 The source-controlled historical JSON remains the canonical experiment record.
 The notebooks load it for explanation and direct-check work; they do not
 generate, replace, or authorize that record.
+
+For the selected low-cost Foundry development posture—East US 2, prompt agent,
+redacted 30-day traces, no tools/connectors, a dedicated project resource
+group, and a $5 monthly ceiling—see the
+[provisioning decision record](./docs/foundry-provisioning-decision-record.md).
 
 ### How to maintain explanatory notebooks
 
@@ -402,6 +451,49 @@ documentation, and tests are source-controlled.
 For the lifecycle and layout of source-controlled experiment contracts, see
 [experiments/README.md](./experiments/README.md).
 
+### Planned Foundry control plane
+
+The Foundry system is a **control plane for evidence interpretation**, not a
+second evaluator. Its concrete components are deliberately narrower than the
+word "agent" can suggest:
+
+1. The local evaluator remains outside Foundry and is the sole authority for
+   target binding, simulation, matched outcome measurement, clean audits, and
+   immutable evidence packets.
+2. A local deterministic packet-assessment component will reject an
+   incomplete, unaudited, or out-of-envelope packet before any model sees it.
+3. A code-first, no-tools **Foundry prompt agent** will receive only that
+   redacted, validated packet. Its initial role is evidence analysis: explain
+   measured facts and surface uncertainty. Experiment planning and governance
+   review remain later bounded components; they are not independent score or
+   simulator agents.
+4. A deterministic local policy checker will validate the final
+   structured response after the model roles run. It is the final authority for
+   one-parameter scope, citations, prohibited actions, and the required
+   `pending_human_review` status; an LLM may not override this checker.
+5. The review renderer will turn an eligible response into a visible unchecked
+   human-review task with the packet identity, proposed envelope, alternatives,
+   limits, and authority. The human still approves a new experiment contract or
+   a source-policy change.
+6. Foundry Evaluations will run fixed redacted packet/response fixtures against
+   the prompt agent. Deterministic assertions check its JSON contract and
+   hard stops; an LLM-as-judge rubric scores evidence grounding, audit
+   discipline, calibrated uncertainty, boundedness, and usefulness. The judge
+   evaluates the **analyst response**, never Kaggriculture game quality.
+7. Application Insights/OpenTelemetry will trace invocations and role
+   transitions using redacted identifiers (packet hash/ID, contract version,
+   agent version, decision status, and refusal reason). It must not become a
+   back door for raw simulator state, target source, or secrets.
+
+The first deployment is one versioned no-tools prompt agent, not a hidden
+multi-agent workflow or three separately deployed services. That keeps the
+first vertical slice modifiable, inexpensive, and easy to reason about.
+Separate analyst, planner, and governance roles remain a later orchestration
+decision with their own contracts and approvals.
+
+For the visual authority map and component inventory, see the
+[Foundry control-plane diagram](./docs/architecture-diagrams.md#7-planned-foundry-control-plane-llm-judge-and-review).
+
 ## The automatic workflow to implement next
 
 The first automated workflow should implement the inner loop through a
@@ -700,8 +792,21 @@ function before moving its reviewed form into the real Python entry point.
 Pytest now protects the reviewed reusable boundaries; the notebook remains the
 human-readable component-design record rather than a replacement for tests.
 
-Do not start Azure provisioning, deploy a Foundry agent, create credentials,
-or add unbounded candidate generation yet. The first human decision is whether
-the local spec-driven inner-loop workflow reproduces existing evidence clearly
-enough to become the stable foundation for the Foundry evals and reasoning
-outer loop.
+The local spec-driven evaluator is now the stable, tested foundation for the
+Foundry-facing layer. The next project goal is a real, code-first Foundry
+refinement analyst—not a larger carrot suite. Its current starting state,
+required editable source shape, external deployment decisions, and a
+new-conversation starting request are recorded in the
+[Foundry transition handoff](./docs/foundry-transition-handoff.md).
+
+Do not provision Azure, deploy a Foundry agent, create a model deployment, or
+add connectors until the handoff's versioned provisioning decision record
+resolves project, region, budget, data retention, network posture, model, and
+RBAC. The eventual prompt agent must remain an evidence interpreter with no
+simulator, target-policy, cache, packet-write, or experiment-expansion tool.
+
+For the precise rule that prevents illustrative notebook logic from becoming
+unearned production authority, see the [mock graduation protocol](./docs/mock-graduation-protocol.md).
+It inventories every remaining system-model mock, distinguishes already
+replaced behavior from deferred design, and names the required source/test/
+authority gate for each graduation.

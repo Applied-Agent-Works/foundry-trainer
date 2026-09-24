@@ -272,6 +272,75 @@ candidate envelope, suite, target revision, or acceptance rule gets a new
 versioned specification. Historical records preserve the exact controls and
 expected classification that a future runner must reproduce.
 
+## 7. Planned Foundry control plane: LLM judge and review
+
+This is the planned, source-controlled Foundry vertical slice. All nodes in
+the `Foundry` subgraph are future work except the labelled local input and
+human-review boundary. The important distinction is between an LLM used to
+*generate or judge language* and deterministic components that retain
+mechanical authority.
+
+```mermaid
+flowchart LR
+    Packet[(Immutable local evidence packet)]
+    Assess[Local deterministic packet assessment]
+    Stop[Refuse: insufficient or invalid evidence]
+
+    subgraph Foundry[Planned Microsoft Foundry control plane]
+        Workflow[Versioned no-tools prompt agent]
+        Analyst[Evidence analyst role]
+        Gate[Deterministic governance checker]
+        Review[Structured pending-review record]
+        EvalSet[(Redacted fixed evaluation fixtures)]
+        Judge[Foundry Evaluations: LLM-as-judge rubric]
+        Trace[Application Insights / OpenTelemetry]
+
+        Workflow --> Analyst --> Gate --> Review
+        EvalSet --> Workflow
+        Workflow --> Judge
+        Workflow -.-> Trace
+        Judge -.-> Trace
+    end
+
+    Human([Human owner])
+    NextSpec[(New versioned experiment spec)]
+
+    Packet --> Assess
+    Assess -->|eligible, redacted packet| Workflow
+    Assess -->|audit/coverage/provenance failure| Stop
+    Gate -->|scope or authority failure| Stop
+    Review -->|visible unchecked to-do| Human
+    Human -->|approves or revises envelope| NextSpec
+
+    classDef local fill:#cfe2f3,stroke:#1155cc,color:#000;
+    classDef deterministic fill:#d9ead3,stroke:#38761d,color:#000;
+    classDef planned fill:#fce5cd,stroke:#b45f06,color:#000;
+    classDef human fill:#ead1dc,stroke:#741b47,color:#000;
+    class Packet,Assess,Stop local;
+    class Gate deterministic;
+    class Workflow,Analyst,Planner,Review,EvalSet,Judge,Trace planned;
+    class Human,NextSpec human;
+```
+
+The first deployment is one no-tools prompt agent, not a hidden multi-agent
+workflow. The evidence analyst may restate only packet-cited facts; the
+deterministic gate rejects invalid output regardless of how persuasive the
+model response sounds. A planner or governance role can be added later only
+through its own reviewed contract and approval; it is not implied by the first
+analyst deployment.
+
+Foundry Evaluations provides the LLM-as-judge layer for fixed test fixtures.
+Its rubric should score whether an analyst response is grounded in the supplied
+packet, honestly labels a one-seed smoke run as inconclusive, respects the
+declared envelope, names a falsifiable success criterion, and preserves the
+human-review requirement. It is not allowed to assign a game score, deem a
+candidate mechanically audited, or approve a policy mutation.
+
+Tracing records only redacted operational provenance—packet ID/hash, contract
+and agent versions, role transition, decision status, and refusal reason. Raw
+checkpoint state, the sibling checkout, credentials, and policy-writing tools
+are outside the Foundry boundary.
+
 ## How to use these diagrams
 
 - Start with diagrams 1 and 3 when returning after an interruption: they show
@@ -283,3 +352,6 @@ expected classification that a future runner must reproduce.
   `seed_opportunity_value`.
 - Use diagram 6 when deciding whether a new experiment is a draft, approved
   run, or historical record.
+- Use diagram 7 when designing the prompt agent, evaluation fixtures, or
+  review queue: it makes the LLM's limited role and the deterministic gates
+  visible.

@@ -164,17 +164,130 @@ or market regimes may exercise the belief/price parameters differently. See
 
 ### What is Foundry for in this project?
 
-Eventually, it hosts the outer evals and reasoning loop: evaluate aggregate
-experiment evidence, identify uncertainty or missing controls, and explain the
-next bounded test schedule. It receives structured evidence packets from the
-local inner loop; it is not the game scorer and must not auto-edit the policy.
-See [system overview](./README.md#the-system-being-built), [evidence-packet contract](./README.md#evidence-packet-contract-for-the-outer-loop), and the parent [Foundry setup guide](../docs/foundry-project-setup-guide.md).
+It is now the next project workstream: a stateless hosted refinement analyst
+that receives bounded local evidence and returns a constrained, reviewable
+recommendation. It is not the game scorer and must not auto-edit the policy,
+run a simulator, write local artifacts, or reach the sibling source checkout.
+The local evaluator remains the authority for mechanical outcomes and audits.
+See the [Foundry transition handoff](./docs/foundry-transition-handoff.md),
+[system overview](./README.md#the-system-being-built), and parent [Foundry
+setup guide](../docs/foundry-project-setup-guide.md).
+
+### Does the Foundry submission deadline force us to finish the farming agent now?
+
+No. The Foundry project is due tonight, but farming-agent work and tuning have
+a separate one-week iteration window. Tonight's submission should prove the
+modifiable, governed evidence-interpretation path; it must not claim to have
+tuned the farmer or promote the deferred contextual-value sketch. Later agent
+changes still require bounded local contracts and clean audits. See [delivery
+horizons](./docs/foundry-transition-handoff.md#delivery-horizons-and-scope-protection).
 
 ### Are we provisioning Azure or using credentials now?
 
-No. Local evidence infrastructure comes first. Azure provisioning, cloud
-storage, connectors, credentials, model calls, and Foundry deployment require
-separate explicit approval. See [immediate next safe step](./README.md#immediate-next-safe-step).
+Not yet. The owner-created `foundry-trainer` Foundry project is reachable, but
+it had no registered agents at the last read-only inspection, and this
+repository has no prompt agent, IaC, `azure.yaml`, applied model deployment,
+connector, or hosted runtime. Before deployment, the owner must record and
+approve region, budget, retention, network, model, and RBAC choices. See the
+[Foundry transition handoff](./docs/foundry-transition-handoff.md).
+
+### What will an LLM judge evaluate, and what remains deterministic?
+
+Foundry Evaluations will use fixed, redacted packet/response fixtures to score
+the prompt analyst's language with an LLM-as-judge rubric: packet grounding,
+audit discipline, calibrated uncertainty, one-parameter boundedness, useful
+next-test design, and preservation of the pending-human-review boundary.
+Deterministic code continues to validate packet eligibility, output schema,
+citations, prohibited actions, and review status. Neither the prompt agent
+nor the LLM judge determines game outcomes, audit status, target binding, or a
+policy change. See the [Foundry control-plane diagram](./docs/architecture-diagrams.md#7-planned-foundry-control-plane-llm-judge-and-review).
+
+### Where does Foundry-facing evidence-analyst work begin?
+
+It begins in the [evidence analyst workbench](./notebooks/06_evidence_analyst.ipynb),
+not in a portal-only prompt or a deployment. The first component defines the
+submitted packet and constrained response contracts, then proves deterministic
+eligibility/refusal behavior with simulator-free fixtures. Only reviewed source
+contracts and guards may later be promoted into `analyst/`; the separate
+[Evidence Analysis Foundry Component Build](./notebooks/07_foundry_component_build.ipynb)
+holds the proposed model configuration and later cloud steps.
+
+### What should the next agent do before any Foundry operation?
+
+Read the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md),
+then study the local [FrontierWeekHack](/home/experiments/Learning/microsoft/FrontierWeekHack)
+claims example as a read-only SDK-pattern sample. Notebook 07 now contains an
+handoff, desired-state deployment record, and the completed component-2
+read-only inspection. The approved read reached the configured project and
+returned zero model deployments and zero prompt agents. It made no mutation or
+model invocation, and its summarized result is stored in the notebook. The
+deployment request has now been constructed, validated, and pretty-printed
+against that result; it remains `pending_human_review` and is not deployment
+approval. A missing SDK remains a prerequisite to record, not permission to
+install or repair the shared environment. The claims sample's tool-using
+agents, connections, credentials, cleanup steps, and action authority do not
+transfer.
+
+### How should work be delegated from now on?
+
+The context-holding agent is the orchestrator. It must keep the repository
+instructions and handoff material consistent before delegating. Each subagent
+gets one small task with exact owned files, trusted inputs, permitted and
+prohibited actions, verification, and a stop point. A subagent report may
+inform the orchestrator but never authorize cloud actions, source-policy edits,
+simulator execution, experiment expansion, or a later notebook component.
+
+### What evidence-analyst work has been approved, and what remains a review boundary?
+
+The owner first authorized the request/response shapes, deterministic packet
+eligibility, and compact evidence brief. They then explicitly approved the
+next two local-only components: a provisional constrained-instruction policy
+and a deterministic structured-response gate. The workbench may read the
+existing immutable smoke packet and use in-memory malformed copies for
+simulator-free refusal checks.
+
+`gpt-5.6-luna` is now deployed as `evidence-analyst-luna-v1` with a published
+retirement date of 2028-01-11. The owner approved the exact request, and the
+readback returned `Succeeded` with the approved model, Data Zone capacity, RAI
+policy, and no-auto-upgrade settings. This does not authorize a model call,
+source promotion, new experiment contract, simulator execution, or policy
+mutation. The reviewed boundary now
+lives in [`analyst/`](./analyst/) and has eight fast simulator-free source tests
+covering the notebook success/guard cases. It intentionally has no Foundry or
+model client. The next review boundary is the prompt-agent definition in
+notebook 07, not a model invocation.
+
+### How will traces support learning without becoming an uncontrolled cost or data sink?
+
+The owner chose to retain redacted traces because they make later improvement
+evidence-based: they preserve the supplied brief, response, deterministic gate
+result, human-review disposition, and eventual evaluation scores. They do not
+automatically train the model. For the first low-volume development slice,
+retain 100% of these bounded interactions for 30 days; exclude raw simulator
+state, source, credentials, unrestricted history, and other out-of-boundary
+content. Only the owner initially views traces. See the
+[provisioning decision record](./docs/foundry-provisioning-decision-record.md).
+
+The selected prompt-agent route avoids hosted container runtime and registry
+costs; inference is intended to be the meaningful variable cost. Application
+Insights is still monitored for trace-ingestion/retention usage. A numeric
+monthly ceiling of $5 is now selected. The Foundry account, project, Log
+Analytics workspace, Application Insights component, and smart-detector alert
+were moved as one validated set into the dedicated
+`rg-foundry-trainer-eastus2` resource group. The initially stale Application
+Insights workspace reference was repaired and reread. A resource-group-scoped
+`foundry-trainer-monthly-5-usd` budget now begins on 2026-10-01 and emails
+`dorian.k@hotmail.com` at actual spend above 50%, 80%, and 100% of the $5
+ceiling. A read-only East US 2 capacity check found no Regional Standard path
+for `gpt-5.6-luna`, while Data Zone Standard has 333 available platform and
+subscription quota units. Global Standard has 250 available units but remains
+secondary to the selected U.S. Data Zone fallback. A budget alert must not be
+misrepresented as an automatic stop. The exact first deployment is now recorded
+and verified in the Evidence Analysis Foundry Component Build:
+deployment `evidence-analyst-luna-v1`, model version `2026-07-09`,
+Data Zone Standard, capacity unit `1` (1,000 TPM), default content filtering,
+no spillover, and no automatic version upgrade. The deployment is `Succeeded`;
+the next stop point is prompt-agent definition, not model invocation.
 
 ### What can be parallelized safely?
 
@@ -611,6 +724,17 @@ to real reader confusion, especially to explain safety boundaries and why a
 mock does not perform a real policy or evaluator action. See the [notebook
 convention](./README.md#how-to-maintain-explanatory-notebooks) and the
 [system-model notebook](./notebooks/01_system_model.ipynb).
+
+### How do we complete a mock without accidentally giving it production authority?
+
+Use the [mock graduation protocol](./docs/mock-graduation-protocol.md). Every
+mock is explicitly `illustrative`, `prototype`, `promoted`, `integrated`, or
+`deferred`; only a reviewed source replacement with authoritative inputs,
+focused success/guard tests, and the right integration authority may graduate.
+The deterministic assessment mock becomes a local packet-to-assessment
+component, the reasoning mock becomes the constrained Foundry analyst, and the
+contextual opportunity formula remains deferred. A deadline is not permission
+to promote its placeholder weights into a policy or source change.
 
 ## Next work
 
