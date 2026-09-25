@@ -32,8 +32,16 @@ public sealed class RunPlan
     public string ExecutionMode { get; set; } = "full_simulator";
     public string DivergenceStrategy { get; set; } = "first_action_then_suffix";
     public bool CleanAuditRequired { get; set; } = true;
+    public List<TemporalIntervention> Interventions { get; } = [new() { Step = 0, Value = 40 }];
     public string Status { get; set; } = "draft · pending human review";
     public string LastAction { get; set; } = "No execution requested";
+}
+
+public sealed class TemporalIntervention
+{
+    public Guid Id { get; } = Guid.NewGuid();
+    public int Step { get; set; }
+    public double Value { get; set; }
 }
 
 public sealed class WorkbenchState
@@ -235,6 +243,18 @@ public sealed class WorkbenchState
         LastRunResult = null;
         Plan.Status = "draft · rerun required";
         Plan.LastAction = $"Returned to {runStages[index].Title}; future stages invalidated.";
+    }
+
+    public void ResetAfterPlanChange()
+    {
+        runStages = runStages.Select((stage, index) => index == 0
+            ? stage with { Status = "complete", Detail = "The proposed envelope must be revalidated after this plan change." }
+            : index == 1
+                ? stage with { Status = "current", Detail = "Ready to submit the changed plan." }
+                : stage with { Status = "pending", Detail = "Locked until the changed plan is run." }).ToList();
+        LastRunResult = null;
+        Plan.Status = "draft · rerun required";
+        Plan.LastAction = "Plan changed; future stages locked until rerun.";
     }
 
     public void RecordRunResult(RunResultSummary result, string action)

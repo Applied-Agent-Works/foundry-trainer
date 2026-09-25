@@ -4,6 +4,7 @@
 @using System.Text.Json
 @inject WorkbenchState Workbench
 @inject HttpClient Backend
+@inject IAgentConversation Conversations
 
 <PageTitle>Run plan</PageTitle>
 
@@ -18,12 +19,14 @@
     <div class="section-kicker">CARROT DETERMINISTIC AGENT · UNIFIED DECISION MAP</div>
     <h2>Where the knobs enter, and what the agent does next</h2>
     <p class="muted">Choose one parameter from the economic gate, then follow the runtime branches below. The parameter cards are the only editing surface; the action branches are read-only.</p>
-    <div class="gate-and-influence-layout @(economicGateFocused ? "visible" : "hidden")">
+    <div class="gate-and-influence-layout">
+        <div class="economic-gate-heading">
+            <div class="section-kicker">ECONOMIC GATE</div>
+            <p class="muted">This is the plant-versus-pass decision. Choose the one knob you want to inspect or test; the editor and its influence map stay visible below.</p>
+        </div>
         <div class="gate-controls-column">
-    @if (economicGateFocused)
-    {
         <div class="economic-input-map" aria-label="Economic decision graph knobs">
-            <div class="economic-input-heading"><span>ECONOMIC GATE · PARAMETER CHOICES</span><small>Choose one knob to test. The other graph branches have no tuning controls.</small></div>
+            <div class="economic-input-heading"><span>PARAMETER CHOICES</span><small>Choose one knob to test. The other graph branches have no tuning controls.</small></div>
             <div class="economic-knob-groups">
                 @foreach (var group in EconomicParameterGroups)
                 {
@@ -36,7 +39,7 @@
                                 var evidence = Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == parameterName);
                                 if (evidence is not null)
                                 {
-                                    <button class="economic-knob priority-@evidence.Priority @(showEditor && editorParameterName == evidence.Name ? "selected" : "") @(IsModified(evidence) ? "modified" : "")" data-tooltip="Tested: @evidence.Tested. Result: @evidence.Result. Why: @evidence.Why" @onclick="() => SelectParameter(evidence)">
+                                    <button type="button" aria-pressed="@(editorParameterName == evidence.Name)" class="economic-knob priority-@evidence.Priority @(editorParameterName == evidence.Name ? "selected" : "") @(IsModified(evidence) ? "modified" : "")" data-tooltip="Tested: @evidence.Tested. Result: @evidence.Result. Why: @evidence.Why" @onclick="() => SelectParameter(evidence)">
                                         <strong>@evidence.Name</strong>
                                         <span>baseline @evidence.Baseline</span>
                                         @if (IsModified(evidence))
@@ -51,9 +54,8 @@
                 }
             </div>
         </div>
-    }
 
-    @if (economicGateFocused && showEditor && EditorParameterEvidence is { } inlineEvidence)
+    @if (EditorParameterEvidence is { } inlineEvidence)
     {
         <section class="inline-parameter-editor" aria-label="Inline parameter editor">
             <div class="inline-editor-heading">
@@ -86,7 +88,7 @@
     }
         </div>
 
-    @if (economicGateFocused && showEditor && EditorParameterEvidence is { } focusedEvidence)
+    @if (EditorParameterEvidence is { } focusedEvidence)
     {
         var influence = WorkbenchState.InfluenceFor(focusedEvidence.Name);
         <section class="influence-card unified-influence-card">
@@ -230,8 +232,7 @@
 <section class="execution-workbench">
     <div class="section-kicker">LIVE RUN RECEIPT</div>
     <div class="execution-actions">
-        <button class="wizard-button" disabled="@(running || IsFirstReceiptTab)" @onclick="BackOneStep">← Back one step</button>
-        <button class="play-button" disabled="@(running || activeStageId != "plan" || !Workbench.LiveRunSupported)" @onclick="ExecuteCurrentStep">@(running ? "Running…" : "▶ Run approved experiment")</button>
+        <button class="play-button" disabled="@(running || !Workbench.LiveRunSupported || !CanRunApprovedExperiment)" @onclick="ExecuteCurrentStep">@(running ? "Running…" : "▶ Run approved experiment")</button>
         <button class="wizard-button" disabled="@(running || IsLastReceiptTab)" @onclick="ForwardOneStep">Forward one step →</button>
     </div>
     @if (!string.IsNullOrWhiteSpace(status))
@@ -242,7 +243,7 @@
         @foreach (var stage in Workbench.RunStages)
         {
             var displayStatus = StageDisplayStatus(stage);
-            <button type="button" class="run-stage @displayStatus @(stage.Id == "packet" ? "final-stage" : "") @(activeStageId == stage.Id ? "stage-tab-active" : "")" @onclick="() => SelectReceiptStage(stage.Id)"><span class="stage-mark">@StageDisplayMark(displayStatus)</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(displayStatus)</em><small>@StageDisplayDetail(stage, displayStatus)</small></span></button>
+            <button type="button" class="run-stage @displayStatus @(stage.Id == "packet" ? "final-stage" : "") @(activeStageId == stage.Id ? "stage-tab-active" : "")" disabled="@IsFutureReceiptStage(stage)" @onclick="() => SelectReceiptStage(stage.Id)"><span class="stage-mark">@StageDisplayMark(displayStatus)</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(displayStatus)</em><small>@StageDisplayDetail(stage, displayStatus)</small></span></button>
         }
     </div>
     <div class="run-cycle-indicator">
@@ -272,34 +273,92 @@
                             <p>@RunSelectionStory(runEvidence)</p>
                         }
                     </div>
+                    <section class="intervention-plan" aria-label="Temporal intervention schedule">
+                        <div class="section-kicker">INTERVENTION STEPS</div>
+                        <p class="muted">The unchanged baseline runs all the way through first. These rows say when the already-selected change takes effect. Edit the parameter value in the parameter editor above; every row uses that same value.</p>
+                        <div class="intervention-list">
+                            @foreach (var intervention in Workbench.Plan.Interventions)
+                            {
+                                <div class="intervention-row" @key="intervention.Id">
+                                    <label>Step<input type="number" min="0" max="@(Math.Max(0, Workbench.Plan.Steps - 1))" @bind="intervention.Step" @bind:after="PlanChangedAsync" /></label>
+                                    <div class="intervention-fixed-value"><span>Selected change</span><strong>@Workbench.Plan.ParameterName = @Workbench.Plan.ProposedValue.ToString("0.####")</strong></div>
+                                    <button type="button" class="remove-intervention" disabled="@(Workbench.Plan.Interventions.Count == 1)" @onclick="() => RemoveIntervention(intervention)">Remove</button>
+                                </div>
+                            }
+                        </div>
+                        <button type="button" class="wizard-button" @onclick="AddIntervention">+ Add change point</button>
+                    </section>
                     <div class="execution-fields">
                         <div class="execution-control-grid">
-                            <label>Seeds<input @bind="Workbench.Plan.Seeds" @bind:after="ValidatePlanAsync" /></label>
-                            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" @bind:after="ValidatePlanAsync" /></label>
+                            <label>Seeds<input @bind="Workbench.Plan.Seeds" @bind:after="PlanChangedAsync" /></label>
+                            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" @bind:after="PlanChangedAsync" /></label>
                             <div class="seat-table">
                                 <div class="seat-table-header"><span>Seat</span><span>Player assignment</span></div>
-                                <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole" @bind:after="ValidatePlanAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
-                                <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole" @bind:after="ValidatePlanAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
+                                <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole" @bind:after="PlanChangedAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
+                                <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole" @bind:after="PlanChangedAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
                                 <small class="field-help">Assign exactly one tested agent and one opponent.</small>
                             </div>
-                            <label>Opponent model<select @bind="Workbench.Plan.OpponentMode" @bind:after="ValidatePlanAsync"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
-                            <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode" @bind:after="ValidatePlanAsync"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
-                            <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy" @bind:after="ValidatePlanAsync"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
-                            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" @bind:after="ValidatePlanAsync" /> Clean full-run audit required</label>
+                            <label>Opponent model<select @bind="Workbench.Plan.OpponentMode" @bind:after="PlanChangedAsync"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
+                            <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode" @bind:after="PlanChangedAsync"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
+                            <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy" @bind:after="PlanChangedAsync"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
+                            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" @bind:after="PlanChangedAsync" /> Clean full-run audit required</label>
                         </div>
                     </div>
                 </section>
             }
             else
             {
-                <p class="stage-placeholder">This stage will show its recorded inputs, outputs, and any controls needed for this part of the run. For now, the workflow is represented by the receipt timeline above.</p>
+                @if (guidance.Id == "foundry")
+                {
+                    <section class="foundry-inline-chat" aria-label="Foundry conversation">
+                        <div class="section-kicker">FOUNDRY FEEDBACK</div>
+                        <div class="foundry-inline-chat-header">
+                            <div>
+                                <h3>@FoundryAgent.DisplayName feedback</h3>
+                                <p class="muted">The full response from the current analyst pass for this completed evidence packet.</p>
+                            </div>
+                            <span class="role-status">@FoundryAgent.Status</span>
+                        </div>
+                        <button type="button" class="play-button foundry-feedback-button" disabled="@(foundryFeedbackLoading || string.IsNullOrWhiteSpace(activeRunId))" @onclick="GetFoundryFeedbackAsync">
+                            @(foundryFeedbackLoading ? "Calling Evidence Analyst…" : "Get Foundry feedback")
+                        </button>
+                        @if (!string.IsNullOrWhiteSpace(foundryFeedbackError))
+                        {
+                            <div class="foundry-feedback-error">@foundryFeedbackError</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(foundryFeedbackText))
+                        {
+                            <pre class="foundry-feedback-window foundry-feedback-output">@foundryFeedbackText</pre>
+                        }
+                        else
+                        {
+                            <div class="foundry-feedback-empty">Feedback has not been requested for this completed packet yet.</div>
+                        }
+                    </section>
+                }
+                else if (guidance.Status == "pending")
+                {
+                    <div class="stage-placeholder">
+                        <strong>Waiting to run</strong>
+                        <p>@StageWaitingText(guidance)</p>
+                    </div>
+                }
+                else
+                {
+                    <p class="stage-placeholder">@StageControlHint(guidance)</p>
+                }
             }
-            @if (guidance.Id == "packet" && guidance.Status == "complete" && Workbench.LastRunResult is { } result)
+            @if (guidance.Status == "complete")
             {
                 <div class="stage-result-summary">
-                    <div class="section-kicker">CONGRATULATIONS · RESULTS IN PLAIN ENGLISH</div>
-                    <p>@result.PlainEnglish</p>
-                    <p class="muted">This describes this exact approved suite. It is not a general conclusion and it does not automatically change policy.</p>
+                    <div class="section-kicker">WHAT HAPPENED</div>
+                    <p>@StageResultText(guidance)</p>
+                    <div class="stage-facts">
+                        @foreach (var fact in StageResultFacts(guidance))
+                        {
+                            <div><span>@fact.Label</span><strong>@fact.Value</strong></div>
+                        }
+                    </div>
                 </div>
             }
         </article>
@@ -323,12 +382,14 @@
 
 @code {
     private string status = string.Empty;
+    private bool foundryFeedbackLoading;
+    private string? foundryFeedbackText;
+    private string foundryFeedbackError = string.Empty;
     private bool? planValidationValid;
     private string planValidationMessage = "Validating the current plan…";
     private bool running;
     private string activeStageId = "plan";
     private string? activeRunId;
-    private bool showEditor;
     private bool economicGateFocused;
     private string editorParameterName = string.Empty;
     private double editorBaselineValue;
@@ -362,8 +423,56 @@
 
     protected override async Task OnInitializedAsync()
     {
-        activeStageId = "plan";
+        economicGateFocused = true;
+        SyncEditorToCommittedParameter();
+        activeStageId = Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? "plan";
         await ValidatePlanAsync();
+    }
+
+    private AgentProfile FoundryAgent => Conversations.GetAgent("evidence-analyst");
+
+    private async Task GetFoundryFeedbackAsync()
+    {
+        foundryFeedbackError = string.Empty;
+        foundryFeedbackText = null;
+        if (string.IsNullOrWhiteSpace(activeRunId))
+        {
+            foundryFeedbackError = "No completed local run is attached to this page. Run the staged experiment again before requesting Foundry feedback.";
+            return;
+        }
+        foundryFeedbackLoading = true;
+        try
+        {
+            using var response = await Backend.PostAsync($"api/runs/{activeRunId}/foundry-feedback", null);
+            var result = await response.Content.ReadFromJsonAsync<BackendFoundryFeedback>();
+            if (result?.Status != "completed" || string.IsNullOrWhiteSpace(result.OutputText))
+            {
+                foundryFeedbackError = result?.Error ?? $"The Foundry request failed ({(int)response.StatusCode}).";
+                return;
+            }
+            foundryFeedbackText = PrettyPrintFoundryFeedback(result.OutputText);
+        }
+        catch (Exception error)
+        {
+            foundryFeedbackError = $"Foundry request blocked: {error.Message}";
+        }
+        finally
+        {
+            foundryFeedbackLoading = false;
+        }
+    }
+
+    private static string PrettyPrintFoundryFeedback(string output)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(output);
+            return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (JsonException)
+        {
+            return output;
+        }
     }
 
     private async Task ValidatePlanAsync()
@@ -377,7 +486,8 @@
                 Workbench.Plan.ProposedValue,
                 [42],
                 [0, 1],
-                Workbench.Plan.Steps));
+                Workbench.Plan.Steps,
+                BuildInterventions()));
             if (response.IsSuccessStatusCode)
             {
                 planValidationValid = true;
@@ -396,12 +506,21 @@
         }
     }
 
+    private async Task PlanChangedAsync()
+    {
+        Workbench.ResetAfterPlanChange();
+        activeRunId = null;
+        activeStageId = "plan";
+        status = "Plan changed. Later stages are locked until this plan is validated and run again.";
+        foundryFeedbackText = null;
+        foundryFeedbackError = string.Empty;
+        await ValidatePlanAsync();
+    }
+
     private void FocusEconomicGate()
     {
-        economicGateFocused = !economicGateFocused;
-        status = economicGateFocused
-            ? "Economic gate selected. Choose one parameter to inspect or test."
-            : "Economic gate choices hidden. The runtime branches remain unchanged.";
+        economicGateFocused = true;
+        status = "Economic gate selected. Choose one parameter to inspect or test.";
     }
 
     private void FocusRelation(string kind, string label, string nodeKind)
@@ -444,15 +563,8 @@
 
     private void SelectReceiptStage(string stageId)
     {
-        var targetIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == stageId);
-        var completedIndex = Workbench.RunStages.ToList().FindLastIndex(stage => stage.Status == "complete");
-        if (targetIndex >= 0 && completedIndex > targetIndex)
-        {
-            Workbench.InvalidateStagesAfter(stageId);
-            activeRunId = null;
-            status = $"Returned to {stageId}. Future stages are invalid; run the approved experiment again.";
-        }
         activeStageId = stageId;
+        status = $"Viewing {Workbench.RunStages.FirstOrDefault(stage => stage.Id == stageId)?.Title ?? stageId}. Selecting a stage does not change execution state.";
     }
 
     private static string GuidanceTitle(RunStage stage) => stage.Id switch
@@ -468,28 +580,110 @@
         _ => stage.Title,
     };
 
-    private static string GuidanceText(RunStage stage) => stage.Id switch
+    private string GuidanceText(RunStage stage) => stage.Id switch
     {
-        "plan" => "We are checking that the graph, parameter, values, seeds, seats, and step count stay inside the approved envelope. Nothing runs during this check.",
-        "adapter" => "We are making sure the simulator code is exactly the pinned revision that the experiment was approved against. This keeps the comparison fair.",
-        "baseline" => "We are preparing the unchanged starting point. The baseline tells us what the agent does before we try a different parameter value.",
-        "simulate" => "We are running the declared candidate values through the real local simulator. The policy source is not edited.",
-        "divergence" => "We are finding the first decision where a candidate differs from the baseline and recording the remaining suffix that was replayed.",
-        "audit" => "We are running a fresh full candidate match to make sure the faster checkpoint result is trustworthy.",
-        "packet" => "The audited facts have been assembled into one immutable evidence packet for the human and Foundry agents to review.",
-        "foundry" => "The deterministic evidence is ready. The separate Foundry review agents can now explain, judge, and propose the next bounded test.",
+        "plan" when stage.Status == "complete" => "Done. The plan passed its safety check; no simulator work happened here. The graph, selected knob, values, seeds, seats, and audit rules are now the fixed contract for this run.",
+        "plan" => "This is a safety check, not a run. We confirm the proposed graph and bounded inputs fit the approved contract. Forward will not test a candidate until this passes.",
+        "adapter" => "This binds the run to the exact simulator revision that was approved. It prevents a result from being compared against different code.",
+        "baseline" when stage.Status == "complete" => "Done. The full unchanged baseline simulation was prepared and validated. It is the comparison point for every scheduled intervention, not a changed-policy result.",
+        "baseline" => "Not run yet. Forward will run the unchanged baseline all the way through and save its pre-step states. No candidate value is tested until this finishes.",
+        "simulate" when stage.Status == "complete" => $"Done. The selected candidate was run against the prepared baseline. {stage.Detail}",
+        "simulate" => "Not run yet. Forward will run only the selected candidate value against the prepared baseline; it will not test every knob.",
+        "divergence" when stage.Status == "complete" => $"Done. We compared candidate decisions with baseline decisions and recorded the first difference. {stage.Detail}",
+        "divergence" => "Not run yet. Forward will locate the first decision where the candidate differs from baseline and record the replayed suffix.",
+        "audit" when stage.Status == "complete" => $"Done. A fresh full candidate run agreed with the faster result. {stage.Detail}",
+        "audit" => "Not run yet. Forward will rerun the candidate independently from a clean start to verify the faster result.",
+        "packet" when stage.Status == "complete" => $"Done. The audited facts were written into one immutable evidence packet. {stage.Detail}",
+        "packet" => "Not run yet. Forward will assemble the evidence packet only after the candidate and clean audit have passed.",
+        "foundry" => "The local run is complete, but Foundry review has not run here. This stage is a downstream handoff for explaining the evidence and proposing the next bounded test.",
         _ => stage.Detail,
     };
 
-    private string CurrentRunStatus(RunStage stage) =>
-        string.IsNullOrWhiteSpace(status)
-            ? $"{stage.Title}. {stage.Detail}"
-            : status;
+    private string CurrentRunStatus(RunStage stage)
+    {
+        if (running && !string.IsNullOrWhiteSpace(status)) return status;
+        return stage.Status switch
+        {
+            "complete" => $"Completed. {stage.Detail}",
+            "current" => stage.Detail,
+            "invalid" => $"Blocked. {stage.Detail}",
+            _ => $"Waiting for the earlier stages. {stage.Detail}",
+        };
+    }
+
+    private static string StageControlHint(RunStage stage) => stage.Status switch
+    {
+        "current" when stage.Id == "foundry" => "No local simulator step remains. This is the handoff point for the separate Foundry review.",
+        "current" => "Forward one step executes this stage only. Run approved experiment executes this stage and every remaining executable stage.",
+        "complete" => "This stage is complete. Selecting another stage only changes what you are viewing; it does not change execution state.",
+        "invalid" => "This stage is blocked. Fix the plan or rerun the required earlier stage before continuing.",
+        _ => "This stage is waiting for the earlier stages to finish; its receipt button is disabled.",
+    };
+
+    private static string StageWaitingText(RunStage stage) => stage.Id switch
+    {
+        "simulate" => "The candidate has not been run yet. The inner loop will test the selected proposed value against the prepared baseline.",
+        "divergence" => "There is no candidate result to compare yet. This stage will find the first decision that differs from the baseline.",
+        "audit" => "The candidate has not been independently rerun yet. This stage checks that the faster result is reproducible from a clean start.",
+        "packet" => "The evidence packet cannot be assembled until the candidate run, comparison, and clean audit are complete.",
+        "foundry" => "The local evidence is not ready for review yet. This stage stays downstream until the evidence packet is complete.",
+        _ => "This stage becomes available after the preceding stage finishes.",
+    };
+
+    private string StageResultText(RunStage stage) => stage.Id switch
+    {
+        "plan" => "The proposed run passed its safety check. No simulator work happened here; the approved graph, knob, values, suite, and audit rules are now the run contract.",
+        "baseline" => "The unchanged plan was run all the way through as the reference point. Every saved pre-step state is a possible intervention point, so the candidate can be activated at a selected step without rerunning the earlier baseline prefix.",
+        "simulate" => $"The selected candidate finished its inner-loop run. {stage.Detail}",
+        "divergence" => $"The candidate was compared with the baseline. {stage.Detail}",
+        "audit" => $"The candidate was rerun independently from a clean start. {stage.Detail}",
+        "packet" when Workbench.LastRunResult is { } result => $"The audited facts are packaged for review. The candidate schedule was {InterventionScheduleSummary()}. {result.PlainEnglish}",
+        "packet" => $"The audited facts are packaged for review. {stage.Detail}",
+        "foundry" => "The local run is complete and this is now the downstream review handoff. Foundry can explain the evidence, but it cannot change the policy or approve a new run by itself.",
+        _ => stage.Detail,
+    };
+
+    private IReadOnlyList<(string Label, string Value)> StageResultFacts(RunStage stage) => stage.Id switch
+    {
+        "plan" =>
+        [
+            ("Simulator", "Not run during validation"),
+            ("Parameter", $"{Workbench.Plan.ParameterName}: {Workbench.Plan.BaselineValue:0.####} → {Workbench.Plan.ProposedValue:0.####}"),
+        ],
+        "baseline" =>
+        [
+            ("Reference", "Unchanged baseline"),
+            ("Next", "Compare the candidate against this result"),
+        ],
+        "simulate" =>
+        [
+            ("Candidate", $"{Workbench.Plan.ParameterName} = {Workbench.Plan.ProposedValue:0.####}"),
+            ("Change points", InterventionScheduleSummary()),
+            ("Recorded result", stage.Detail),
+        ],
+        "divergence" => [("Recorded result", stage.Detail)],
+        "audit" => [("Recorded result", stage.Detail)],
+        "packet" when Workbench.LastRunResult is { } result =>
+        [
+            ("Matches", result.MatchCount.ToString()),
+            ("Candidate values", result.CandidateCount.ToString()),
+            ("Change points", InterventionScheduleSummary()),
+            ("Clean audits", result.AuditsPassed ? "Passed" : "Failed"),
+            ("Evidence", result.PacketPath),
+        ],
+        "packet" => [("Recorded result", stage.Detail)],
+        "foundry" => [("Handoff", "Evidence packet review")],
+        _ => [("Recorded result", stage.Detail)],
+    };
+
+    private string InterventionScheduleSummary() =>
+        string.Join(" → ", Workbench.Plan.Interventions.OrderBy(item => item.Step).Select(item => $"step {item.Step}: {item.Value:0.####}"));
 
     private static string StageStateLabel(string status) => status switch
     {
         "complete" => "DONE",
         "current" => "CURRENT · NOT EXECUTED",
+        "validating" => "CHECKING",
         "invalid" => "INVALID · FIX REQUIRED",
         _ => "TO DO · NOT EXECUTED",
     };
@@ -499,7 +693,7 @@
         {
             true => "complete",
             false => "invalid",
-            _ => "current",
+            _ => "validating",
         } : stage.Status;
 
     private static string StageDisplayMark(string status) => status switch
@@ -511,7 +705,9 @@
     };
 
     private string StageDisplayDetail(RunStage stage, string displayStatus) =>
-        stage.Id == "plan" && displayStatus == "invalid" ? planValidationMessage : stage.Detail;
+        stage.Id == "plan" && (displayStatus is "invalid" or "validating") ? planValidationMessage : stage.Detail;
+
+    private static bool IsFutureReceiptStage(RunStage stage) => stage.Status == "pending";
 
     private async Task ExecuteCurrentStep()
     {
@@ -526,26 +722,7 @@
         status = "Preparing the approved Carrot run…";
         try
         {
-            if (string.IsNullOrWhiteSpace(activeRunId))
-            {
-                var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps);
-                using var response = await Backend.PostAsJsonAsync("api/runs", request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var refusal = await response.Content.ReadAsStringAsync();
-                    status = $"The runner refused the request ({(int)response.StatusCode}). {DescribeBackendRefusal(refusal)}";
-                    return;
-                }
-                var planResult = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
-                if (planResult?.Receipt is null)
-                {
-                    status = "The backend returned no staged run receipt.";
-                    return;
-                }
-                activeRunId = planResult.RunId;
-                Workbench.ApplyStageReceipt(planResult.Receipt.Stages, "Plan validated; beginning the staged run.");
-                activeStageId = planResult.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? "baseline";
-            }
+            if (!await EnsureStagedRunAsync()) return;
             for (var step = 0; step < 6 && activeStageId != "foundry"; step++)
             {
                 if (!await AdvanceRunStageAsync()) return;
@@ -562,10 +739,101 @@
         }
     }
 
-    private async Task<bool> AdvanceRunStageAsync()
+    private bool CanRunApprovedExperiment =>
+        Workbench.RunStages.Any(stage => stage.Status == "current" && stage.Id != "foundry");
+
+    private TemporalInterventionRequest[] BuildInterventions() =>
+        Workbench.Plan.Interventions
+            .OrderBy(item => item.Step)
+            .Select(item => new TemporalInterventionRequest(item.Step, Workbench.Plan.ProposedValue))
+            .ToArray();
+
+    private async Task AddIntervention()
+    {
+        var lastStep = Workbench.Plan.Interventions.Max(item => item.Step);
+        var nextStep = Math.Min(Math.Max(0, Workbench.Plan.Steps - 1), lastStep + 120);
+        Workbench.Plan.Interventions.Add(new TemporalIntervention { Step = nextStep, Value = Workbench.Plan.ProposedValue });
+        await PlanChangedAsync();
+    }
+
+    private async Task RemoveIntervention(TemporalIntervention intervention)
+    {
+        if (Workbench.Plan.Interventions.Count <= 1) return;
+        Workbench.Plan.Interventions.Remove(intervention);
+        await PlanChangedAsync();
+    }
+
+    private void ResetInterventionsToProposed()
+    {
+        Workbench.Plan.Interventions.Clear();
+        Workbench.Plan.Interventions.Add(new TemporalIntervention { Step = 0, Value = Workbench.Plan.ProposedValue });
+    }
+
+    private async Task<bool> EnsureStagedRunAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(activeRunId)) return true;
+        var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps, BuildInterventions());
+        using var response = await Backend.PostAsJsonAsync("api/runs", request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var refusal = await response.Content.ReadAsStringAsync();
+            status = $"The runner refused the request ({(int)response.StatusCode}). {DescribeBackendRefusal(refusal)}";
+            return false;
+        }
+        var planResult = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+        if (planResult?.Receipt is null)
+        {
+            status = "The backend returned no staged run receipt.";
+            return false;
+        }
+        activeRunId = planResult.RunId;
+        Workbench.ApplyStageReceipt(planResult.Receipt.Stages, "Plan validated; beginning the staged run.");
+        activeStageId = planResult.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? "baseline";
+        return true;
+    }
+
+    private async Task RestartStagedRunAsync(string stageId)
+    {
+        if (string.IsNullOrWhiteSpace(activeRunId))
+        {
+            status = "The selected restart point has no staged run to resume.";
+            return;
+        }
+        using var response = await Backend.PostAsJsonAsync($"api/runs/{activeRunId}/restart", new BackendStageRestartRequest(stageId));
+        var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+        if (!response.IsSuccessStatusCode || result?.Receipt is null)
+        {
+            status = "The selected restart point could not be prepared.";
+            activeRunId = null;
+            return;
+        }
+        activeRunId = result.RunId;
+        Workbench.ApplyStageReceipt(result.Receipt.Stages, $"Restarted from {stageId}; later stages must be rerun.");
+    }
+
+    private async Task<bool> RewindBackendBeforeExecuting(string stageId)
     {
         if (string.IsNullOrWhiteSpace(activeRunId)) return false;
-        status = $"Executing {activeStageId}…";
+        var selectedIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == stageId);
+        var restartAt = selectedIndex <= 0 ? "plan" : Workbench.RunStages[selectedIndex - 1].Id;
+        using var response = await Backend.PostAsJsonAsync($"api/runs/{activeRunId}/restart", new BackendStageRestartRequest(restartAt));
+        var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+        if (!response.IsSuccessStatusCode || result?.Receipt is null)
+        {
+            status = "The selected stage could not be prepared for execution.";
+            return false;
+        }
+        activeRunId = result.RunId;
+        return true;
+    }
+
+    private async Task<bool> AdvanceRunStageAsync(string? stageBeingExecuted = null)
+    {
+        if (string.IsNullOrWhiteSpace(activeRunId)) return false;
+        var completedStageId = stageBeingExecuted
+            ?? Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")?.Id
+            ?? activeStageId;
+        status = $"Executing {completedStageId}…";
         using var response = await Backend.PostAsync($"api/runs/{activeRunId}/advance", null);
         var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
         if (!response.IsSuccessStatusCode || result?.Receipt is null)
@@ -573,8 +841,11 @@
             status = "The next execution stage could not be completed.";
             return false;
         }
-        Workbench.ApplyStageReceipt(result.Receipt.Stages, $"Completed {activeStageId}.");
+        Workbench.ApplyStageReceipt(result.Receipt.Stages, $"Completed {completedStageId}.");
         activeStageId = result.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? activeStageId;
+        status = activeStageId == completedStageId
+            ? $"Completed {completedStageId}."
+            : $"Completed {completedStageId}; ready for {activeStageId}.";
         if (result.Receipt.CandidateResults is { Length: > 0 } && result.Receipt.PacketPath is not null)
         {
             var best = result.Receipt.CandidateResults.OrderByDescending(item => item.MeanPairedDecisionDelta).First();
@@ -583,8 +854,11 @@
         return true;
     }
 
-    private sealed record BackendRunRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps);
+    private sealed record BackendRunRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps, TemporalInterventionRequest[] Interventions);
+    private sealed record TemporalInterventionRequest(int Step, double Value);
+    private sealed record BackendStageRestartRequest(string StageId);
     private sealed record BackendRunValidation(bool Valid, string RunId, string[] Errors, BackendRunReceipt? Receipt);
+    private sealed record BackendFoundryFeedback(string Status, string? AgentName, string? ResponseId, string? PacketSha256, string? OutputText, string? Error);
     private sealed record BackendCandidateResult(double CandidateValue, int MatchCount, double MeanPairedDecisionDelta, int DivergentMatchCount, bool AllAuditsPassed);
     private sealed record BackendRunReceipt(string RunId, string GraphId, string ExecutionMode, string Status, bool SourceMutation, RunStage[] Stages, string? TargetRevision, string? PacketPath, string? PacketSha256, int MatchCount, int CandidateCount, bool AuditsPassed, BackendCandidateResult[]? CandidateResults);
 
@@ -605,32 +879,25 @@
         return "The backend did not provide a structured reason.";
     }
 
-    private void BackOneStep()
-    {
-        var index = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == activeStageId);
-        if (index <= 0) return;
-        activeStageId = Workbench.RunStages[index - 1].Id;
-        status = $"Viewing {Workbench.RunStages[index - 1].Title}.";
-        Workbench.Plan.LastAction = status;
-    }
-
     private async Task ForwardOneStep()
     {
-        if (string.IsNullOrWhiteSpace(activeRunId))
+        if (!await EnsureStagedRunAsync()) return;
+        var selectedIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == activeStageId);
+        var currentIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Status == "current");
+        var laterCompleted = selectedIndex >= 0
+            && Workbench.RunStages.Skip(selectedIndex + 1).Any(stage => stage.Status == "complete");
+        if (selectedIndex >= 0 && ((currentIndex > selectedIndex) || (currentIndex < 0 && laterCompleted)))
         {
-            status = "Run the validated plan first; there is no staged run to advance.";
+            var executableStageId = activeStageId == "plan" ? "baseline" : activeStageId;
+            if (!await RewindBackendBeforeExecuting(executableStageId)) return;
+            await AdvanceRunStageAsync(executableStageId);
             return;
         }
         await AdvanceRunStageAsync();
     }
 
     private bool IsLastReceiptTab =>
-        Workbench.RunStages.Count == 0
-        || Workbench.RunStages[^1].Id == activeStageId;
-
-    private bool IsFirstReceiptTab =>
-        Workbench.RunStages.Count == 0
-        || Workbench.RunStages[0].Id == activeStageId;
+        !Workbench.RunStages.Any(stage => stage.Status == "current" && stage.Id != "foundry");
 
     private void SelectParameter(ParameterEvidence item)
     {
@@ -645,13 +912,28 @@
         modalRelationKind = "parameter";
         modalRelationLabel = item.Name;
         modalRelationNodeKind = "parameter";
-        showEditor = true;
         status = $"Selected {item.Name}. Review its recorded evidence and choose a proposed value.";
     }
 
     private void CloseEditor()
     {
-        showEditor = false;
+        SyncEditorToCommittedParameter();
+        status = $"Draft canceled. {Workbench.Plan.ParameterName} remains the selected parameter.";
+        ResetRelationToCommitted();
+    }
+
+    private void SyncEditorToCommittedParameter()
+    {
+        var committed = Workbench.SelectedParameterEvidence
+            ?? Workbench.ParametersForSelectedGraph.FirstOrDefault();
+        if (committed is null || !double.TryParse(committed.Baseline, out var baseline)) return;
+
+        editorParameterName = committed.Name;
+        editorBaselineValue = baseline;
+        editorProposedValue = Workbench.Plan.ParameterName == committed.Name
+            ? Workbench.Plan.ProposedValue
+            : baseline;
+        economicGateFocused = true;
         ResetRelationToCommitted();
     }
 
@@ -672,18 +954,18 @@
             // Opening another parameter is only a draft. Done without a new
             // value must not erase the already committed modification.
             status = $"No new value committed. {Workbench.Plan.ParameterName} remains the modified parameter.";
-            showEditor = false;
+            SyncEditorToCommittedParameter();
             ResetRelationToCommitted();
             return;
         }
         Workbench.Plan.ParameterName = editorParameterName;
         Workbench.Plan.BaselineValue = editorBaselineValue;
         Workbench.Plan.ProposedValue = editorProposedValue;
+        ResetInterventionsToProposed();
         Workbench.Plan.LastAction = $"Committed one-parameter change: {editorParameterName} = {editorProposedValue:0.####}";
         status = $"Committed {editorParameterName} at {editorProposedValue:0.####}. Only this parameter will be sent to the runner.";
-        showEditor = false;
         ResetRelationToCommitted();
-        await ValidatePlanAsync();
+        await PlanChangedAsync();
     }
 
     private void ToggleSeat(int seat)
@@ -693,7 +975,7 @@
         Workbench.Plan.LastAction = "Seat selection changed; no execution performed";
     }
 
-    private void GraphChanged(ChangeEventArgs args)
+    private async Task GraphChanged(ChangeEventArgs args)
     {
         Workbench.Plan.GraphId = args.Value?.ToString() ?? Workbench.Plan.GraphId;
         var graph = Workbench.Graphs.FirstOrDefault(item => item.Id == Workbench.Plan.GraphId);
@@ -706,8 +988,12 @@
         {
             Workbench.Plan.BaselineValue = baseline;
             Workbench.Plan.ProposedValue = baseline;
+            ResetInterventionsToProposed();
         }
+        economicGateFocused = true;
+        SyncEditorToCommittedParameter();
         status = $"Selected {graph.DisplayName} graph. Review the parameter envelope before saving.";
+        await PlanChangedAsync();
     }
 
     private void ToggleScenario(string id)
@@ -720,6 +1006,10 @@
             var mutable = Workbench.TestScenarios.ToList();
             mutable[index] = replacement;
             Workbench.ReplaceScenarios(mutable);
+            Workbench.ResetAfterPlanChange();
+            activeRunId = null;
+            activeStageId = "plan";
+            status = "Coverage plan changed. Later stages are locked until the plan is run again.";
         }
     }
 }

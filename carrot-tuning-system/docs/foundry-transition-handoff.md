@@ -19,6 +19,18 @@ remains the architectural plan. This handoff records the actual starting state
 and the editable seams required to turn that plan into a deployed development
 system.
 
+### Resource creation versus resource use
+
+Notebooks are the authoritative lifecycle surface for Azure and Foundry
+resources: they create or reuse the exact resource, record the request and
+readback, and preserve the governance evidence. That does not restrict later
+use to notebooks. Once the resource exists and its readback is recorded,
+reviewed application code or a service may consume it through a proper
+server-side integration. In particular, a deployed prompt agent may be called
+by the application after the packet/redaction, authentication, response-gate,
+and review boundaries are implemented. A missing application integration is a
+development gap, not a reason to pretend the resource cannot be used.
+
 ## Current verified state
 
 The local machine is authenticated to the owner-created `foundry-trainer`
@@ -99,6 +111,15 @@ fields such as a proposed candidate value. This proves contract shape and hard
 stops locally; it does not prove a model's language grounding. The single
 accepted fixture is a smoke result. Fixed-fixture Foundry evaluations and an
 LLM-as-judge rubric remain the later language-quality check.
+
+The port-5000 application now has a runtime-consumer path for an explicit
+feedback button. On 2026-09-25 it made one real call to the existing
+`evidence-analyst` resource using a redacted temporal packet. Response
+`resp_0d6284bb803045f2006ab6e32a796481969f5866b01ef8f11b` completed with
+`pending_human_review`; the packet hash was
+`06b6292692cc409bbc7f4d476d680cc385dded04ac9ceb988b3e2f148619f392`. The
+backend caches that response per run to prevent duplicate button clicks from
+sending repeated model messages.
 
 ## Promoted local analyst boundary
 

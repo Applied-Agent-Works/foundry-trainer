@@ -214,6 +214,163 @@ def evaluate_cached(
     }
 
 
+def _normalise_interventions(
+    binding: TargetBinding,
+    cache: dict[str, Any],
+    interventions: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Validate an ordered, one-parameter intervention schedule."""
+    if not interventions:
+        raise ValueError("an intervention schedule must contain at least one change point")
+
+    turns = [int(item["turn"]) for item in interventions]
+    if turns != sorted(turns) or len(turns) != len(set(turns)):
+        raise ValueError("intervention turns must be sorted and unique")
+    if turns[0] < 0 or turns[-1] >= len(cache["turns"]):
+        raise ValueError("intervention turns must identify baseline checkpoints")
+
+    normalized: list[dict[str, Any]] = []
+    parameter_name: str | None = None
+    for item in interventions:
+        override = item.get("override")
+        if not isinstance(override, dict) or len(override) != 1:
+            raise ValueError("each intervention must override exactly one parameter")
+        parameters, change = parameter_candidate(binding, {str(k): float(v) for k, v in override.items()})
+        del parameters
+        if parameter_name is None:
+            parameter_name = change["name"]
+        elif change["name"] != parameter_name:
+            raise ValueError("all intervention points must change the same parameter")
+        normalized.append({"turn": int(item["turn"]), "override": {change["name"]: change["new_value"]}})
+    return normalized
+
+
+def _scheduled_parameters(
+    binding: TargetBinding,
+    interventions: list[dict[str, Any]],
+    absolute_turn: int,
+) -> tuple[Any, int | None]:
+    """Return the active parameters and schedule index for one turn."""
+    active_index: int | None = None
+    for index, intervention in enumerate(interventions):
+        if intervention["turn"] > absolute_turn:
+            break
+        active_index = index
+    if active_index is None:
+        return binding.default_parameters, None
+    parameters, _ = parameter_candidate(binding, interventions[active_index]["override"])
+    return parameters, active_index
+
+
+def evaluate_scheduled_cached(
+    binding: TargetBinding,
+    cache: dict[str, Any],
+    interventions: list[dict[str, Any]],
+    opponent: Opponent | None = None,
+) -> dict[str, Any]:
+    """Restore the earliest change point and run a time-varying candidate suffix."""
+    schedule = _normalise_interventions(binding, cache, interventions)
+    start_turn = schedule[0]["turn"]
+    environment = _restore_environment(cache, cache["turns"][start_turn]["checkpoint_state"])
+    started = perf_counter()
+    first_divergence_turn = None
+    changed_actions = 0
+    suffix_actions = 0
+    applied_points: list[int] = []
+    absolute_turn = start_turn
+    while not environment.done:
+        parameters, schedule_index = _scheduled_parameters(binding, schedule, absolute_turn)
+        if schedule_index is not None and schedule[schedule_index]["turn"] == absolute_turn:
+            applied_points.append(absolute_turn)
+        observation = _json_safe(environment.state[cache["match"]["decision_player"]].observation)
+        action = binding.decision_agent(observation, parameters)
+        baseline_action = cache["turns"][absolute_turn]["baseline_action"]
+        if _canonical(action) != _canonical(baseline_action):
+            changed_actions += 1
+            if first_divergence_turn is None:
+                first_divergence_turn = absolute_turn
+        opponent_observation = _json_safe(environment.state[1 - cache["match"]["decision_player"]].observation)
+        opponent_action = (opponent or binding.opponent_agent)(opponent_observation)
+        actions = [None, None]
+        actions[cache["match"]["decision_player"]], actions[1 - cache["match"]["decision_player"]] = action, opponent_action
+        environment.step(actions)
+        suffix_actions += 1
+        absolute_turn += 1
+    return {
+        "match": cache["match"],
+        "baseline_source_revision": cache["binding"]["target_revision"],
+        "candidate_source_revision": binding.revision,
+        "candidate": {
+            "name": next(iter(schedule[0]["override"])),
+            "old_value": asdict(binding.default_parameters)[next(iter(schedule[0]["override"]))],
+            "new_value": schedule[-1]["override"][next(iter(schedule[-1]["override"]))],
+        },
+        "interventions": schedule,
+        "candidate_fingerprint": hashlib.sha256(_canonical(schedule).encode()).hexdigest(),
+        "mode": "scheduled-suffix",
+        "first_divergence_turn": first_divergence_turn,
+        "changed_actions": changed_actions,
+        "applied_intervention_turns": applied_points,
+        "suffix_actions": suffix_actions,
+        "outcome": _outcome(environment, cache["match"]["decision_player"]),
+        "replay_elapsed_seconds": 0.0,
+        "suffix_elapsed_seconds": perf_counter() - started,
+        "audit_status": "not-run",
+    }
+
+
+def clean_scheduled_rerun(
+    binding: TargetBinding,
+    *,
+    seed: int,
+    seat: int,
+    steps: int,
+    interventions: list[dict[str, Any]],
+    opponent: Opponent | None = None,
+) -> dict[str, Any]:
+    """Run a scheduled intervention from a clean simulator start."""
+    schedule = _normalise_interventions(binding, {"turns": [{"turn": 0}] * steps}, interventions)
+    environment = _environment(steps, seed)
+    started = perf_counter()
+    actions_run = 0
+    absolute_turn = 0
+    while not environment.done:
+        parameters, _ = _scheduled_parameters(binding, schedule, absolute_turn)
+        action = binding.decision_agent(_json_safe(environment.state[seat].observation), parameters)
+        opponent_action = (opponent or binding.opponent_agent)(_json_safe(environment.state[1 - seat].observation))
+        actions = [None, None]
+        actions[seat], actions[1 - seat] = action, opponent_action
+        environment.step(actions)
+        actions_run += 1
+        absolute_turn += 1
+    return {
+        "outcome": _outcome(environment, seat),
+        "actions_run": actions_run,
+        "elapsed_seconds": perf_counter() - started,
+    }
+
+
+def audit_scheduled_cached(
+    binding: TargetBinding,
+    fast: dict[str, Any],
+    interventions: list[dict[str, Any]],
+    opponent: Opponent | None = None,
+) -> dict[str, Any]:
+    """Confirm a scheduled suffix with a matching clean scheduled rerun."""
+    match = fast["match"]
+    audit = clean_scheduled_rerun(
+        binding,
+        seed=match["seed"],
+        seat=match["decision_player"],
+        steps=match["steps"],
+        interventions=interventions,
+        opponent=opponent,
+    )
+    fast["clean_audit"] = audit
+    fast["audit_status"] = "passed" if audit["outcome"] == fast["outcome"] else "failed"
+    return fast
+
+
 def clean_rerun(
     binding: TargetBinding, *, seed: int, seat: int, steps: int, override: dict[str, float], opponent: Opponent | None = None,
 ) -> dict[str, Any]:

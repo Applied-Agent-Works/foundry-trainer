@@ -185,10 +185,22 @@ horizons](./docs/foundry-transition-handoff.md#delivery-horizons-and-scope-prote
 ### Are we provisioning Azure or using credentials now?
 
 The owner-created `foundry-trainer` Foundry project is reachable. The reviewed
-model deployment and no-tools `evidence-analyst` prompt agent now exist; no
-tools, connector, Knowledge index, or model invocation exists. The next
-reviewed action is the fixed-fixture invocation. See the [Foundry transition
-handoff](./docs/foundry-transition-handoff.md).
+model deployment and no-tools `evidence-analyst` prompt agent now exist. A
+runtime smoke invocation has also completed through the port-5000 backend using
+the completed redacted temporal packet; its response remains
+`pending_human_review`. No tools, connector, or Knowledge index is attached.
+See the [Foundry transition handoff](./docs/foundry-transition-handoff.md).
+
+### Can Azure or Foundry resources created in notebooks be used elsewhere?
+
+Yes. The notebook is authoritative for resource creation, update,
+provisioning, exact reuse, and readback evidence. It is not a restriction that
+the resource can only be used from the notebook. After the notebook records an
+exact resource, application code, services, and other reviewed components may
+consume it through a proper runtime integration. For a prompt-agent call,
+that integration must still submit only the approved redacted packet, use the
+approved authentication path, validate the response, and preserve the human
+review boundary. See the [Foundry transition handoff](./docs/foundry-transition-handoff.md#resource-creation-versus-resource-use).
 
 ### What will an LLM judge evaluate, and what remains deterministic?
 

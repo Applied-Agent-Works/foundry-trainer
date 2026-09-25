@@ -912,3 +912,20 @@ normal .NET-generated encoding marker, not a secret or content-integrity issue.
 The working tree remains intentionally uncommitted while packaging and tuner
 agents finish their shared-worktree changes. No generated `var/` receipt is a
 source-controlled contract or a policy-promotion decision.
+
+## Latest runtime Foundry invocation — 2026-09-25
+
+The port-5000 backend made a real server-side call to the notebook-created
+`evidence-analyst` agent using the completed temporal packet. This was not the
+local `DemoConversationService` preview.
+
+- Agent: `evidence-analyst`
+- Response ID: `resp_0d6284bb803045f2006ab6e32a796481969f5866b01ef8f11b`
+- Packet SHA-256: `06b6292692cc409bbc7f4d476d680cc385dded04ac9ceb988b3e2f148619f392`
+- Result: completed; response retained `pending_human_review`
+- Observed facts: two matches, both clean audits passed, paired decision delta
+  `0.0`, and no first action divergence
+
+The backend caches the response per run so pressing the feedback button again
+does not send a duplicate model message. The response is descriptive only and
+does not approve a policy change or a new experiment.

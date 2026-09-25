@@ -49,8 +49,11 @@ general quality, or authorize additional model invocations.
 - The agent has no tools, connectors, Knowledge index, repository mount, web
   search, simulator access, or source-policy authority.
 - Never use a portal, MCP server, Azure CLI, or standalone script as a
-  substitute for a reviewed notebook cell. A cloud read or mutation must leave
-  its redacted actual result in Notebook 07.
+  substitute for a reviewed notebook cell that creates, updates, provisions,
+  or records a resource. Once the notebook has read back the exact resource,
+  application code may use it through a reviewed runtime integration. Any
+  runtime request must still preserve the redacted packet, authentication,
+  response-gate, and human-review boundaries.
 - Treat every model deployment, agent change, invocation, telemetry resource,
   role change, and insight-generation run as a separate bounded action. Make
   the relevant notebook cell idempotent: read/list first, reuse an exact match,

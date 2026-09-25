@@ -26,6 +26,15 @@ retry or fallback permission. Any scope, contract, cost, security, data,
 source-policy, or external-state change becomes a visible unchecked human
 decision and is recorded in the continuity documents.
 
+### Blocker transparency
+
+If the requested outcome cannot be completed, tell the owner immediately and
+name the exact blocker. Separate completed work from a mock, plan, or partial
+result; never present an unexecuted action as successful. Do not silently
+substitute a canned response, local simulation, or weaker fallback for the
+requested action. Any fallback must be labeled as such, and the original
+blocker must remain visible to the owner and to future agents.
+
 For Foundry, Azure, prompt-agent, model, deployment, external-connection, or
 analyst work, also read the [Foundry transition handoff](./docs/foundry-transition-handoff.md)
 and the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md)
@@ -50,17 +59,19 @@ or make an authenticated cloud read—and obtain a choice before acting. A cloud
 read must run through the reviewed notebook cell and retain a redacted actual
 output; do not perform it in a side channel and leave the notebook unexecuted.
 
-## Notebook as the Azure action authority
+## Notebook as the Azure resource-lifecycle authority
 
 For this project, the reviewed notebook is the authoritative action surface
-for every Azure operation. Approved reads, creates, updates, deployments,
-agent operations, and invocations must be represented by notebook cells and
-their actual outputs must be recorded there. Do not fall back to Foundry MCP,
-Azure CLI, a standalone SDK script, or a portal action when a notebook cell is
-missing or broken. Repair the notebook cell, review its exact target and
-side-effect boundary, then run that cell. A command used during diagnosis is
-not a substitute for notebook evidence and must not be presented as if the
-notebook performed it.
+for creating, updating, provisioning, and recording Azure or Foundry
+resources. A resource created or reused by a notebook is an ordinary project
+resource after its exact readback is recorded: application code, services, and
+other reviewed components may use it through an approved runtime integration.
+The notebook does not need to be the transport for every later read or agent
+invocation. Do not fall back to Foundry MCP, Azure CLI, a standalone SDK
+script, or a portal action for a missing or broken resource-lifecycle notebook
+action. Repair the notebook cell, review its exact lifecycle boundary, then
+run that cell. A command used during diagnosis is not a substitute for
+notebook evidence and must not be presented as if the notebook performed it.
 
 An explicit owner request to create an Azure resource is sufficient authority
 for that exact creation when the notebook documents the target, expected side

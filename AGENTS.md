@@ -16,12 +16,17 @@ in-memory contract inputs; every fast result requires a matching clean audit;
 target revision and source hashes must be recorded; and no source-policy
 mutation or candidate expansion is automatic.
 
-Foundry work belongs to the Carrot continuity boundary. The reviewed notebook
-is the Azure action authority: do not substitute MCP, CLI, portal, or a
-standalone script for a missing or broken notebook action. Treat package,
-virtual-environment, lockfile, and cloud changes as separate reviewable
-boundaries. The Foundry evidence analyst receives only redacted packets and
-cannot run the simulator, edit policy source, or approve a new experiment.
+Foundry work belongs to the Carrot continuity boundary. Reviewed notebooks are
+the authority for creating, updating, provisioning, and recording Azure or
+Foundry resources; they are not the only place those already-created resources
+may be used. Once a notebook has created or reused an exact resource and
+recorded its readback, application code, services, and other reviewed
+components may consume it through their approved runtime integration. Do not
+substitute MCP, CLI, portal, or a standalone script for a missing or broken
+resource-lifecycle notebook action. Treat package, virtual-environment,
+lockfile, and cloud changes as separate reviewable boundaries. The Foundry
+evidence analyst receives only redacted packets and cannot run the simulator,
+edit policy source, or approve a new experiment.
 
 The owner has granted a standing, low-cost build authority for Carrot Foundry
 work. Read [`carrot-tuning-system/AGENTS.md`](./carrot-tuning-system/AGENTS.md)
@@ -82,6 +87,16 @@ not permission to retry, switch tools, or perform a side-channel equivalent.
 If recovery changes scope or requires a new side effect, stop and flag the
 decision instead. Finish with a visible unchecked review task for every
 pending human decision and update the required continuity documents.
+
+### Blocker transparency
+
+If the requested outcome cannot be completed, say so immediately. Name the
+exact blocker, distinguish completed work from a mock, plan, or partial result,
+and do not imply that an unexecuted action succeeded. Do not silently replace
+the requested action with a simulation, canned response, or weaker substitute;
+offer that substitute only as an explicitly labeled fallback and leave the
+original blocker visible. This rule applies to the primary agent and every
+future or delegated agent.
 
 When reviewing the whole repository, distinguish current readbacks from
 historical receipts, preserve unrelated worktree changes, run the fast tests

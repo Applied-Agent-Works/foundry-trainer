@@ -45,6 +45,14 @@ app.MapPost("/api/runs", (RunPlanRequest plan, RunCoordinator coordinator) =>
     return Results.Ok(validation);
 });
 
+app.MapPost("/api/runs/{runId}/restart", (string runId, RunStageRestartRequest request, RunCoordinator coordinator) =>
+{
+    var validation = coordinator.Restart(runId, request.StageId);
+    return validation is null
+        ? Results.NotFound(new { valid = false, errors = new[] { "run was not found" } })
+        : validation.Valid ? Results.Ok(validation) : Results.BadRequest(validation);
+});
+
 app.MapPost("/api/runs/{runId}/advance", (string runId, RunCoordinator coordinator) =>
 {
     try
@@ -58,6 +66,9 @@ app.MapPost("/api/runs/{runId}/advance", (string runId, RunCoordinator coordinat
         return Results.Problem(title: "The requested run stage stopped", detail: error.Message, statusCode: StatusCodes.Status502BadGateway);
     }
 });
+
+app.MapPost("/api/runs/{runId}/foundry-feedback", (string runId, RunCoordinator coordinator) =>
+    Results.Ok(coordinator.InvokeFoundryFeedback(runId)));
 
 app.MapGet("/api/runs/{runId}", (string runId, RunCoordinator coordinator) =>
     coordinator.Get(runId) is { } receipt ? Results.Ok(receipt) : Results.NotFound());
@@ -81,7 +92,17 @@ app.MapGet("/", () => Results.Ok(new
 app.Run();
 
 public sealed record GraphDescriptor(string Id, string DisplayName, string ParameterName, string Opponent, string Eligibility);
-public sealed record RunPlanRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps);
+public sealed record RunPlanRequest(
+    string GraphId,
+    string ParameterName,
+    double BaselineValue,
+    double ProposedValue,
+    int[] Seeds,
+    int[] Seats,
+    int Steps,
+    TemporalInterventionRequest[]? Interventions = null);
+public sealed record TemporalInterventionRequest(int Step, double Value);
+public sealed record RunStageRestartRequest(string StageId);
 
 public sealed record RunStageReceipt(string Id, string Title, string Status, string Detail);
 public sealed record CandidateResult(double CandidateValue, int MatchCount, double MeanPairedDecisionDelta, int DivergentMatchCount, bool AllAuditsPassed);
@@ -100,10 +121,12 @@ public sealed record RunReceipt(
     bool AuditsPassed = false,
     IReadOnlyList<CandidateResult>? CandidateResults = null);
 public sealed record RunValidation(bool Valid, string RunId, IReadOnlyList<string> Errors, RunReceipt? Receipt);
+public sealed record FoundryFeedbackInvocation(string Status, string? AgentName = null, string? ResponseId = null, string? PacketSha256 = null, string? OutputText = null, string? Error = null);
 
 public sealed class RunCoordinator
 {
     private readonly Dictionary<string, RunReceipt> receipts = new();
+    private readonly Dictionary<string, FoundryFeedbackInvocation> foundryFeedback = new();
 
     public RunValidation Validate(RunPlanRequest plan, GraphDescriptor graph)
     {
@@ -116,6 +139,20 @@ public sealed class RunCoordinator
         if (!plan.Seeds.SequenceEqual([42])) errors.Add("the approved smoke envelope uses seed 42");
         if (!plan.Seats.SequenceEqual([0, 1])) errors.Add("the approved smoke envelope uses seats 0 and 1");
         if (plan.Steps != 720) errors.Add("the approved smoke envelope uses 720 steps");
+        var interventions = plan.Interventions is { Length: > 0 }
+            ? plan.Interventions
+            : [new TemporalInterventionRequest(0, plan.ProposedValue)];
+        if (interventions.Length > 0)
+        {
+            if (!interventions.Select(item => item.Step).SequenceEqual(interventions.Select(item => item.Step).OrderBy(step => step)))
+                errors.Add("intervention steps must be in ascending order");
+            if (interventions.Select(item => item.Step).Distinct().Count() != interventions.Length)
+                errors.Add("intervention steps must be unique");
+            if (interventions.Any(item => item.Step < 0 || item.Step >= plan.Steps))
+                errors.Add("intervention steps must fall inside the approved run");
+            if (interventions.Any(item => item.Value is not (10 or 40 or 60 or 80)))
+                errors.Add("intervention values must be one of the approved Carrot candidates: 10, 40, 60, or 80");
+        }
         if (errors.Count > 0) return new(false, string.Empty, errors, null);
 
         var runId = $"run-{Guid.NewGuid():N}";
@@ -167,6 +204,95 @@ public sealed class RunCoordinator
         return new(true, runId, [], receipt);
     }
 
+    public RunValidation? Restart(string runId, string stageId)
+    {
+        if (!plans.TryGetValue(runId, out var state)) return null;
+        var stageIds = state.Receipt.Stages.Select(stage => stage.Id).ToArray();
+        var selectedIndex = Array.IndexOf(stageIds, stageId);
+        if (selectedIndex < 0) return new(false, runId, [$"stage '{stageId}' is not part of this run"], null);
+
+        // The selected stage remains complete; its successor is the next
+        // executable stage. The receipt and Forward button therefore agree.
+        var stages = state.Receipt.Stages.Select((stage, index) =>
+            index <= selectedIndex
+                ? stage with { Status = "complete", Detail = index == 0 ? "The approved plan passed validation." : "Completed before the selected restart point." }
+                : index == selectedIndex + 1
+                    ? stage with { Status = "current", Detail = "Current execution stage." }
+                    : stage with { Status = "pending", Detail = "Must be rerun after returning to an earlier stage." })
+            .ToArray();
+        var receipt = state.Receipt with
+        {
+            Stages = stages,
+            Status = "in_progress",
+            TargetRevision = null,
+            PacketPath = null,
+            PacketSha256 = null,
+            MatchCount = 0,
+            CandidateCount = 0,
+            AuditsPassed = false,
+            CandidateResults = null,
+        };
+        state.Receipt = receipt;
+        receipts[runId] = receipt;
+        return new(true, runId, [], receipt);
+    }
+
+    public FoundryFeedbackInvocation InvokeFoundryFeedback(string runId)
+    {
+        if (foundryFeedback.TryGetValue(runId, out var cached)) return cached;
+        if (!plans.TryGetValue(runId, out var state))
+            return new("blocked", Error: "run was not found");
+        var packetPath = state.Receipt.PacketPath;
+        if (state.Receipt.Status != "completed" || string.IsNullOrWhiteSpace(packetPath))
+            return new("blocked", Error: "Foundry feedback requires a completed evidence packet");
+        if (!File.Exists(packetPath))
+            return new("blocked", Error: $"evidence packet was not found: {packetPath}");
+
+        var root = Path.GetFullPath(Environment.GetEnvironmentVariable("FOUNDRY_TRAINER_ROOT")
+            ?? Path.Combine(AppContext.BaseDirectory, "../../../../"));
+        var python = Environment.GetEnvironmentVariable("FOUNDRY_TUNER_PYTHON")
+            ?? Path.Combine(root, ".venv", "bin", "python");
+        var script = Path.Combine(root, "scripts", "invoke_foundry_feedback.py");
+        if (!File.Exists(python)) return new("blocked", Error: $"configured Python interpreter was not found: {python}");
+        if (!File.Exists(script)) return new("blocked", Error: $"Foundry integration script was not found: {script}");
+
+        var start = new ProcessStartInfo(python)
+        {
+            WorkingDirectory = root,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        start.Environment["PYTHONPATH"] = $"src{Path.PathSeparator}carrot-tuning-system";
+        start.ArgumentList.Add(script);
+        start.ArgumentList.Add("--packet");
+        start.ArgumentList.Add(packetPath);
+        try
+        {
+            using var process = Process.Start(start) ?? throw new InvalidOperationException("could not start the Foundry integration process");
+            var stdout = process.StandardOutput.ReadToEnd();
+            var stderr = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+            using var document = JsonDocument.Parse(stdout);
+            var result = document.RootElement;
+            var status = result.GetProperty("status").GetString();
+            if (status != "completed")
+                return new("blocked", Error: result.TryGetProperty("error", out var error) ? error.GetString() : stderr.Trim());
+            var completed = new FoundryFeedbackInvocation(
+                "completed",
+                result.GetProperty("agent_name").GetString(),
+                result.GetProperty("response_id").GetString(),
+                result.GetProperty("packet_sha256").GetString(),
+                result.GetProperty("output_text").GetString());
+            foundryFeedback[runId] = completed;
+            return completed;
+        }
+        catch (Exception error)
+        {
+            return new("blocked", Error: $"{error.GetType().Name}: {error.Message}");
+        }
+    }
+
     private static string? NextStageId(string current) => current switch
     {
         "baseline" => "simulate", "simulate" => "divergence", "divergence" => "audit", "audit" => "packet", "packet" => "foundry", _ => null,
@@ -174,11 +300,13 @@ public sealed class RunCoordinator
 
     private static string StageCompletionDetail(string stage, JsonElement? data) => stage switch
     {
-        "baseline" => "Baseline caches are prepared and validated.",
+        "baseline" => $"The full unchanged baseline simulation is prepared and validated ({data?.GetProperty("cache_count").GetInt32() ?? 0} cache entries).",
         "simulate" => $"Selected candidate inner loop completed ({data?.GetProperty("match_count").GetInt32() ?? 0} matches).",
         "divergence" => $"Divergence analysis completed ({data?.GetProperty("divergent_match_count").GetInt32() ?? 0} divergent matches).",
-        "audit" => "The selected candidate passed its independent clean audit.",
-        "packet" => "Immutable evidence packet assembled.",
+        "audit" => data?.GetProperty("audits_passed").GetBoolean() == true
+            ? "The selected candidate passed its independent clean audit."
+            : "The selected candidate did not pass its independent clean audit.",
+        "packet" => $"Immutable evidence packet assembled ({data?.GetProperty("match_count").GetInt32() ?? 0} matches, {data?.GetProperty("candidate_count").GetInt32() ?? 0} candidate values).",
         _ => "Stage completed.",
     };
 
@@ -198,6 +326,7 @@ public sealed class RunCoordinator
         start.ArgumentList.Add("--cache-root"); start.ArgumentList.Add(cacheRoot);
         start.ArgumentList.Add("--report-dir"); start.ArgumentList.Add(reportRoot);
         start.ArgumentList.Add("--candidate-value"); start.ArgumentList.Add(plan.ProposedValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        start.ArgumentList.Add("--schedule"); start.ArgumentList.Add(JsonSerializer.Serialize((plan.Interventions ?? []).Select(item => new { step = item.Step, value = item.Value })));
         start.ArgumentList.Add("--stage"); start.ArgumentList.Add(stage == "simulate" ? "inner-loop" : stage);
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start the staged Carrot runner process.");
         var stdout = process.StandardOutput.ReadToEnd(); var stderr = process.StandardError.ReadToEnd(); process.WaitForExit();
