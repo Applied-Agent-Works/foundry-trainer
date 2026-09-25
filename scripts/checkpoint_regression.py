@@ -16,6 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 from kaggriculture_eval.checkpoint import audit_cached, baseline_match, evaluate_cached, write_baseline
 
@@ -30,7 +31,7 @@ def main() -> None:
     if not args.prove:
         parser.error("the initial evaluator exposes only --prove; it does not search or mutate candidates")
 
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     suite = [(42, 0), (42, 1), (43, 0), (43, 1)]
     baselines = []
     for seed, seat in suite:

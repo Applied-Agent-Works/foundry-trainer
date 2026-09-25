@@ -20,10 +20,10 @@ redacted submitted evidence and return an explanation for review.
 |---|---|---|
 | Foundry project and region | Existing `foundry-trainer` project in **East US 2** | The project already exists there and is the selected location for the first prompt-agent slice. |
 | First agent form | **Prompt agent**, not a hosted/container agent | Keeps the first slice close to pay-per-token model use and avoids Container Registry and managed hosting runtime costs. |
-| Model candidate | `gpt-5.6-luna`, `2026-07-09`, Data Zone Standard, 1,000 TPM | The analyst role is bounded explanation, not open-ended planning. The model is now deployed with the reviewed lifecycle controls. |
+| Active model deployment | `gpt-5.6-luna`, `2026-07-09`, Data Zone Standard, 6,000 TPM | The analyst role is bounded explanation, not open-ended planning. Notebook 07 read back the active deployment with reviewed lifecycle controls. |
 | Capacity fallback | Data Zone Standard (US), only if regional Standard is unavailable | Maintains a U.S. processing boundary without introducing provisioned throughput. Global Standard is not the first choice because the project owner selected an East US 2 posture. |
 | Network | Public/basic development access, authenticated through Microsoft Entra ID | The first prompt agent has no tools, connectors, search, knowledge index, private data source, or target-checkout access. Private networking is deferred until a protected dependency justifies its cost and complexity. |
-| Persistent dependencies | None beyond the existing Foundry project and model deployment | Do not provision Azure AI Search, Blob Storage, a Container Registry, private endpoints, a capability host, or external connectors for the first slice. |
+| Persistent dependencies | Existing Foundry project/model deployment, redacted Application Insights connection, disabled Agent Insights monitor | Do not provision Azure AI Search, Blob Storage, a Container Registry, private endpoints, a capability host, or external connectors for the first slice. |
 | Authentication | Microsoft Entra ID; no application keys in source | This keeps callers identifiable and allows least-privilege access. |
 
 ## Trace and learning policy
@@ -119,17 +119,19 @@ invoke a model, or spend inference tokens.
 ## Source-visible deployment configuration
 
 The [Evidence Analysis Foundry Component Build](../notebooks/07_foundry_component_build.ipynb)
-now records, applies, and verifies the first deployment:
+now records, applies, and verifies the active deployment:
 `evidence-analyst-luna-v1` on `foundry-trainer-resource` / `foundry-trainer`,
 using `gpt-5.6-luna` version `2026-07-09`, `DataZoneStandard`, and capacity
-unit `1` (1,000 TPM). It also records `Microsoft.DefaultV2`, no spillover, and
+unit `6` (6,000 TPM). It also records `Microsoft.DefaultV2`, no spillover, and
 `NoAutoUpgrade` so a model-version change cannot silently alter the evidence
 chain. The configuration is an in-memory Python dataclass; the notebook records
 the approved REST apply and the successful readback. It contains no secret.
 
 This makes the deployment reproducible and reviewable in source. The apply was
-authorized by the owner and read back as `Succeeded`; it did not create an
-agent or invoke a model.
+authorized by the owner and read back as `Succeeded`. Notebook 07 also records
+no-tools prompt agent `evidence-analyst` version 2 and one accepted fixed
+redacted-fixture response. That response remains `pending_human_review`; it
+does not authorize another invocation, a policy change, or a new experiment.
 
 ## Resource-group separation: completed and checked
 
@@ -167,11 +169,27 @@ move set before execution, the move command reached a successful terminal
 state, every expected resource is now present in the destination group, the
 old account resource is absent, and the only discovered stale reference was
 explicitly corrected and reread. The remaining uncertainty is application-level
-trace ingestion, which has no agent invocation yet to produce a safe redacted
-test trace.
+trace ingestion and Agent Insights analysis, even though ordinary redacted
+agent invocation has been proven.
 
-## Next human-owned decision
+## Current telemetry boundary and next human-owned decision
 
-Review the successful deployment readback in the Evidence Analysis Foundry
-Component Build. The next separate review is the prompt-agent definition; no
-model invocation, tool, connector, or Knowledge index is authorized yet.
+Notebook 07 now records a disabled Agent Insights monitor, a project-managed
+Application Insights connection, and relevant readback roles. Its bounded
+on-demand analysis run failed with a Foundry `Forbidden` dependency error and
+produced no insights. Review whether to investigate that exact RBAC/dependency
+blocker or defer telemetry for the submission. Do not retry the run, alter
+roles, or enable scheduled analysis without a new bounded owner decision.
+
+The latest connection readback reports the service-accepted `ApiKey` connection
+shape with local authentication enabled on the Application Insights resource;
+the secret itself is not stored in source or notebook output. This is a
+telemetry-resource posture to review separately from Entra authentication for
+Foundry callers, not evidence that an application key was committed.
+
+As a diagnostic comparison, Notebook 07 then followed the Microsoft claims
+sample's tracing order with a disposable `carrot-sample-tracing-repro-v1`
+agent. The redacted call succeeded and cleanup removed the temporary
+conversation and agent version. This confirms that tracing bootstrap and
+ordinary agent invocation work in this project; it does not clear the
+separate Agent Insights service-side dependency blocker.

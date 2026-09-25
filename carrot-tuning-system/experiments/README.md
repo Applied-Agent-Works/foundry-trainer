@@ -55,6 +55,13 @@ is an execution authority.
 The contract for this first schema version is
 [`schema/experiment-spec-v1.schema.json`](./schema/experiment-spec-v1.schema.json).
 
+## Wheat Tuner ownership
+
+The first Wheat Tuner contract and runner live in the sibling
+[`wheat-tuning-system/`](../../wheat-tuning-system/) project. Keeping its
+contract there avoids two independently editable wheat experiment authorities
+inside the Carrot project.
+
 ## Approved smallest-matched smoke test
 
 [`approved/carrot_investment/seed_opportunity_baseline_smoke_v1.json`](./approved/carrot_investment/seed_opportunity_baseline_smoke_v1.json)

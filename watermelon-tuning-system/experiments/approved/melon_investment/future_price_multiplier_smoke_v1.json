@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "experiment_id": "melon-future-price-multiplier-smoke-v1",
+  "lifecycle_status": "approved",
+  "decision_graph": {
+    "id": "melon_investment",
+    "parameter_namespace": "PointPriceParameters",
+    "actions": ["plant-and-care", "preserve-option-do-not-invest"],
+    "eligibility_summary": "An empty eligible tile with a melon seed or enough money to buy one and enough season remaining to reach the planned harvest."
+  },
+  "target": {
+    "binding_mode": "explicit_sibling_target",
+    "expected_revision": "6ace5fed9018fef45642b41ea11d0bd741a508a4",
+    "expected_shared_sha256": "0ffc8740341050b74f44a4418aa67bd4cfb0a5c026e209ae2d93898c0e9b33d4",
+    "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e",
+    "source_hashes": {
+      "agents/melon/shared.py": "0ffc8740341050b74f44a4418aa67bd4cfb0a5c026e209ae2d93898c0e9b33d4",
+      "agents/one_time_crop.py": "2645298bf3348cd53f6025348104bfc2dac28655de822f5db27a73cb0c23c995",
+      "kaggriculture.py": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
+    }
+  },
+  "parameter": {
+    "name": "future_price_multiplier",
+    "baseline_value": 1.0,
+    "candidate_values": [0.05, 0.8, 1.2],
+    "mutation_mode": "in_memory_single_field_override"
+  },
+  "suite": {
+    "opponent_id": "target.agents.melon.shared.melon_conveyor_agent",
+    "opponent_deterministic": true,
+    "seeds": [42, 43],
+    "seats": [0, 1],
+    "steps": 720
+  },
+  "evaluation": {
+    "checkpoint_policy": "before_every_decision",
+    "reuse_no_divergence_baseline": true,
+    "clean_audit_required": true,
+    "result_storage": "local_ignored_var_directory"
+  },
+  "purpose": "First local Watermelon Tuner proof: compare one explicit point-price parameter against a deterministic MELON conveyor using matched seeds, both seats, checkpoint/resume, and clean full-run audits.",
+  "governance": {
+    "human_decision_required": true,
+    "source_policy_mutation_authorized": false,
+    "candidate_expansion_authorized": false
+  },
+  "execution_authorization": {
+    "operations": ["baseline_cache_preparation", "candidate_evidence_run"]
+  }
+}

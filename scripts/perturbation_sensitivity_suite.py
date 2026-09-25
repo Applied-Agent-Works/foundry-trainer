@@ -28,6 +28,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 from kaggriculture_eval.checkpoint import (
     audit_cached,
@@ -160,7 +161,7 @@ def _summarize(override: dict[str, float], rows: list[dict[str, Any]], baseline_
 
 def _run_candidate(cache_dir: str, override: dict[str, float], baseline_rewards: dict[tuple[int, int], float]) -> dict[str, Any]:
     """Worker entry point: isolated target binding and 60 complete audits."""
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     rows = []
     for path in sorted(Path(cache_dir).glob("seed-*-seat-*.json.gz")):
         baseline = read_baseline(path)
@@ -183,7 +184,7 @@ def main() -> None:
     if args.workers < 1:
         parser.error("--workers must be at least one")
     seeds = range(args.first_seed, args.last_seed + 1)
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     _validate_matrix(binding)
     started = perf_counter()
     baselines = _load_or_make_baselines(binding, args.cache_dir, seeds, args.steps)

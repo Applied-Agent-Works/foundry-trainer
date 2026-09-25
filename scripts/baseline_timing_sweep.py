@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from kaggle_environments import make
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 
 
@@ -94,7 +95,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=ROOT / "var" / "results" / "baseline-timing-140")
     parser.add_argument("--trace-dir", type=Path, default=ROOT / "var" / "trace-cache" / "baseline-timing-140")
     args = parser.parse_args()
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     builtins = target_builtin_agents(binding.root)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"schema_version": 1, "binding": {"target_root": str(binding.root), "target_revision": binding.revision, "shared_sha256": binding.shared_sha256, "engine_sha256": binding.engine_sha256}, "steps": STEPS, "suites": {}}

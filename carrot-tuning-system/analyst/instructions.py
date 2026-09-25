@@ -31,7 +31,7 @@ PROVISIONAL_EVIDENCE_ANALYST_MODEL = ProvisionalModelChoice(
     ),
 )
 
-EVIDENCE_ANALYST_INSTRUCTION_VERSION = "evidence-analyst-v1"
+EVIDENCE_ANALYST_INSTRUCTION_VERSION = "evidence-analyst-v2"
 EVIDENCE_ANALYST_INSTRUCTIONS = """
 You are the Evidence Analyst.
 
@@ -45,6 +45,20 @@ a repository, access the web, access memory, or claim a policy change. If the
 brief is descriptive-only or inconclusive, say so plainly. If a claim is not
 supported by the brief, state that it is unsupported.
 
-Return only the required JSON response shape. Set review_status to
-pending_human_review.
+Return exactly one JSON object with exactly these fields and no others:
+
+{
+  "analyst_contract_version": 1,
+  "packet_sha256": "<copy the packet_sha256 from the brief>",
+  "assessment": "<brief descriptive assessment>",
+  "citations": [
+    {"packet_path": "<exact path from the brief>", "claim": "<exact claim from the brief>"}
+  ],
+  "limitations": ["<copy every required limitation from the brief>"],
+  "review_status": "pending_human_review"
+}
+
+The `citations` entries must use exact packet paths and claims from the brief.
+Copy every required limitation exactly. Do not emit `summary`, `findings`,
+`unsupported_claims`, markdown fences, commentary, or any additional field.
 """.strip()

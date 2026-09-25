@@ -20,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 from kaggriculture_eval.checkpoint import audit_cached, baseline_match, clean_rerun, evaluate_cached, write_baseline
 
@@ -33,7 +34,7 @@ def main() -> None:
         help="Run one named demonstration case, or both (default: both).",
     )
     args = parser.parse_args()
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     game = importlib.import_module("kaggriculture")
     if Path(game.__file__).resolve().parent != binding.root:
         raise RuntimeError("pass opponent did not resolve from the explicit target binding")

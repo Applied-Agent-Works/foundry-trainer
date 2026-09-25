@@ -30,36 +30,64 @@ Its first five components are now pure, simulator-free prototypes: immutable
 submitted-packet/response shapes, a fail-closed eligibility gate, a compact
 packet-backed brief, constrained analyst instructions, and a deterministic
 structured-response gate. They were exercised against the existing smoke
-packet plus in-memory failed-audit and proposed-value guards. `gpt-5.6-luna`
-is now deployed as the reviewed model candidate. The reviewed
+packet plus in-memory failed-audit and proposed-value guards. The reviewed
 local boundary is now promoted to the [analyst package](./analyst/), with a
-source-import notebook check and fast simulator-free regression tests;
-prompt-agent creation and model calls remain later explicit steps.
+source-import notebook check and fast simulator-free regression tests.
 
 The separate [Evidence Analysis Foundry Component Build](./notebooks/07_foundry_component_build.ipynb)
-now records the exact deployment configuration, the approved apply, and the
-readback verification. The `DataZoneStandard` deployment is `Succeeded` with
-the recorded model, capacity, RAI policy, and `NoAutoUpgrade` settings.
-Component 2 now has a
-pure first slice: a frozen read-only discovery plan derived from the validated
-desired state. It names the future observations without inspecting packages,
-constructing credentials, calling Azure, or storing cloud output. SDK
-installation, environment repair, and cloud reads remain separate explicit
-decisions, not prerequisites an agent may perform automatically. A dormant
-component-2a local SDK-prerequisite check and descriptive renderer are now
-recorded. It found `azure-ai-projects 2.7.0` and `azure-identity 1.25.3`, with
-both module specs available. It cannot install or repair anything, and its
-result is not evidence of Foundry reachability.
-The approved authenticated read then confirmed the project was reachable with
-zero model deployments and zero prompt agents. It made no mutation or model
-invocation. Component 3's pure deployment-request construction and validation
-slice is recorded, and component 4 has applied and verified that deployment.
-The next explicit boundary is the no-tools prompt-agent definition; no agent
-has been created or invoked.
+is the authoritative cloud build record. Its latest stored readbacks establish
+an active `evidence-analyst-luna-v1` deployment (`gpt-5.6-luna` 2026-07-09,
+Data Zone Standard, capacity 6 / 6,000 TPM) and no-tools `evidence-analyst`
+prompt-agent version 2. One fixed, redacted evidence brief produced a
+structured response accepted by the deterministic local gate, with
+`review_status: pending_human_review`. This proves one bounded smoke path; it
+does not tune a farmer, approve a policy change, or establish an evaluation
+suite.
+
+The same notebook has a disabled Agent Insights monitor, a project-managed
+Application Insights connection, and recorded prerequisite role readbacks. A
+bounded on-demand insight run failed with a Foundry `Forbidden` dependency
+error. No further telemetry run is authorized until that specific blocker is
+reviewed. Earlier rollback and zero-inventory entries in the notebook are
+historical receipts, not the current state.
 
 For a clean successor brief that names the immediate notebook-07 task, the
 read-only claims-sample boundary, and the constrained orchestration rules, see
 the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md).
+
+The next two capability workbenches are staged separately: [08 Foundry
+evaluation workbench](./notebooks/08_foundry_evaluation_workbench.ipynb) defines
+fixed redacted fixtures, deterministic preconditions, and an LLM-as-judge
+rubric; [09 Foundry orchestration workbench](./notebooks/09_foundry_orchestration_workbench.ipynb)
+defines an optional no-tools proposal-drafter handoff. Both are local,
+simulator-free, and cloud-dormant. They do not deploy, invoke, add tools, or
+grant either model authority over game outcomes or policy source.
+
+Two parallel local decision-graph tuners now use the same evaluator pattern:
+[Wheat Tuner](../wheat-tuning-system/docs/first-pass-result.md) and
+[Watermelon/Melon Tuner](../watermelon-tuning-system/docs/first-pass-result.md).
+Their first four-match-per-graph smoke suites are audited infrastructure
+evidence, not integrated multi-graph policy decisions. Their contracts and
+source hashes remain separate until a future graph-selection design is
+approved.
+
+### Future notebook rehydration TODO
+
+- [ ] Retrofit notebooks 01–06 so every external resource workflow follows the
+  rerunnable pattern established in notebook 07:
+  1. source-visible desired state;
+  2. read-only preflight;
+  3. exact request construction and validation;
+  4. idempotent apply that creates only when absent and refuses drift;
+  5. readback verification;
+  6. a historical receipt for non-rerunnable actions; and
+  7. no MCP, CLI, portal, or standalone-script fallback when the notebook cell
+     is missing or broken.
+
+Manual deletion or resource corruption should leave a notebook able to detect
+the missing/invalid state and safely recreate the approved resource. A
+successful rerun must never silently overwrite a mismatched resource or repeat
+an irreversible action without its explicit guard and review boundary.
 
 The competition requirements are summarized in the local
 [Virtual Agent-a-thon reference](./references/foundry-competition/README.md).
@@ -89,11 +117,35 @@ reader's likely “why?” about an invariant, safety boundary, or deliberately
 mocked behavior—not on every line. The reusable `iterative-notebook-authoring`
 skill preserves this convention for future notebook work.
 
+For an executed explanatory slice, make the separate hideable Markdown card
+the default visible output. Implementation cells should normally end with an
+assignment or deliberate action, not a bare object expression that duplicates
+raw Python output beside the card. Keep raw output only when its shape is the
+thing under review or debugging.
+
 For the real local adapter, use the same pattern more deliberately: prototype
 one small function in the workbench notebook, exercise it with the checked-in
 contract, and decide which facts deserve a separate presentation cell. Only
 then move the reviewed function into `evaluator/runner.py`, where `run()`
 orchestrates functions but does not duplicate notebook explanation or output.
+
+Every executable code cell is evidence-bearing and must be run in dependency
+order. We do not leave a cell unrun, call it “intentionally not called,” or
+perform its action somewhere else. When an approval, prerequisite, credential,
+resource state, or other exceptional condition blocks progress, the cell still
+runs and raises a clear fail-closed error that says what was blocked and what
+must change before the same cell can be rerun. A successful run, a meaningful
+guard rejection, or an actionable prerequisite error is all evidence. Idempotent
+guards still prevent duplicate resources and duplicate non-repeatable messages;
+they do not justify skipping the cell.
+
+An explicit owner request authorizes creation of the requested Azure resource
+when the notebook names the exact target, side effect, cost/data boundary, and
+readback check. The creation cell must read/list first, reuse an exact match,
+and refuse drift; it must never create a duplicate or silently overwrite an
+existing resource. A second approval is not required for that exact requested,
+documented, idempotent creation. Ambiguous scope, policy changes, or a failed
+guard still require a stop and clarification.
 
 For a visual reference to the system boundaries, execution sequences, core
 records, graph interactions, and experiment lifecycle, see the
@@ -494,6 +546,13 @@ decision with their own contracts and approvals.
 For the visual authority map and component inventory, see the
 [Foundry control-plane diagram](./docs/architecture-diagrams.md#7-planned-foundry-control-plane-llm-judge-and-review).
 
+The first implementation of the evaluation layer and optional orchestration
+extension is in [Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb)
+and [Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb). Their
+local cards prove contract shape and guard behavior only. A future Foundry
+Evaluation request and any second-agent deployment remain separate reviewed
+cloud actions.
+
 ## The automatic workflow to implement next
 
 The first automated workflow should implement the inner loop through a
@@ -793,17 +852,13 @@ Pytest now protects the reviewed reusable boundaries; the notebook remains the
 human-readable component-design record rather than a replacement for tests.
 
 The local spec-driven evaluator is now the stable, tested foundation for the
-Foundry-facing layer. The next project goal is a real, code-first Foundry
-refinement analyst—not a larger carrot suite. Its current starting state,
-required editable source shape, external deployment decisions, and a
-new-conversation starting request are recorded in the
-[Foundry transition handoff](./docs/foundry-transition-handoff.md).
-
-Do not provision Azure, deploy a Foundry agent, create a model deployment, or
-add connectors until the handoff's versioned provisioning decision record
-resolves project, region, budget, data retention, network posture, model, and
-RBAC. The eventual prompt agent must remain an evidence interpreter with no
-simulator, target-policy, cache, packet-write, or experiment-expansion tool.
+Foundry-facing layer. The first no-tools Foundry evidence analyst is deployed
+and one redacted fixture invocation passed the deterministic gate. The next
+Foundry work is the fixed-fixture evaluation/LLM-judge design and the optional
+proposal-drafter role; live evaluation, a second agent, and further telemetry
+remain separate reviewed actions. The deployed prompt agent must remain an
+evidence interpreter with no simulator, target-policy, cache, packet-write, or
+experiment-expansion tool.
 
 For the precise rule that prevents illustrative notebook logic from becoming
 unearned production authority, see the [mock graduation protocol](./docs/mock-graduation-protocol.md).

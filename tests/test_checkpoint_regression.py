@@ -7,6 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 from kaggriculture_eval.checkpoint import audit_cached, baseline_match, evaluate_cached
 
@@ -14,7 +15,7 @@ from kaggriculture_eval.checkpoint import audit_cached, baseline_match, evaluate
 @pytest.mark.simulator
 def test_checkpoint_resume_matches_clean_reruns() -> None:
     """Prove reuse plus restored early and late suffixes on one deterministic match."""
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     baseline = baseline_match(binding, seed=42, seat=0, steps=144)
 
     unchanged = audit_cached(binding, evaluate_cached(binding, baseline, {"pass_utility": 0.0}), {"pass_utility": 0.0})

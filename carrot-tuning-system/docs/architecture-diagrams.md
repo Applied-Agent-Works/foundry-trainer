@@ -272,13 +272,13 @@ candidate envelope, suite, target revision, or acceptance rule gets a new
 versioned specification. Historical records preserve the exact controls and
 expected classification that a future runner must reproduce.
 
-## 7. Planned Foundry control plane: LLM judge and review
+## 7. Foundry control plane: deployed analyst, planned judge and review
 
-This is the planned, source-controlled Foundry vertical slice. All nodes in
-the `Foundry` subgraph are future work except the labelled local input and
-human-review boundary. The important distinction is between an LLM used to
-*generate or judge language* and deterministic components that retain
-mechanical authority.
+This is the source-controlled Foundry vertical slice. The no-tools Workflow /
+Analyst path is deployed and has one accepted redacted smoke response; the
+Evaluation/Judge, Review, and richer Trace analysis remain future or blocked
+work. The important distinction is between an LLM used to *generate or judge
+language* and deterministic components that retain mechanical authority.
 
 ```mermaid
 flowchart LR
@@ -286,7 +286,7 @@ flowchart LR
     Assess[Local deterministic packet assessment]
     Stop[Refuse: insufficient or invalid evidence]
 
-    subgraph Foundry[Planned Microsoft Foundry control plane]
+    subgraph Foundry[Microsoft Foundry control plane]
         Workflow[Versioned no-tools prompt agent]
         Analyst[Evidence analyst role]
         Gate[Deterministic governance checker]
@@ -314,11 +314,13 @@ flowchart LR
 
     classDef local fill:#cfe2f3,stroke:#1155cc,color:#000;
     classDef deterministic fill:#d9ead3,stroke:#38761d,color:#000;
+    classDef deployed fill:#d0e0e3,stroke:#134f5c,color:#000;
     classDef planned fill:#fce5cd,stroke:#b45f06,color:#000;
     classDef human fill:#ead1dc,stroke:#741b47,color:#000;
     class Packet,Assess,Stop local;
     class Gate deterministic;
-    class Workflow,Analyst,Planner,Review,EvalSet,Judge,Trace planned;
+    class Workflow,Analyst deployed;
+    class Review,EvalSet,Judge,Trace planned;
     class Human,NextSpec human;
 ```
 

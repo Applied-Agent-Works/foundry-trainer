@@ -4,6 +4,12 @@ This repository evaluates the sibling Kaggriculture carrot policy without
 modifying it.  It is local only: it has no cloud configuration, credentials,
 connectors, model calls, candidate search, or automatic policy mutation.
 
+The Foundry-facing control plane and the parallel Wheat/Watermelon tuner
+projects live under [`carrot-tuning-system/`](carrot-tuning-system/),
+[`wheat-tuning-system/`](wheat-tuning-system/), and
+[`watermelon-tuning-system/`](watermelon-tuning-system/). This root package
+remains the shared deterministic evaluator and simulator-proof test surface.
+
 The initial proof records a deterministic baseline against the target's
 `conveyor` opponent, saves a pre-action simulator checkpoint for every turn,
 and evaluates one human-specified `CarrotParameters` change.  A candidate is
@@ -83,3 +89,38 @@ used as the comparison baseline.
 
 For the planned one-field positive/negative sensitivity screen, see the
 [carrot parameter perturbation plan](docs/carrot-parameter-perturbation-plan.md).
+
+## Watermelon first pass
+
+The parallel local MELON tuner lives in
+[`watermelon-tuning-system/`](watermelon-tuning-system/). Its first approved
+proof binds the same sibling Kaggriculture checkout explicitly, checkpoints
+before each decision, reuses no-divergence baselines, restores divergent
+suffixes, and clean-audits every candidate. See its
+[first-pass result](watermelon-tuning-system/docs/first-pass-result.md) and
+run it with:
+
+```bash
+../kaggriculture/.venv/bin/python scripts/run_watermelon_first_pass.py \
+  --spec watermelon-tuning-system/experiments/approved/melon_investment/future_price_multiplier_smoke_v1.json \
+  --target-root ../kaggriculture \
+  --cache-root var/watermelon-tuning-system \
+  --report-dir var/watermelon-tuning-system/first-pass
+```
+
+## Wheat first pass
+
+The parallel local WHEAT tuner lives in
+[`wheat-tuning-system/`](wheat-tuning-system/). Its first approved proof uses
+the same checkpoint/resume and clean-audit controls over seeds 42 and 43 in
+both seats. See its
+[first-pass result](wheat-tuning-system/docs/first-pass-result.md) and run it
+with:
+
+```bash
+../kaggriculture/.venv/bin/python scripts/run_wheat_first_pass.py \
+  --spec wheat-tuning-system/experiments/approved/wheat_crop/future_price_multiplier_smoke_v1.json \
+  --target-root ../kaggriculture \
+  --cache-root var/wheat-tuning-system/repair-first-pass-cache \
+  --report-dir var/wheat-tuning-system/repair-first-pass
+```

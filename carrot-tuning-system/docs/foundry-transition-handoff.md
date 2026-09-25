@@ -19,37 +19,47 @@ remains the architectural plan. This handoff records the actual starting state
 and the editable seams required to turn that plan into a deployed development
 system.
 
-## Verified starting state
+## Current verified state
 
-At the handoff, the local machine has Azure CLI, `azd`, and the Foundry agent
-extensions installed and authenticated to a Pay-As-You-Go subscription. The
-owner has created the `foundry-trainer` project at
+The local machine is authenticated to the owner-created `foundry-trainer`
+project at
 `https://foundry-trainer-resource.services.ai.azure.com/api/projects/foundry-trainer`.
-A read-only Foundry MCP query confirmed that the project is reachable and had
-no registered agents at the time of inspection. This repository has no
-`azure.yaml`, Foundry deployment manifest, infrastructure, applied
-model-deployment request, cloud connection, credential, or prompt agent. It
-now has a local source-controlled `analyst/` boundary package and a successful
-`evidence-analyst-luna-v1` model deployment recorded in [07. Evidence Analysis
-Foundry Component Build](../notebooks/07_foundry_component_build.ipynb), but no
-prompt agent or model client. The environment is therefore ready to begin
-prompt-agent setup.
+The latest recorded [Notebook 07](../notebooks/07_foundry_component_build.ipynb)
+readbacks show an active `evidence-analyst-luna-v1` deployment:
+`gpt-5.6-luna` `2026-07-09`, `DataZoneStandard`, capacity 6 (6,000 TPM),
+`Microsoft.DefaultV2`, and `NoAutoUpgrade`. They also show no-tools prompt
+agent `evidence-analyst`, version 2, using the source-controlled
+`evidence-analyst-v2` contract.
 
-This is important for modifiability: the evaluator and the local analyst
-boundary are normal source-controlled Python. The deployable Foundry analyst
-has not been created, so there is no remote system to modify or imply as
-existing before a reviewed source configuration and explicit cloud approval
-exist.
+One fixed redacted evidence brief completed successfully and passed the local
+deterministic response gate. Its `pending_human_review` state remains open; it
+does not authorize a policy change or another invocation. The telemetry path
+has a disabled Agent Insights monitor, an Application Insights project
+connection, and prerequisite role readbacks, but a bounded on-demand insights
+run failed with a Foundry `Forbidden` dependency error. That blocker—not agent
+creation—is the current cloud stop point.
 
-## Provisional model and response boundary
+Notebook 07 also ran a disposable reproduction of the Microsoft claims
+monitor sample. Temporary agent `carrot-sample-tracing-repro-v1` returned a
+redacted response and was deleted, along with its conversation. That green
+sample-path result isolates the remaining red failure to Agent Insights
+analysis rather than ordinary tracing or agent invocation.
 
-The reviewed local workbench records `gpt-5.6-luna` as the provisional first
-candidate for the constrained evidence-analyst role. Its catalog release is
+The evaluator and local `analyst/` boundary remain normal source-controlled
+Python. The prompt-agent definition, local response gate, and notebook action
+history make the remote slice modifiable without granting it simulator, source,
+or policy authority.
+
+## Model and response boundary
+
+The reviewed local workbench records `gpt-5.6-luna` as the selected first
+model for the constrained evidence-analyst role. Its catalog release is
 2026-07-09, its lifecycle is general availability, and its published retirement
 date is 2028-01-11. This is a model-selection hypothesis for a bounded,
 descriptive task—not a deployment request or an assertion that capacity exists
-in a particular region. A read-only Azure deployment check found no existing
-model deployment in the project resource.
+in a particular region. The deployment is now active as
+`evidence-analyst-luna-v1` with the verified DataZone Standard capacity
+recorded above.
 
 The provisional source-controlled instruction permits only explanation of
 packet-backed facts. It has no tools, repository mount, web search, simulator
@@ -57,9 +67,9 @@ access, or source-edit authority. The local response gate binds every response
 to a submitted packet checksum, preserves the evidence-brief limitations,
 requires permitted citations and `pending_human_review`, and refuses unknown
 fields such as a proposed candidate value. This proves contract shape and hard
-stops locally; it does not prove a model's language grounding. Fixed-fixture
-Foundry evaluations and an LLM-as-judge rubric remain the later language-quality
-check.
+stops locally; it does not prove a model's language grounding. The single
+accepted fixture is a smoke result. Fixed-fixture Foundry evaluations and an
+LLM-as-judge rubric remain the later language-quality check.
 
 ## Promoted local analyst boundary
 
@@ -73,7 +83,7 @@ replay the accepted smoke-packet and unknown-field-refusal cases, while the
 parent fast suite has eight simulator-free source tests. These checks prove
 boundary preservation; they do not invoke a model or establish hosted behavior.
 
-## Required editable system shape
+## Required editable system shape and current location
 
 Build the first Foundry component as a **prompt agent**, not a Python hosted
 agent. Keep its instructions, local gates, and deployment configuration in
@@ -87,16 +97,17 @@ carrot-tuning-system/
     instructions.py         # versioned analyst instructions
     contracts.py            # request/response JSON validation
     policy.py               # one-change and evidence-boundary checks
-    tests/                  # simulator-free contract and guard tests
-    datasets/               # small redacted analyst smoke/regression inputs
+  tests/test_evidence_analyst.py  # simulator-free contract and guard tests
+  notebooks/08_foundry_evaluation_workbench.ipynb  # fixed redacted fixtures/rubric
+  notebooks/09_foundry_orchestration_workbench.ipynb  # optional role handoff
   notebooks/
     06_evidence_analyst.ipynb  # reviewed local analyst boundary and teaching history
     07_foundry_component_build.ipynb  # desired state and reviewed cloud steps
   docs/                     # decision record, runbook, retention/RBAC notes
 ```
 
-The first agent API should accept a packet plus an explicit schema/version and
-return only a structured descriptive response: assessment, packet-backed
+The first agent API accepts a packet plus an explicit schema/version and
+returns only a structured descriptive response: assessment, packet-backed
 citations, limitations, and a `pending_human_review` state. It has no
 experiment-planning or governance-review authority. Local unit tests must
 reject unknown fields, claims not supported by an audit-passing packet, missing
@@ -128,10 +139,10 @@ and the required Application Insights workspace-reference repair are complete.
 The `foundry-trainer-monthly-5-usd` budget is live with actual-cost alerts at
 50%, 80%, and 100% sent to the owner. A read-only model-capacity check found
 East US 2 Data Zone Standard available for `gpt-5.6-luna` while Regional
-Standard is unavailable. The exact smallest supported Data Zone Standard
-deployment configuration was approved, applied, and read back successfully in
-notebook 07. Model invocation and prompt-agent creation remain separate later
-approvals.
+Standard is unavailable. Notebook 07 records the approved deployment,
+prompt-agent version 2, and one fixed-fixture invocation as separate completed
+boundaries. The still-open review boundary is the accepted response; the
+current technical blocker is the bounded Agent Insights run.
 
 ## Delivery horizons and scope protection
 
@@ -156,29 +167,20 @@ work uses the same contracts to improve the agent deliberately.
 
 ## Recommended next conversation
 
-Use a new focused conversation for the Foundry phase. Its immediate task is
-recorded in the [next-agent Foundry notebook handoff](./next-agent-foundry-notebook-handoff.md):
-read the governing documents, study the local FrontierWeekHack claims sample
-without running or changing it, and set up notebook 07 one reviewable component
-at a time. The parent [Foundry setup guide](../../docs/foundry-project-setup-guide.md)
-is a reference, not permission to provision.
-
-Suggested opening request:
-
-> Read `carrot-tuning-system/docs/next-agent-foundry-notebook-handoff.md`.
-> Use the FrontierWeekHack claims repository only as a read-only SDK-pattern
-> sample, then extend `07_foundry_component_build.ipynb` with the next
-> reviewable, non-mutating Foundry component. Preserve the no-tools prompt-agent
-> boundary and do not deploy, create an agent, invoke a model, or alter Azure
-> without a fresh explicit approval. Keep the local evaluator as the only
-> scoring authority.
+Use a focused conversation only after reading the current
+[next-agent Foundry notebook handoff](./next-agent-foundry-notebook-handoff.md).
+The parent [Foundry setup guide](../../docs/foundry-project-setup-guide.md) is
+a reference, not permission to provision. The next agent should not restart
+component 2 or recreate the agent; it should either investigate the exact
+telemetry permission blocker after explicit approval, or build the separate
+fixture-and-judge evaluation workbench.
 
 For the submission window, prioritize the smallest deployable vertical slice
 over extra local tuning. Keep any work on the farming agent in a separate
 bounded experiment notebook/contract so it can continue during the following
 week without destabilizing the Foundry submission.
 
-The model deployment is now applied and verified. Prompt-agent creation, fixture
-invocation, and analyst-behavior evaluation remain separate reviewed actions.
-Each must be recorded with its actual result; none should be represented as
-completed in advance.
+The model deployment, prompt-agent creation, and one fixture invocation were
+separate reviewed actions and have recorded actual results. Preserve that
+separation for every future mutation and do not represent a failed telemetry
+operation as successful trace analysis.

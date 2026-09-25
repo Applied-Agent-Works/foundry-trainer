@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from kaggle_environments import make
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 
 
@@ -46,7 +47,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=None)
     args = parser.parse_args()
 
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     left_value, right_value = args.left_value, args.right_value
     if left_value == right_value:
         parser.error("--left-value and --right-value must differ")

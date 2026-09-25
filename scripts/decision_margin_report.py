@@ -22,6 +22,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
 from kaggriculture_eval.binding import bind_target
 from kaggriculture_eval.checkpoint import read_baseline
 
@@ -80,7 +81,7 @@ def main() -> None:
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "var" / "cache" / "perturbation-sensitivity-60")
     parser.add_argument("--output", type=Path, default=ROOT / "var" / "results" / "decision-margin-60" / "summary.json")
     args = parser.parse_args()
-    binding = bind_target()
+    binding = bind_target(adapter=CARROT_ADAPTER)
     rows = []
     for path in sorted(args.cache_dir.glob("seed-*-seat-*.json.gz")):
         baseline = read_baseline(path)

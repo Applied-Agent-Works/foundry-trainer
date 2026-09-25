@@ -14,8 +14,6 @@ from .binding import TargetBinding
 
 
 CACHE_SCHEMA_VERSION = 1
-OPPONENT_ID = "target.agents.carrot.shared.carrot_conveyor_agent"
-POLICY_ID = "target.agents.carrot.shared.carrot_decision_agent"
 Opponent = Callable[[dict], dict]
 
 
@@ -59,20 +57,20 @@ def _environment(steps: int, seed: int) -> Any:
 def parameter_candidate(binding: TargetBinding, override: dict[str, float]) -> tuple[Any, dict[str, Any]]:
     """Create exactly one human-specified parameter override, never a source edit."""
     if len(override) != 1:
-        raise ValueError("a candidate must override exactly one named CarrotParameters field")
+        raise ValueError("a candidate must override exactly one named policy parameter field")
     name, new_value = next(iter(override.items()))
-    defaults = asdict(binding.shared.DEFAULT_PARAMETERS)
+    defaults = asdict(binding.default_parameters)
     if name not in defaults:
-        raise ValueError(f"unknown CarrotParameters field: {name}")
+        raise ValueError(f"unknown {binding.parameter_type.__name__} field: {name}")
     old_value = defaults[name]
     values = {**defaults, name: new_value}
-    parameters = binding.shared.CarrotParameters(**values)
+    parameters = binding.parameter_type(**values)
     return parameters, {"name": name, "old_value": old_value, "new_value": new_value}
 
 
 def baseline_match(
     binding: TargetBinding, *, seed: int, seat: int, steps: int,
-    opponent: Opponent | None = None, opponent_id: str = OPPONENT_ID,
+    opponent: Opponent | None = None, opponent_id: str | None = None,
 ) -> dict[str, Any]:
     """Run one baseline and snapshot the complete state before every action."""
     environment = _environment(steps, seed)
@@ -83,9 +81,9 @@ def baseline_match(
         # Kaggle's history and preserving the exact pre-action restore point.
         checkpoint = _json_safe(environment.state)
         observation = _json_safe(environment.state[seat].observation)
-        action = binding.shared.carrot_decision_agent(observation)
+        action = binding.decision_agent(observation)
         opponent_observation = _json_safe(environment.state[1 - seat].observation)
-        opponent_action = (opponent or binding.shared.carrot_conveyor_agent)(opponent_observation)
+        opponent_action = (opponent or binding.opponent_agent)(opponent_observation)
         actions = [None, None]
         actions[seat], actions[1 - seat] = action, opponent_action
         turns.append(
@@ -105,13 +103,14 @@ def baseline_match(
             "target_revision": binding.revision,
             "shared_sha256": binding.shared_sha256,
             "engine_sha256": binding.engine_sha256,
+            "source_hashes": dict(binding.source_hashes),
         },
         "match": {
             "seed": seed,
             "decision_player": seat,
             "steps": steps,
-            "opponent": opponent_id,
-            "policy": POLICY_ID,
+            "opponent": opponent_id or binding.opponent_id,
+            "policy": binding.policy_id,
             "configuration": _configuration(steps, seed),
         },
         "turns": turns,
@@ -161,9 +160,9 @@ def _run_suffix(
     suffix_actions = 0
     while not environment.done:
         observation = _json_safe(environment.state[match["decision_player"]].observation)
-        action = binding.shared.carrot_decision_agent(observation, parameters)
+        action = binding.decision_agent(observation, parameters)
         opponent_observation = _json_safe(environment.state[1 - match["decision_player"]].observation)
-        opponent_action = (opponent or binding.shared.carrot_conveyor_agent)(opponent_observation)
+        opponent_action = (opponent or binding.opponent_agent)(opponent_observation)
         actions = [None, None]
         actions[match["decision_player"]], actions[1 - match["decision_player"]] = action, opponent_action
         environment.step(actions)
@@ -183,7 +182,7 @@ def evaluate_cached(
     started = perf_counter()
     divergence_turn = None
     for turn in cache["turns"]:
-        candidate = binding.shared.carrot_decision_agent(turn["observation"], parameters)
+        candidate = binding.decision_agent(turn["observation"], parameters)
         if _canonical(candidate) != _canonical(turn["baseline_action"]):
             divergence_turn = turn["turn"]
             break
@@ -224,8 +223,8 @@ def clean_rerun(
     started = perf_counter()
     actions_run = 0
     while not environment.done:
-        action = binding.shared.carrot_decision_agent(_json_safe(environment.state[seat].observation), parameters)
-        opponent_action = (opponent or binding.shared.carrot_conveyor_agent)(_json_safe(environment.state[1 - seat].observation))
+        action = binding.decision_agent(_json_safe(environment.state[seat].observation), parameters)
+        opponent_action = (opponent or binding.opponent_agent)(_json_safe(environment.state[1 - seat].observation))
         actions = [None, None]
         actions[seat], actions[1 - seat] = action, opponent_action
         environment.step(actions)

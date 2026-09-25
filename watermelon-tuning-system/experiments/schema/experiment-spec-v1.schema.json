@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.kaggriculture-eval/schemas/watermelon-experiment-spec-v1.schema.json",
+  "title": "Kaggriculture Watermelon bounded experiment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "experiment_id", "lifecycle_status", "decision_graph", "target", "parameter", "suite", "evaluation", "purpose", "governance", "execution_authorization"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "experiment_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,127}$"},
+    "lifecycle_status": {"enum": ["draft", "approved", "historical_reproduction", "retired"]},
+    "decision_graph": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "parameter_namespace", "actions", "eligibility_summary"],
+      "properties": {
+        "id": {"const": "melon_investment"},
+        "parameter_namespace": {"const": "PointPriceParameters"},
+        "actions": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+        "eligibility_summary": {"type": "string", "minLength": 1}
+      }
+    },
+    "target": {
+      "type": "object", "additionalProperties": false,
+      "required": ["binding_mode", "expected_revision", "expected_shared_sha256", "expected_engine_sha256", "source_hashes"],
+      "properties": {
+        "binding_mode": {"const": "explicit_sibling_target"},
+        "expected_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "expected_shared_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "expected_engine_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "source_hashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agents/melon/shared.py", "agents/one_time_crop.py", "kaggriculture.py"],
+          "properties": {
+            "agents/melon/shared.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "agents/one_time_crop.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "kaggriculture.py": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "parameter": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "baseline_value", "candidate_values", "mutation_mode"],
+      "properties": {
+        "name": {"const": "future_price_multiplier"},
+        "baseline_value": {"const": 1.0},
+        "candidate_values": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "number"}},
+        "mutation_mode": {"const": "in_memory_single_field_override"}
+      }
+    },
+    "suite": {
+      "type": "object", "additionalProperties": false,
+      "required": ["opponent_id", "opponent_deterministic", "seeds", "seats", "steps"],
+      "properties": {
+        "opponent_id": {"const": "target.agents.melon.shared.melon_conveyor_agent"},
+        "opponent_deterministic": {"const": true},
+        "seeds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}},
+        "seats": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": [0, 1]}},
+        "steps": {"const": 720}
+      }
+    },
+    "evaluation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["checkpoint_policy", "reuse_no_divergence_baseline", "clean_audit_required", "result_storage"],
+      "properties": {
+        "checkpoint_policy": {"const": "before_every_decision"},
+        "reuse_no_divergence_baseline": {"const": true},
+        "clean_audit_required": {"const": true},
+        "result_storage": {"const": "local_ignored_var_directory"}
+      }
+    },
+    "purpose": {"type": "string", "minLength": 1},
+    "governance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["human_decision_required", "source_policy_mutation_authorized", "candidate_expansion_authorized"],
+      "properties": {
+        "human_decision_required": {"const": true},
+        "source_policy_mutation_authorized": {"const": false},
+        "candidate_expansion_authorized": {"const": false}
+      }
+    },
+    "execution_authorization": {
+      "type": "object", "additionalProperties": false, "required": ["operations"],
+      "properties": {"operations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["baseline_cache_preparation", "candidate_evidence_run"]}}}
+    }
+  }
+}

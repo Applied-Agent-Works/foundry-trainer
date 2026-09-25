@@ -1,8 +1,9 @@
-"""Deliberately incomplete orchestration boundary for local experiments.
+"""Fail-closed local orchestration boundaries for declared experiments.
 
 The existing ``kaggriculture_eval`` package remains the proven simulation
-engine. This module will eventually validate a declared experiment and call
-those primitives; it must never become a second simulator or policy editor.
+engine. This module validates declared contracts and exposes separately
+reviewed planning, candidate-evaluation, audit, packet, and CLI boundaries; it
+must never become a second simulator or policy editor.
 """
 
 from __future__ import annotations
@@ -162,6 +163,7 @@ def bind_and_validate_target(
     how to enforce the stop.
     """
     try:
+        from kaggriculture_eval.carrot_adapter import CARROT_ADAPTER
         from kaggriculture_eval.binding import bind_target
     except ModuleNotFoundError as error:
         raise RuntimeError(
@@ -170,7 +172,7 @@ def bind_and_validate_target(
         ) from error
 
     try:
-        binding = bind_target(target_root)
+        binding = bind_target(target_root, adapter=CARROT_ADAPTER)
     except RuntimeError as error:
         return TargetFingerprintValidation(
             target_root=target_root.resolve(),

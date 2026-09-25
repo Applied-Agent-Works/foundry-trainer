@@ -184,12 +184,11 @@ horizons](./docs/foundry-transition-handoff.md#delivery-horizons-and-scope-prote
 
 ### Are we provisioning Azure or using credentials now?
 
-Not yet. The owner-created `foundry-trainer` Foundry project is reachable, but
-it had no registered agents at the last read-only inspection, and this
-repository has no prompt agent, IaC, `azure.yaml`, applied model deployment,
-connector, or hosted runtime. Before deployment, the owner must record and
-approve region, budget, retention, network, model, and RBAC choices. See the
-[Foundry transition handoff](./docs/foundry-transition-handoff.md).
+The owner-created `foundry-trainer` Foundry project is reachable. The reviewed
+model deployment and no-tools `evidence-analyst` prompt agent now exist; no
+tools, connector, Knowledge index, or model invocation exists. The next
+reviewed action is the fixed-fixture invocation. See the [Foundry transition
+handoff](./docs/foundry-transition-handoff.md).
 
 ### What will an LLM judge evaluate, and what remains deterministic?
 
@@ -201,6 +200,21 @@ Deterministic code continues to validate packet eligibility, output schema,
 citations, prohibited actions, and review status. Neither the prompt agent
 nor the LLM judge determines game outcomes, audit status, target binding, or a
 policy change. See the [Foundry control-plane diagram](./docs/architecture-diagrams.md#7-planned-foundry-control-plane-llm-judge-and-review).
+
+### What did the next two Foundry workbenches establish?
+
+[Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb) now exercises a
+fixed, redacted packet/response fixture against the promoted deterministic
+analyst gate. It rejects an extra planning field before any judge score and
+records a cloud-dormant rubric for grounding, audit discipline, uncertainty,
+boundedness, usefulness, and review-boundary preservation. The notebook does
+not call Foundry or produce a model-quality score.
+
+[Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb) now exercises
+an optional analyst-to-proposal-drafter handoff. The drafter can prepare a
+bounded proposal record only; it cannot run a simulator, use tools, change
+source, or approve a new experiment. Both workbenches passed local execution
+and remain pending human review before any cloud deployment or evaluation.
 
 ### Where does Foundry-facing evidence-analyst work begin?
 
@@ -214,19 +228,15 @@ holds the proposed model configuration and later cloud steps.
 
 ### What should the next agent do before any Foundry operation?
 
-Read the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md),
-then study the local [FrontierWeekHack](/home/experiments/Learning/microsoft/FrontierWeekHack)
-claims example as a read-only SDK-pattern sample. Notebook 07 now contains an
-handoff, desired-state deployment record, and the completed component-2
-read-only inspection. The approved read reached the configured project and
-returned zero model deployments and zero prompt agents. It made no mutation or
-model invocation, and its summarized result is stored in the notebook. The
-deployment request has now been constructed, validated, and pretty-printed
-against that result; it remains `pending_human_review` and is not deployment
-approval. A missing SDK remains a prerequisite to record, not permission to
-install or repair the shared environment. The claims sample's tool-using
-agents, connections, credentials, cleanup steps, and action authority do not
-transfer.
+Read the current [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md)
+and the latest stored results in [Notebook 07](./notebooks/07_foundry_component_build.ipynb).
+Do not restart the early discovery or deployment components: their zero-resource
+result and rollback are historical receipts, not live inventory. The live
+resources are deployment `evidence-analyst-luna-v1` at 6,000 TPM and no-tools
+agent `evidence-analyst` version 2. The immediate stop point is the bounded
+Agent Insights run that failed with `Forbidden`; investigate it only after the
+owner asks for that exact action. Otherwise, the next safe product task is a
+small fixed-fixture evaluation and LLM-as-judge workbench.
 
 ### How should work be delegated from now on?
 
@@ -246,16 +256,14 @@ and a deterministic structured-response gate. The workbench may read the
 existing immutable smoke packet and use in-memory malformed copies for
 simulator-free refusal checks.
 
-`gpt-5.6-luna` is now deployed as `evidence-analyst-luna-v1` with a published
-retirement date of 2028-01-11. The owner approved the exact request, and the
-readback returned `Succeeded` with the approved model, Data Zone capacity, RAI
-policy, and no-auto-upgrade settings. This does not authorize a model call,
-source promotion, new experiment contract, simulator execution, or policy
-mutation. The reviewed boundary now
-lives in [`analyst/`](./analyst/) and has eight fast simulator-free source tests
-covering the notebook success/guard cases. It intentionally has no Foundry or
-model client. The next review boundary is the prompt-agent definition in
-notebook 07, not a model invocation.
+`gpt-5.6-luna` is deployed as `evidence-analyst-luna-v1` at six Data Zone
+capacity units (6,000 TPM), with the approved RAI and no-auto-upgrade controls.
+The reviewed boundary in [`analyst/`](./analyst/) remains local and has
+simulator-free source tests. Notebook 07 records no-tools agent
+`evidence-analyst` version 2, then one fixed redacted-fixture response accepted
+by the deterministic gate. It remains `pending_human_review`. This does not
+authorize a candidate ranking, source-policy change, another experiment, or an
+unbounded model conversation.
 
 ### How will traces support learning without becoming an uncontrolled cost or data sink?
 
@@ -286,8 +294,117 @@ misrepresented as an automatic stop. The exact first deployment is now recorded
 and verified in the Evidence Analysis Foundry Component Build:
 deployment `evidence-analyst-luna-v1`, model version `2026-07-09`,
 Data Zone Standard, capacity unit `1` (1,000 TPM), default content filtering,
-no spillover, and no automatic version upgrade. The deployment is `Succeeded`;
-the next stop point is prompt-agent definition, not model invocation.
+no spillover, and no automatic version upgrade. The deployment and no-tools
+agent were verified and then manually removed. The next stop point is a future
+recreate/review decision, not an unrestricted model call.
+
+### What did the first fixed-fixture invocation and trace check establish?
+
+Notebook 07 recorded one invocation as response
+`resp_0435be6d6b422531006ab57296973c8195bbd983b98c4e609e`, then safely reused
+that receipt on rerun. A read-only response retrieval found status `incomplete`,
+`incomplete_details="max_output_tokens"`, zero output characters, and 200
+output tokens all consumed as reasoning tokens. The deterministic gate therefore
+refused the empty response as `invalid_json`; this is an invocation-budget
+finding, not a model-quality judgment. The subsequent trace cell also ran, but
+the installed `azure-ai-projects` client exposes no `agent_insight_monitors`
+operation, so no trace query could be performed. No package or environment
+change was made; the next decision is to review the approved telemetry/insights
+SDK surface before changing the response budget or environment.
+
+### What changed in the clean rebuild?
+
+After both Foundry resources were deleted, notebook 07 recreated deployment
+`evidence-analyst-luna-v1` with six Data Zone capacity units (6,000 TPM) and
+created prompt agent `evidence-analyst` version 1. The new invocation used a
+5,000-token response budget and completed with 536 output tokens, including 230
+reasoning tokens. The response was visible but failed the deterministic gate
+because it returned `summary`/`findings`/`unsupported_claims` instead of the
+source-controlled v1 fields `analyst_contract_version`, `packet_sha256`,
+`assessment`, and `citations`. This is now the next prompt-contract repair;
+the trace query remains blocked by the installed SDK surface described above.
+
+The prompt contract was then tightened to `evidence-analyst-v2`, including the
+exact six-field JSON object and an explicit ban on the previously observed
+`summary`/`findings`/`unsupported_claims` shape. Notebook 07 created agent
+version 2 and reran the same fixed fixture. The response now matches the local
+contract and the deterministic gate accepted it with
+`review_status: pending_human_review`. The only remaining notebook error is the
+separate trace-query SDK-surface blocker.
+
+The trace surface was then corrected to the SDK's beta namespace,
+`client.beta.agent_insight_monitors`. Notebook 07 created disabled monitor
+`monitor_1cc62eccddcf46ed826fa08ed497a92f` for `evidence-analyst`, read it back,
+and queried it successfully. The query found one monitor and zero matching
+insights. No scheduled or manual insight-generation run has been started yet;
+that remains the next separately reviewed, potentially billable action.
+
+The first bounded on-demand run was then attempted with a 168-hour lookback and
+deterministic operation ID. Foundry rejected it before analysis because the
+project has zero valid Application Insights connections. Notebook 07 now records
+that exact prerequisite error and a credential-free connection inventory. No
+insights were generated by that rejected run. The next action is to create or
+attach the reviewed Application Insights project connection, then rerun the same
+bounded analysis.
+
+The connection repair is now complete in notebook 07: the project connection,
+Entra-only App Insights setting, Foundry User, Monitoring Metrics Publisher,
+Monitoring Reader, and Log Analytics Reader assignments all read back as
+available and idempotent. A new post-connection fixed-fixture response was
+captured, but the bounded Agent Insights run still fails with a service-side
+`Forbidden` dependency error. The notebook closes with a red `❌` blocker and a
+yellow `⚠️` human decision; no further billable iteration is started
+automatically.
+
+The authorized chat-side diagnosis found that the project API reported the
+managed-identity connection as `UnknownConnectionPropertiesV2`. The same named
+connection was repaired in place to the service-accepted AppInsights `ApiKey`
+shape using the existing connection string held only in memory; notebook 07 was
+rewritten to reproduce that exact idempotent repair without storing the secret.
+The bounded v9 run still returns the same Agent Insights dependency `Forbidden`,
+so no further billable retry is being started automatically.
+
+The Microsoft claims sample revealed two additional tracing requirements that
+are now represented in notebook 07: tracing flags must be set before Azure SDK
+imports, and the `AIProjectInstrumentor` plus Azure Monitor exporter must be
+configured before the traced call. The sample also creates an account-level,
+shared App Insights connection; notebook 07 now creates/reuses that same
+account-level boundary. The exporter dependency is not installed in the current
+environment, so the notebook records a red `❌` prerequisite error rather than
+installing it automatically.
+
+The chat-side diagnosis also identified the prompt agent's instance identity as
+missing from App Insights RBAC. Notebook 07 now discovers that live identity
+and idempotently assigns Monitoring Metrics Publisher, Monitoring Reader, and
+Log Analytics Reader at the App Insights scope. The assignments were created
+once and read back; the next Agent Insights attempt still returned `Forbidden`,
+so no further billable retry is automatic.
+
+The approved final tracing iteration installed the reviewed exporter packages,
+configured tracing before Azure SDK imports, and captured a new accepted fixed-
+fixture response `resp_0017cf238c7e43e4006ab5a9f35ce881969284d851b5b6fa99`.
+The Agent Insights analysis still returns the same service-side `Forbidden`
+dependency error. The notebook therefore stops with a red blocker rather than
+spending another iteration.
+
+The next bounded diagnostic followed the Microsoft claims sample directly:
+tracing bootstrap, one temporary named agent, one redacted response, then
+conversation/agent cleanup in `finally`. `carrot-sample-tracing-repro-v1`
+returned a response and was fully removed. Therefore ordinary Foundry agent
+invocation and tracing are proven; the remaining `Forbidden` is specific to
+the Agent Insights analysis dependency or its preview/model compatibility.
+The notebook records the sample result as green and keeps Agent Insights red;
+no further retry is justified without a new owner decision.
+
+### What is the current Foundry review and technical blocker?
+
+Review the accepted fixed-fixture response and its `pending_human_review`
+state before treating it as useful analyst guidance. Separately, decide whether
+to investigate or defer telemetry: the disabled monitor, project connection,
+and recorded role assignments exist, but the bounded Agent Insights run failed
+with a Foundry `Forbidden` dependency error and produced no insights. Do not
+retry, change RBAC, or enable scheduled analysis without a new bounded owner
+decision.
 
 ### What can be parallelized safely?
 
@@ -699,11 +816,23 @@ execute. See the [historical seed-opportunity record](./experiments/historical/c
 
 ### Is step 9.1 of the system-model notebook fully implemented?
 
-It is complete as a design and source-control artifact: schema v1, a validated
-historical coarse-bracket spec, a narrative, and a historical notebook exist.
-It is not yet a runnable spec-driven evaluator. The next implementation is a
-local loader/validator and runner that reads this JSON and calls the proven
-parent checkpoint evaluator. See [current status and acceptance criteria](./docs/current-state-and-next-slice.md#the-next-narrow-implementation-slice).
+This is a historical answer from before the local runner was completed. The
+loader, schema checks, explicit target binding, bounded candidate helpers,
+clean audits, packet writer, and narrow CLI now exist and are covered by the
+fast suite. The remaining work is broader held-out graph evaluation and the
+Foundry evaluation/reasoning layer, not basic step-9.1 implementation. See
+the [current state](./docs/current-state-and-next-slice.md).
+
+### What is the current multi-graph tuner state?
+
+Carrot remains the first fully documented graph. Wheat and Watermelon/Melon now
+each have a separate approved first-pass contract, explicit target adapter,
+checkpoint/resume evaluation, clean audits, and provenance-rich local summary.
+Wheat's `0.05` future-price candidate harmed the first smoke suite while `0.8`
+and `1.2` were inert; Watermelon's `0.05` candidate produced a small positive
+delta while `0.8` and `1.2` were inert. These are four-match smoke facts, not
+policy promotions or cross-graph conclusions. Larger held-out contracts and a
+future graph-selection layer remain separate work.
 
 ### Where are the diagrams, and what are they for?
 
@@ -724,6 +853,27 @@ to real reader confusion, especially to explain safety boundaries and why a
 mock does not perform a real policy or evaluator action. See the [notebook
 convention](./README.md#how-to-maintain-explanatory-notebooks) and the
 [system-model notebook](./notebooks/01_system_model.ipynb).
+
+### What is the canonical rule for executable notebook cells?
+
+Every executable code cell runs in dependency order and retains its real
+output. We do not leave cells unrun, label them “intentionally not called,” or
+replace them with side-channel actions. If approval, authentication, a
+dependency, or a resource precondition is missing, the cell still runs and
+raises a clear fail-closed error naming the blocker and the exact fix. The
+owner then fixes that condition and reruns the same cell. Idempotent guards
+prevent duplicate effects; they do not justify skipping execution. This rule
+applies to future agents as well as the current notebook work.
+
+### May an agent create an Azure resource without asking again?
+
+Yes, when the owner explicitly requests that exact resource creation and the
+operation is implemented in the reviewed notebook. The notebook must document
+the target, expected side effect, cost/data implications, and readback check;
+the executable cell must list/read first, reuse an exact existing resource, and
+refuse drift rather than duplicate or overwrite it. A second approval is not
+required for that exact, bounded, idempotent request. An ambiguous request,
+scope expansion, policy change, or failed guard remains a stop point.
 
 ### How do we complete a mock without accidentally giving it production authority?
 

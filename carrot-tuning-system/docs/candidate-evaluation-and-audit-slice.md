@@ -1,11 +1,12 @@
-# Next adapter slice: bounded candidate evaluation and clean audits
+# Historical adapter slice: bounded candidate evaluation and clean audits
 
 ## Purpose
 
-This note defines the next implementation slice for the local inner-loop
-adapter after the approved baseline caches have been created and reopened. It
-is still work inside the local adapter, with the notebook as the review surface
-and [`evaluator/runner.py`](../evaluator/runner.py) as the reusable source.
+This note records the implementation slice that built the local inner-loop
+adapter after the approved baseline caches were created and reopened. It is a
+historical companion to the completed work, with the notebook as the review
+surface and [`evaluator/runner.py`](../evaluator/runner.py) as the reusable
+source.
 
 The purpose is to obtain a trustworthy per-match result for one **already
 declared** candidate value. The result must say whether the candidate reused
@@ -28,8 +29,9 @@ already provides the proven primitives:
 - `audit_cached(...)` compares the fast and clean results and reports a
   pass/fail audit status.
 
-The adapter has not yet wrapped those primitives in its bounded experiment
-contract. That wrapper is the next component to design.
+The adapter has now wrapped those primitives in its bounded experiment
+contract. The progression below preserves the reasoning and audit boundary
+that the source implementation must retain.
 
 ### Current first exercise
 
