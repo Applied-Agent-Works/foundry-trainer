@@ -40,6 +40,7 @@ public sealed class WorkbenchState
 {
     public RunPlan Plan { get; } = new();
     public RunResultSummary? LastRunResult { get; private set; }
+    public bool HasRunResult => LastRunResult is not null;
     public string SelectedAgentId { get; set; } = "evidence-analyst";
     public string Decision { get; set; } = "pending_human_review";
     public IReadOnlyList<RunStage> RunStages => runStages;
@@ -203,7 +204,29 @@ public sealed class WorkbenchState
 
     public void ApplyBackendReceipt(IReadOnlyList<RunStage> stages, RunResultSummary result, string action)
     {
+        // The backend receipt is atomic, but the workbench presents its facts
+        // as a guided review: baseline is complete and the selected candidate's
+        // inner-loop result is the next section for the human to advance.
+        runStages = runStages.Select(stage => stage.Id switch
+        {
+            "plan" => stage with { Status = "complete", Detail = "The approved plan passed validation." },
+            "baseline" => stage with { Status = "complete", Detail = "The validated baseline is ready for comparison." },
+            "simulate" => stage with { Status = "current", Detail = "The selected candidate result is ready to review." },
+            _ => stage with { Status = "pending", Detail = "Waiting for the preceding review step." },
+        }).ToList();
+        LastRunResult = result;
+        Plan.Status = "completed · real simulator receipt";
+        Plan.LastAction = action;
+    }
+
+    public void ApplyStageReceipt(IReadOnlyList<RunStage> stages, string action)
+    {
         runStages = stages.ToList();
+        Plan.LastAction = action;
+    }
+
+    public void RecordRunResult(RunResultSummary result, string action)
+    {
         LastRunResult = result;
         Plan.Status = "completed · real simulator receipt";
         Plan.LastAction = action;

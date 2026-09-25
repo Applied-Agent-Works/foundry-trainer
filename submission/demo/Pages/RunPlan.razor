@@ -86,7 +86,7 @@
     }
         </div>
 
-    @if (economicGateFocused && FocusedEvidence is { } focusedEvidence)
+    @if (economicGateFocused && showEditor && EditorParameterEvidence is { } focusedEvidence)
     {
         var influence = WorkbenchState.InfluenceFor(focusedEvidence.Name);
         <section class="influence-card unified-influence-card">
@@ -164,6 +164,14 @@
                     <span>PRIORITY 3</span>
                     <strong>Empty tile, seed, horizon, and utility beats PASS?</strong>
                     <small>Reads the economic gate above; this is where the plant/pass result becomes actionable.</small>
+                    @if (Workbench.Plan.ProposedValue != Workbench.Plan.BaselineValue)
+                    {
+                        <span class="control-flow-gate-status changed">KNOB CHANGED · @Workbench.Plan.ParameterName = @Workbench.Plan.ProposedValue.ToString("0.####") <em>(baseline @Workbench.Plan.BaselineValue.ToString("0.####"))</em></span>
+                    }
+                    else
+                    {
+                        <span class="control-flow-gate-status">NO KNOB CHANGED · using baseline values</span>
+                    }
                     <span class="control-flow-gate-hint">@(economicGateFocused ? "KNOB CHOICES SHOWN ABOVE" : "CLICK TO SHOW 12 TUNING KNOBS")</span>
                 </button>
                 <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
@@ -219,58 +227,28 @@
     <p class="form-note">This is a static reading aid, not a live execution trace. It separates “what influences the decision” from “what the agent does next.”</p>
 </section>
 
-<section class="execution-cell">
-    <div class="run-selection-indicator">
-        <div class="section-kicker">SELECTED RUN</div>
-        <div class="run-selection-grid">
-            <div><span>Changed parameter</span><strong>@Workbench.Plan.ParameterName</strong></div>
-            <div><span>Baseline</span><strong>@Workbench.Plan.BaselineValue.ToString("0.####")</strong></div>
-            <div><span>Proposed value</span><strong>@Workbench.Plan.ProposedValue.ToString("0.####")</strong></div>
-        </div>
-        @if (CurrentRunEvidence is { } runEvidence)
-        {
-            <p>@RunSelectionStory(runEvidence)</p>
-        }
-    </div>
-    <div class="execution-fields">
-        <div class="execution-control-grid">
-            <label>Seeds<input @bind="Workbench.Plan.Seeds" /></label>
-            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" /></label>
-            <div class="seat-table">
-                <div class="seat-table-header"><span>Seat</span><span>Player assignment</span></div>
-                <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
-                <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
-                <small class="field-help">Assign exactly one tested agent and one opponent.</small>
-            </div>
-            <label>Opponent model<select @bind="Workbench.Plan.OpponentMode"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
-            <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
-            <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
-            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" /> Clean full-run audit required</label>
-        </div>
-    </div>
-</section>
-
 <section class="execution-workbench">
     <div class="section-kicker">LIVE RUN RECEIPT</div>
+    <div class="execution-actions">
+        <button class="wizard-button" disabled="@(running || IsFirstReceiptTab)" @onclick="BackOneStep">← Back one step</button>
+        <button class="play-button" disabled="@(running || activeStageId != "plan" || !Workbench.LiveRunSupported)" @onclick="ExecuteCurrentStep">@(running ? "Running…" : "▶ Run approved experiment")</button>
+        <button class="wizard-button" disabled="@(running || IsLastReceiptTab)" @onclick="ForwardOneStep">Forward one step →</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(status))
+    {
+        <div class="playback-status"><span class="status-dot"></span>@status</div>
+    }
     <div class="run-stages horizontal">
         @foreach (var stage in Workbench.RunStages)
         {
-            <div class="run-stage @stage.Status @(stage.Id == "packet" ? "final-stage" : "")"><span class="stage-mark">@(stage.Status == "complete" ? "✓" : stage.Status == "current" ? "…" : "○")</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(stage.Status)</em><small>@stage.Detail</small></span></div>
+            var displayStatus = StageDisplayStatus(stage);
+            <button type="button" class="run-stage @displayStatus @(stage.Id == "packet" ? "final-stage" : "") @(activeStageId == stage.Id ? "stage-tab-active" : "")" @onclick="() => SelectReceiptStage(stage.Id)"><span class="stage-mark">@StageDisplayMark(displayStatus)</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(displayStatus)</em><small>@StageDisplayDetail(stage, displayStatus)</small></span></button>
         }
     </div>
     <div class="run-cycle-indicator">
         <span class="run-cycle-symbol" aria-hidden="true">↻</span>
         <span><strong>This is a tuning cycle.</strong> After the evidence and Foundry review are complete, the next bounded experiment returns to the plan at the beginning. Each cycle changes one approved knob, measures it, and feeds the evidence into the next decision.</span>
     </div>
-
-    <div class="execution-actions">
-        <button class="wizard-button" @onclick="BackOneStep">← Back one step</button>
-        <button class="play-button" disabled="@(running || !Workbench.LiveRunSupported)" @onclick="ExecuteCurrentStep">@(running ? "Running…" : "▶ Run approved experiment")</button>
-    </div>
-    @if (!string.IsNullOrWhiteSpace(status))
-    {
-        <div class="playback-status"><span class="status-dot"></span>@status</div>
-    }
 
     @if (CurrentGuidanceStage is { } guidance)
     {
@@ -279,6 +257,43 @@
             <h2>@GuidanceTitle(guidance)</h2>
             <p class="run-current-status"><strong>Currently:</strong> @CurrentRunStatus(guidance)</p>
             <p>@GuidanceText(guidance)</p>
+            @if (guidance.Id == "plan")
+            {
+                <section class="plan-editor-panel">
+                    <div class="run-selection-indicator">
+                        <div class="section-kicker">SELECTED RUN PLAN</div>
+                        <div class="run-selection-grid">
+                            <div><span>Changed parameter</span><strong>@Workbench.Plan.ParameterName</strong></div>
+                            <div><span>Baseline</span><strong>@Workbench.Plan.BaselineValue.ToString("0.####")</strong></div>
+                            <div><span>Proposed value</span><strong>@Workbench.Plan.ProposedValue.ToString("0.####")</strong></div>
+                        </div>
+                        @if (CurrentRunEvidence is { } runEvidence)
+                        {
+                            <p>@RunSelectionStory(runEvidence)</p>
+                        }
+                    </div>
+                    <div class="execution-fields">
+                        <div class="execution-control-grid">
+                            <label>Seeds<input @bind="Workbench.Plan.Seeds" @bind:after="ValidatePlanAsync" /></label>
+                            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" @bind:after="ValidatePlanAsync" /></label>
+                            <div class="seat-table">
+                                <div class="seat-table-header"><span>Seat</span><span>Player assignment</span></div>
+                                <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole" @bind:after="ValidatePlanAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
+                                <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole" @bind:after="ValidatePlanAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
+                                <small class="field-help">Assign exactly one tested agent and one opponent.</small>
+                            </div>
+                            <label>Opponent model<select @bind="Workbench.Plan.OpponentMode" @bind:after="ValidatePlanAsync"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
+                            <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode" @bind:after="ValidatePlanAsync"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
+                            <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy" @bind:after="ValidatePlanAsync"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
+                            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" @bind:after="ValidatePlanAsync" /> Clean full-run audit required</label>
+                        </div>
+                    </div>
+                </section>
+            }
+            else
+            {
+                <p class="stage-placeholder">This stage will show its recorded inputs, outputs, and any controls needed for this part of the run. For now, the workflow is represented by the receipt timeline above.</p>
+            }
             @if (guidance.Id == "packet" && guidance.Status == "complete" && Workbench.LastRunResult is { } result)
             {
                 <div class="stage-result-summary">
@@ -289,6 +304,7 @@
             }
         </article>
     }
+
 </section>
 
 <section class="coverage-card">
@@ -307,7 +323,11 @@
 
 @code {
     private string status = string.Empty;
+    private bool? planValidationValid;
+    private string planValidationMessage = "Validating the current plan…";
     private bool running;
+    private string activeStageId = "plan";
+    private string? activeRunId;
     private bool showEditor;
     private bool economicGateFocused;
     private string editorParameterName = string.Empty;
@@ -339,6 +359,42 @@
         Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == Workbench.Plan.ParameterName);
 
     private bool IsEditorModified => editorProposedValue != editorBaselineValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activeStageId = "plan";
+        await ValidatePlanAsync();
+    }
+
+    private async Task ValidatePlanAsync()
+    {
+        try
+        {
+            using var response = await Backend.PostAsJsonAsync("api/run-plans/validate", new BackendRunRequest(
+                Workbench.Plan.GraphId,
+                Workbench.Plan.ParameterName,
+                Workbench.Plan.BaselineValue,
+                Workbench.Plan.ProposedValue,
+                [42],
+                [0, 1],
+                Workbench.Plan.Steps));
+            if (response.IsSuccessStatusCode)
+            {
+                planValidationValid = true;
+                planValidationMessage = "The current plan passed structural validation.";
+                return;
+            }
+
+            var refusal = await response.Content.ReadAsStringAsync();
+            planValidationValid = false;
+            planValidationMessage = DescribeBackendRefusal(refusal);
+        }
+        catch (Exception error)
+        {
+            planValidationValid = false;
+            planValidationMessage = $"Validation could not run: {error.Message}";
+        }
+    }
 
     private void FocusEconomicGate()
     {
@@ -382,8 +438,11 @@
         $"We are testing the {evidence.Name} knob: the agent normally uses {evidence.Baseline}, and this run proposes changing it to {Workbench.Plan.ProposedValue:0.####}. {PlainEnglishEvidence(evidence)}";
 
     private RunStage? CurrentGuidanceStage =>
-        Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")
+        Workbench.RunStages.FirstOrDefault(stage => stage.Id == activeStageId)
+        ?? Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")
         ?? Workbench.RunStages.LastOrDefault(stage => stage.Status == "complete");
+
+    private void SelectReceiptStage(string stageId) => activeStageId = stageId;
 
     private static string GuidanceTitle(RunStage stage) => stage.Id switch
     {
@@ -420,57 +479,67 @@
     {
         "complete" => "DONE",
         "current" => "CURRENT · NOT EXECUTED",
+        "invalid" => "INVALID · FIX REQUIRED",
         _ => "TO DO · NOT EXECUTED",
     };
+
+    private string StageDisplayStatus(RunStage stage) =>
+        stage.Id == "plan" ? planValidationValid switch
+        {
+            true => "complete",
+            false => "invalid",
+            _ => "current",
+        } : stage.Status;
+
+    private static string StageDisplayMark(string status) => status switch
+    {
+        "complete" => "✓",
+        "current" => "…",
+        "invalid" => "!",
+        _ => "○",
+    };
+
+    private string StageDisplayDetail(RunStage stage, string displayStatus) =>
+        stage.Id == "plan" && displayStatus == "invalid" ? planValidationMessage : stage.Detail;
 
     private async Task ExecuteCurrentStep()
     {
         if (running) return;
+        await ValidatePlanAsync();
+        if (planValidationValid != true)
+        {
+            status = $"Run blocked: {planValidationMessage}";
+            return;
+        }
         running = true;
-        status = "Submitting the approved Carrot envelope to the local runner…";
+        status = "Preparing the approved Carrot run…";
         try
         {
-            var request = new BackendRunRequest(
-                Workbench.Plan.GraphId,
-                Workbench.Plan.ParameterName,
-                Workbench.Plan.BaselineValue,
-                Workbench.Plan.ProposedValue,
-                [42],
-                [0, 1],
-                Workbench.Plan.Steps);
-            using var response = await Backend.PostAsJsonAsync("api/runs", request);
-            if (!response.IsSuccessStatusCode)
+            if (string.IsNullOrWhiteSpace(activeRunId))
             {
-                var refusal = await response.Content.ReadAsStringAsync();
-                status = $"The runner refused the request ({(int)response.StatusCode}). {DescribeBackendRefusal(refusal)} No simulator result was accepted.";
-                return;
+                var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps);
+                using var response = await Backend.PostAsJsonAsync("api/runs", request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var refusal = await response.Content.ReadAsStringAsync();
+                    status = $"The runner refused the request ({(int)response.StatusCode}). {DescribeBackendRefusal(refusal)}";
+                    return;
+                }
+                var planResult = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+                if (planResult?.Receipt is null)
+                {
+                    status = "The backend returned no staged run receipt.";
+                    return;
+                }
+                activeRunId = planResult.RunId;
+                Workbench.ApplyStageReceipt(planResult.Receipt.Stages, "Plan validated; beginning the staged run.");
+                activeStageId = planResult.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? "baseline";
             }
-            var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
-            if (result?.Receipt is null)
+            for (var step = 0; step < 6 && activeStageId != "foundry"; step++)
             {
-                status = "The backend returned no run receipt; no result was accepted.";
-                return;
+                if (!await AdvanceRunStageAsync()) return;
             }
-            var best = result.Receipt.CandidateResults?.OrderByDescending(item => item.MeanPairedDecisionDelta).FirstOrDefault();
-            if (best is null)
-            {
-                status = "The backend returned no candidate aggregates; no result was accepted.";
-                return;
-            }
-            Workbench.ApplyBackendReceipt(
-                result.Receipt.Stages,
-                new RunResultSummary(
-                    Workbench.Plan.ParameterName,
-                    Workbench.Plan.BaselineValue,
-                    result.Receipt.MatchCount,
-                    result.Receipt.CandidateCount,
-                    best.CandidateValue,
-                    best.MeanPairedDecisionDelta,
-                    best.DivergentMatchCount,
-                    result.Receipt.AuditsPassed,
-                    result.Receipt.PacketPath ?? ""),
-                $"Real run completed: {result.Receipt.MatchCount} matches, clean audits passed.");
-            status = $"Real simulator run completed. Evidence packet: {result.Receipt.PacketPath}";
+            status = "All executable stages completed. Foundry review remains a separate downstream step.";
         }
         catch (Exception error)
         {
@@ -480,6 +549,27 @@
         {
             running = false;
         }
+    }
+
+    private async Task<bool> AdvanceRunStageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(activeRunId)) return false;
+        status = $"Executing {activeStageId}…";
+        using var response = await Backend.PostAsync($"api/runs/{activeRunId}/advance", null);
+        var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+        if (!response.IsSuccessStatusCode || result?.Receipt is null)
+        {
+            status = "The next execution stage could not be completed.";
+            return false;
+        }
+        Workbench.ApplyStageReceipt(result.Receipt.Stages, $"Completed {activeStageId}.");
+        activeStageId = result.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? activeStageId;
+        if (result.Receipt.CandidateResults is { Length: > 0 } && result.Receipt.PacketPath is not null)
+        {
+            var best = result.Receipt.CandidateResults.OrderByDescending(item => item.MeanPairedDecisionDelta).First();
+            Workbench.RecordRunResult(new RunResultSummary(Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, result.Receipt.MatchCount, result.Receipt.CandidateCount, best.CandidateValue, best.MeanPairedDecisionDelta, best.DivergentMatchCount, result.Receipt.AuditsPassed, result.Receipt.PacketPath), "Evidence packet assembled from the staged run.");
+        }
+        return true;
     }
 
     private sealed record BackendRunRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps);
@@ -506,9 +596,30 @@
 
     private void BackOneStep()
     {
-        status = Workbench.RetreatStage();
+        var index = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == activeStageId);
+        if (index <= 0) return;
+        activeStageId = Workbench.RunStages[index - 1].Id;
+        status = $"Viewing {Workbench.RunStages[index - 1].Title}.";
         Workbench.Plan.LastAction = status;
     }
+
+    private async Task ForwardOneStep()
+    {
+        if (string.IsNullOrWhiteSpace(activeRunId))
+        {
+            status = "Run the validated plan first; there is no staged run to advance.";
+            return;
+        }
+        await AdvanceRunStageAsync();
+    }
+
+    private bool IsLastReceiptTab =>
+        Workbench.RunStages.Count == 0
+        || Workbench.RunStages[^1].Id == activeStageId;
+
+    private bool IsFirstReceiptTab =>
+        Workbench.RunStages.Count == 0
+        || Workbench.RunStages[0].Id == activeStageId;
 
     private void SelectParameter(ParameterEvidence item)
     {
@@ -540,7 +651,7 @@
         modalRelationNodeKind = "parameter";
     }
 
-    private void CommitEditor()
+    private async Task CommitEditor()
     {
         if (EditorParameterEvidence is null) return;
         var existingModification = Workbench.SelectedParameterEvidence is { } current
@@ -561,6 +672,7 @@
         status = $"Committed {editorParameterName} at {editorProposedValue:0.####}. Only this parameter will be sent to the runner.";
         showEditor = false;
         ResetRelationToCommitted();
+        await ValidatePlanAsync();
     }
 
     private void ToggleSeat(int seat)

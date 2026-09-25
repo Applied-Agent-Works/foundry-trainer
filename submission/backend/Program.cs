@@ -18,15 +18,19 @@ var graphs = ImmutableArray.Create(
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", service = "carrot-review-backend" }));
 app.MapGet("/api/graphs", () => Results.Ok(graphs));
 
-app.MapPost("/api/run-plans/validate", (RunPlanRequest plan) =>
+app.MapPost("/api/run-plans/validate", (RunPlanRequest plan, RunCoordinator coordinator) =>
 {
     var graph = graphs.FirstOrDefault(item => item.Id == plan.GraphId);
     var errors = new List<string>();
     if (graph is null) errors.Add("graph is not registered");
-    if (string.IsNullOrWhiteSpace(plan.ParameterName)) errors.Add("parameter name is required");
-    if (plan.Seeds.Length == 0 || plan.Seats.Length == 0) errors.Add("at least one seed and seat are required");
-    if (plan.Steps <= 0) errors.Add("steps must be positive");
-    if (plan.BaselineValue == plan.ProposedValue) errors.Add("proposed value must differ from baseline");
+    if (graph is not null)
+    {
+        // Keep the preflight endpoint aligned with the actual live adapter.
+        // A plan that is structurally plausible but unsupported by the current
+        // runner must not appear runnable in the workbench.
+        var liveValidation = coordinator.Validate(plan, graph);
+        errors.AddRange(liveValidation.Errors);
+    }
     return errors.Count == 0
         ? Results.Ok(new { valid = true, execution = "awaiting_human_approval", graph, side_effect = "none" })
         : Results.BadRequest(new { valid = false, errors });
@@ -38,17 +42,20 @@ app.MapPost("/api/runs", (RunPlanRequest plan, RunCoordinator coordinator) =>
     if (graph is null) return Results.BadRequest(new { valid = false, errors = new[] { "graph is not registered" } });
     var validation = coordinator.Validate(plan, graph);
     if (!validation.Valid) return Results.BadRequest(validation);
+    return Results.Ok(validation);
+});
+
+app.MapPost("/api/runs/{runId}/advance", (string runId, RunCoordinator coordinator) =>
+{
     try
     {
-        var receipt = coordinator.Execute(plan, graph, validation.RunId);
-        return Results.Ok(validation with { Receipt = receipt });
+        return coordinator.Advance(runId) is { } result
+            ? Results.Ok(result)
+            : Results.NotFound(new { valid = false, errors = new[] { "run was not found" } });
     }
     catch (Exception error)
     {
-        return Results.Problem(
-            title: "The approved simulator run stopped",
-            detail: error.Message,
-            statusCode: StatusCodes.Status502BadGateway);
+        return Results.Problem(title: "The requested run stage stopped", detail: error.Message, statusCode: StatusCodes.Status502BadGateway);
     }
 });
 
@@ -115,14 +122,88 @@ public sealed class RunCoordinator
         var receipt = new RunReceipt(runId, graph.Id, "full_simulator", "validated", false,
         [
             new("plan", "Plan validated", "complete", "Graph, parameter, suite, and governance fields validated."),
-            new("adapter", "Tuner adapter selected", "current", "Approved Carrot Python adapter is ready."),
-            new("simulate", "Inner loop executed", "pending", "Waiting for the approved Python runner."),
-            new("audit", "Clean audit completed", "pending", "Requires the simulator result and independent rerun."),
-            new("packet", "Evidence packet assembled", "pending", "Requires passing audits."),
+            new("baseline", "Baseline prepared", "current", "Waiting for the baseline preparation stage."),
+            new("simulate", "Inner loop executed", "pending", "Waiting for the selected candidate."),
+            new("divergence", "Divergence analyzed", "pending", "Waiting for the inner-loop result."),
+            new("audit", "Clean audit completed", "pending", "Waiting for the independent rerun."),
+            new("packet", "Evidence packet assembled", "pending", "Waiting for the audited result."),
             new("foundry", "Foundry review completed", "pending", "Downstream of the evidence packet."),
         ]);
         receipts[runId] = receipt;
+        plans[runId] = new RunState(plan, graph, receipt);
         return new(true, runId, errors, receipt);
+    }
+
+    public RunValidation? Advance(string runId)
+    {
+        if (!plans.TryGetValue(runId, out var state)) return null;
+        var current = state.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current");
+        if (current is null) return new(true, runId, [], state.Receipt);
+        JsonElement? data = current.Id == "foundry" ? null : ExecuteStage(state.Plan, state.Graph, runId, current.Id);
+        var stages = state.Receipt.Stages.Select(stage => stage.Id == current.Id
+            ? stage with { Status = "complete", Detail = StageCompletionDetail(current.Id, data) }
+            : stage.Id == NextStageId(current.Id)
+                ? stage with { Status = "current", Detail = "Current execution stage." }
+                : stage).ToArray();
+        var receipt = state.Receipt with { Stages = stages, Status = "in_progress" };
+        if (current.Id == "packet" && data is not null)
+        {
+            receipt = receipt with
+            {
+                Status = "completed",
+                PacketPath = data.Value.GetProperty("packet_path").GetString(),
+                PacketSha256 = data.Value.GetProperty("packet_sha256").GetString(),
+                MatchCount = data.Value.GetProperty("match_count").GetInt32(),
+                CandidateCount = data.Value.GetProperty("candidate_count").GetInt32(),
+                AuditsPassed = data.Value.GetProperty("audits_passed").GetBoolean(),
+                CandidateResults = data.Value.GetProperty("aggregates").EnumerateArray().Select(item => new CandidateResult(
+                    item.GetProperty("candidate_value").GetDouble(), item.GetProperty("match_count").GetInt32(),
+                    item.GetProperty("mean_paired_decision_delta").GetDouble(), item.GetProperty("divergent_match_count").GetInt32(),
+                    item.GetProperty("all_audits_passed").GetBoolean())).ToArray(),
+            };
+        }
+        state.Receipt = receipt;
+        receipts[runId] = receipt;
+        return new(true, runId, [], receipt);
+    }
+
+    private static string? NextStageId(string current) => current switch
+    {
+        "baseline" => "simulate", "simulate" => "divergence", "divergence" => "audit", "audit" => "packet", "packet" => "foundry", _ => null,
+    };
+
+    private static string StageCompletionDetail(string stage, JsonElement? data) => stage switch
+    {
+        "baseline" => "Baseline caches are prepared and validated.",
+        "simulate" => $"Selected candidate inner loop completed ({data?.GetProperty("match_count").GetInt32() ?? 0} matches).",
+        "divergence" => $"Divergence analysis completed ({data?.GetProperty("divergent_match_count").GetInt32() ?? 0} divergent matches).",
+        "audit" => "The selected candidate passed its independent clean audit.",
+        "packet" => "Immutable evidence packet assembled.",
+        _ => "Stage completed.",
+    };
+
+    private JsonElement ExecuteStage(RunPlanRequest plan, GraphDescriptor graph, string runId, string stage)
+    {
+        var root = Path.GetFullPath(Environment.GetEnvironmentVariable("FOUNDRY_TRAINER_ROOT") ?? Directory.GetCurrentDirectory());
+        var python = Environment.GetEnvironmentVariable("FOUNDRY_TUNER_PYTHON") ?? Path.Combine(root, ".venv", "bin", "python");
+        var target = Environment.GetEnvironmentVariable("FOUNDRY_TUNER_TARGET_ROOT") ?? Path.GetFullPath(Path.Combine(root, "..", "kaggriculture.worktrees", "carrot-smoke-pinned"));
+        var spec = Path.Combine(root, "carrot-tuning-system", "experiments", "approved", "carrot_investment", "seed_opportunity_candidate_evidence_smoke_v1.json");
+        var reportRoot = Path.Combine(root, "var", "ui-runs", runId, "report");
+        var cacheRoot = Path.Combine(root, "var", "ui-runs", runId, "cache");
+        var start = new ProcessStartInfo(python) { WorkingDirectory = root, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+        start.Environment["PYTHONPATH"] = $"src{Path.PathSeparator}carrot-tuning-system";
+        start.ArgumentList.Add(Path.Combine(root, "scripts", "run_carrot_ui.py"));
+        start.ArgumentList.Add("--spec"); start.ArgumentList.Add(spec);
+        start.ArgumentList.Add("--target-root"); start.ArgumentList.Add(target);
+        start.ArgumentList.Add("--cache-root"); start.ArgumentList.Add(cacheRoot);
+        start.ArgumentList.Add("--report-dir"); start.ArgumentList.Add(reportRoot);
+        start.ArgumentList.Add("--candidate-value"); start.ArgumentList.Add(plan.ProposedValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        start.ArgumentList.Add("--stage"); start.ArgumentList.Add(stage == "simulate" ? "inner-loop" : stage);
+        using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start the staged Carrot runner process.");
+        var stdout = process.StandardOutput.ReadToEnd(); var stderr = process.StandardError.ReadToEnd(); process.WaitForExit();
+        if (process.ExitCode != 0) throw new InvalidOperationException(string.IsNullOrWhiteSpace(stderr) ? stdout.Trim() : stderr.Trim());
+        using var document = JsonDocument.Parse(stdout);
+        return document.RootElement.Clone();
     }
 
     public RunReceipt Execute(RunPlanRequest plan, GraphDescriptor graph, string runId)
@@ -150,6 +231,7 @@ public sealed class RunCoordinator
         start.ArgumentList.Add("--target-root"); start.ArgumentList.Add(target);
         start.ArgumentList.Add("--cache-root"); start.ArgumentList.Add(cacheRoot);
         start.ArgumentList.Add("--report-dir"); start.ArgumentList.Add(reportRoot);
+        start.ArgumentList.Add("--candidate-value"); start.ArgumentList.Add(plan.ProposedValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start the Carrot runner process.");
         var stdout = process.StandardOutput.ReadToEnd();
@@ -186,4 +268,13 @@ public sealed class RunCoordinator
     }
 
     public RunReceipt? Get(string runId) => receipts.TryGetValue(runId, out var receipt) ? receipt : null;
+    private readonly Dictionary<string, RunState> plans = new();
+}
+
+public sealed class RunState
+{
+    public RunState(RunPlanRequest plan, GraphDescriptor graph, RunReceipt receipt) { Plan = plan; Graph = graph; Receipt = receipt; }
+    public RunPlanRequest Plan { get; }
+    public GraphDescriptor Graph { get; }
+    public RunReceipt Receipt { get; set; }
 }

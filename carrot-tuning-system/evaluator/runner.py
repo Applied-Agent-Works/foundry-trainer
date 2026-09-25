@@ -33,6 +33,9 @@ class LocalRunRequest:
     cache_root: Path
     # Generated evidence belongs in an ignored local directory, never in the spec.
     report_directory: Path
+    # Optional single-candidate narrowing supplied by the reviewed UI runner.
+    # When omitted, the source contract's complete candidate envelope runs.
+    candidate_values: tuple[Real, ...] | None = None
 
 
 class ExperimentSpecValidationError(ValueError):
@@ -1571,6 +1574,17 @@ class LocalInnerLoopAdapter:
         simulator call, unbounded candidate generation, or a policy source edit.
         """
         specification = self.read_and_validate_spec(request.spec_path)
+        if request.candidate_values is not None:
+            declared_values = tuple(specification["parameter"]["candidate_values"])
+            selected_values = tuple(request.candidate_values)
+            if not selected_values or any(value not in declared_values for value in selected_values):
+                raise ValueError(
+                    "selected candidate values must be a non-empty subset of the approved contract"
+                )
+            # Keep the rest of the approved contract unchanged while narrowing
+            # this execution to the one candidate selected by the human.
+            specification = deepcopy(specification)
+            specification["parameter"]["candidate_values"] = list(selected_values)
         binding = self.bind_and_validate_target(specification, request.target_root)
         lifecycle = self.authorize_lifecycle(specification)
         controls = self.validate_local_controls(specification, binding)
