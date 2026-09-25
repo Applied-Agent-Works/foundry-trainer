@@ -168,29 +168,35 @@ public sealed class WorkbenchState
     public static ParameterInfluence InfluenceFor(string parameterName) => parameterName switch
     {
         "supply_high_given_zero_ripe" or "supply_high_given_one_to_three_ripe" or "supply_high_given_four_plus_ripe" => new(
-            ["visible ripe-carrot count"],
-            ["low/high price probabilities", "expected sale price"],
-            "This is one branch of the supply belief. It changes how likely the agent thinks high supply is, which can make the expected price look better or worse."),
+            [new("visible ripe-carrot count", "fixed")],
+            [new("low/high price probabilities", "derived"), new("expected sale price", "derived")],
+            "This is one branch of the supply belief. It changes how likely the agent thinks high supply is, which can make the expected price look better or worse.",
+            [new("supply_high_given_zero_ripe", "parameter"), new("supply_high_given_one_to_three_ripe", "parameter"), new("supply_high_given_four_plus_ripe", "parameter")]),
         "low_price_multiplier" or "high_price_multiplier" => new(
-            ["low/high price probability"],
-            ["expected sale price"],
-            "This changes the payout used for one price scenario. Its effect matters only when that price scenario has some probability."),
+            [new("low/high price probability", "derived")],
+            [new("expected sale price", "derived")],
+            "This changes the payout used for one price scenario. Its effect matters only when that price scenario has some probability.",
+            [new("low_price_multiplier", "parameter"), new("high_price_multiplier", "parameter")]),
         "low_price_base" or "low_price_supply_weight" or "high_price_base" or "high_price_demand_weight" or "high_price_supply_penalty" => new(
-            ["supply probability", "known and future demand"],
-            ["low/high price probabilities"],
-            "This changes how the model turns supply and demand clues into price probabilities. Those probabilities then feed the expected sale price."),
+            [new("supply probability", "derived"), new("known and future demand", "fixed")],
+            [new("low/high price probabilities", "derived")],
+            "This changes how the model turns supply and demand clues into price probabilities. Those probabilities then feed the expected sale price.",
+            [new("low_price_base", "parameter"), new("low_price_supply_weight", "parameter"), new("high_price_base", "parameter"), new("high_price_demand_weight", "parameter"), new("high_price_supply_penalty", "parameter")]),
         "seed_opportunity_value" => new(
-            ["expected sale price", "baseline harvest yield"],
-            ["plant utility", "plant/pass threshold"],
-            "This is the value the agent assigns to keeping the seed for later. Increasing it makes planting harder to justify."),
+            [new("expected sale price", "derived"), new("baseline harvest yield", "fixed")],
+            [new("plant utility", "derived"), new("plant/pass threshold", "derived")],
+            "This is the value the agent assigns to keeping the seed for later. Increasing it makes planting harder to justify.",
+            [new("pass_utility", "parameter")]),
         "pass_utility" => new(
-            ["plant utility"],
-            ["final plant/pass action"],
-            "This is the score required before planting is preferred. Increasing it makes passing easier to choose."),
+            [new("plant utility", "derived")],
+            [new("final plant/pass action", "derived")],
+            "This is the score required before planting is preferred. Increasing it makes passing easier to choose.",
+            [new("seed_opportunity_value", "parameter")]),
         _ => new(
-            ["observed game state"],
-            ["next decision stage"],
-            "This parameter changes a bounded part of the decision model. Its broader effect still needs direct evidence."),
+            [new("observed game state", "fixed")],
+            [new("next decision stage", "derived")],
+            "This parameter changes a bounded part of the decision model. Its broader effect still needs direct evidence.",
+            []),
     };
 
     public void ReplaceScenarios(IEnumerable<TestScenario> replacement) => scenarios = replacement.ToList();
@@ -207,11 +213,8 @@ public sealed class WorkbenchState
 public sealed record TestScenario(string Id, string Title, string Description, bool Included);
 public sealed record GraphOption(string Id, string DisplayName, string ParameterName, string Opponent);
 public sealed record ParameterEvidence(string Name, string Baseline, string Tested, string Result, string Priority, string Why);
-public sealed record ParameterInfluence(IReadOnlyList<string> Upstream, IReadOnlyList<string> Downstream, string Explanation)
-{
-    public string UpstreamDisplay => string.Join(" + ", Upstream);
-    public string DownstreamDisplay => string.Join(" + ", Downstream);
-}
+public sealed record InfluenceNode(string Label, string Kind);
+public sealed record ParameterInfluence(IReadOnlyList<InfluenceNode> Upstream, IReadOnlyList<InfluenceNode> Downstream, string Explanation, IReadOnlyList<InfluenceNode> Related);
 public static class ParameterEvidenceExtensions
 {
     public static double BaselineValue(this ParameterEvidence evidence) =>

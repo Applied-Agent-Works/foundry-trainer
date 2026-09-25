@@ -70,20 +70,30 @@
                 <span class="relationship-label">UPSTREAM</span>
                 @foreach (var upstream in influence.Upstream)
                 {
-                    <button class="relation-chip @(modalRelationLabel == upstream ? "active" : "")" @onclick="() => FocusUpstream(upstream)">@upstream</button>
+                    <button class="relation-chip kind-@upstream.Kind @(modalRelationLabel == upstream.Label ? "active" : "")" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
                 }
             </div>
             <b aria-hidden="true">→</b>
-            <button class="relation-chip parameter-chip @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(focusedEvidence.Name)">@focusedEvidence.Name</button>
+            <button class="relation-chip parameter-chip kind-parameter @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(focusedEvidence.Name)">@focusedEvidence.Name</button>
             <b aria-hidden="true">→</b>
             <div class="modal-influence-group">
                 <span class="relationship-label">DOWNSTREAM</span>
                 @foreach (var downstream in influence.Downstream)
                 {
-                    <button class="relation-chip @(modalRelationLabel == downstream ? "active" : "")" @onclick="() => FocusDownstream(downstream)">@downstream</button>
+                    <button class="relation-chip kind-@downstream.Kind @(modalRelationLabel == downstream.Label ? "active" : "")" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
                 }
             </div>
         </div>
+        @if (influence.Related.Any(node => node.Label != focusedEvidence.Name))
+        {
+            <div class="related-parameter-list">
+                <span class="relationship-label">OTHER PARAMETERS IN THIS CALCULATION</span>
+                @foreach (var related in influence.Related.Where(node => node.Label != focusedEvidence.Name))
+                {
+                    <button class="relation-chip kind-@related.Kind @(modalRelationLabel == related.Label ? "active" : "")" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
+                }
+            </div>
+        }
         <p class="muted"><b>In plain English:</b> @RelationshipCaption(focusedEvidence, influence)</p>
     </section>
 }
@@ -121,20 +131,30 @@
                         <span class="relationship-label">UPSTREAM</span>
                         @foreach (var upstream in modalInfluence.Upstream)
                         {
-                            <button class="relation-chip @(modalRelationLabel == upstream ? "active" : "")" @onclick="() => FocusUpstream(upstream)">@upstream</button>
+                            <button class="relation-chip kind-@upstream.Kind @(modalRelationLabel == upstream.Label ? "active" : "")" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
                         }
                     </div>
                     <b aria-hidden="true">→</b>
-                    <button class="relation-chip parameter-chip @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(modalEvidence.Name)">@modalEvidence.Name</button>
+                    <button class="relation-chip parameter-chip kind-parameter @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(modalEvidence.Name)">@modalEvidence.Name</button>
                     <b aria-hidden="true">→</b>
                     <div class="modal-influence-group">
                         <span class="relationship-label">DOWNSTREAM</span>
                         @foreach (var downstream in modalInfluence.Downstream)
                         {
-                            <button class="relation-chip @(modalRelationLabel == downstream ? "active" : "")" @onclick="() => FocusDownstream(downstream)">@downstream</button>
+                            <button class="relation-chip kind-@downstream.Kind @(modalRelationLabel == downstream.Label ? "active" : "")" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
                         }
                     </div>
                 </div>
+                @if (modalInfluence.Related.Any(node => node.Label != modalEvidence.Name))
+                {
+                    <div class="related-parameter-list">
+                        <span class="relationship-label">OTHER PARAMETERS IN THIS CALCULATION</span>
+                        @foreach (var related in modalInfluence.Related.Where(node => node.Label != modalEvidence.Name))
+                        {
+                            <button class="relation-chip kind-@related.Kind @(modalRelationLabel == related.Label ? "active" : "")" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
+                        }
+                    </div>
+                }
                 <p class="muted">@RelationshipCaption(modalEvidence, modalInfluence)</p>
             </section>
         </div>
@@ -238,6 +258,7 @@
     private double editorProposedValue;
     private string modalRelationKind = "parameter";
     private string modalRelationLabel = string.Empty;
+    private string modalRelationNodeKind = "parameter";
 
     private static readonly IReadOnlyList<GraphStageView> CarrotStages =
     [
@@ -260,20 +281,23 @@
 
     private bool IsEditorModified => editorProposedValue != editorBaselineValue;
 
-    private void FocusRelation(string kind, string label)
+    private void FocusRelation(string kind, string label, string nodeKind)
     {
         modalRelationKind = kind;
         modalRelationLabel = label;
+        modalRelationNodeKind = nodeKind;
     }
 
-    private void FocusUpstream(string label) => FocusRelation("upstream", label);
-    private void FocusDownstream(string label) => FocusRelation("downstream", label);
-    private void FocusParameter(string label) => FocusRelation("parameter", label);
+    private void FocusUpstream(string label) => FocusRelation("upstream", label, "parameter");
+    private void FocusDownstream(string label) => FocusRelation("downstream", label, "parameter");
+    private void FocusParameter(string label) => FocusRelation("parameter", label, "parameter");
+    private void FocusRelated(string label) => FocusRelation("related", label, "parameter");
 
     private string RelationshipCaption(ParameterEvidence evidence, ParameterInfluence influence) => modalRelationKind switch
     {
-        "upstream" => $"{modalRelationLabel} is an input to {evidence.Name}. It helps determine the value this parameter is allowed to influence; it is not itself being changed in this run.",
-        "downstream" => $"{evidence.Name} feeds {modalRelationLabel}. Changing this parameter can affect that later calculation, but the exact effect still depends on the game state.",
+        "upstream" => $"{modalRelationLabel} is a {modalRelationNodeKind} input to {evidence.Name}. It helps determine the value this parameter is allowed to influence; it is not itself being changed in this run.",
+        "downstream" => $"{evidence.Name} feeds the {modalRelationNodeKind} {modalRelationLabel}. Changing this parameter can affect that later calculation, but the exact effect still depends on the game state.",
+        "related" => $"{modalRelationLabel} is another adjustable input in the same calculation neighborhood as {evidence.Name}. They contribute to a shared derived value; that does not mean one parameter changes the other.",
         _ => influence.Explanation,
     };
 
@@ -416,6 +440,7 @@
         }
         modalRelationKind = "parameter";
         modalRelationLabel = item.Name;
+        modalRelationNodeKind = "parameter";
         showEditor = true;
         status = $"Selected {item.Name}. Review its recorded evidence and choose a proposed value.";
     }
@@ -430,6 +455,7 @@
     {
         modalRelationKind = "parameter";
         modalRelationLabel = Workbench.Plan.ParameterName;
+        modalRelationNodeKind = "parameter";
     }
 
     private void CommitEditor()
