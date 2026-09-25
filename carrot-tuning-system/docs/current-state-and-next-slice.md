@@ -687,9 +687,11 @@ source of truth.
 - The reusable adapter and smoke-run notebook have created the approved local
   candidate packet; a larger confirmation envelope is still a separate human
   decision.
-- No live Foundry Evaluation/LLM-judge run has occurred. Notebook 08 is the
-  local fixture/rubric workbench; Notebook 09 is the local optional
-  proposal-drafter workbench.
+- The first live Foundry Evaluation/LLM-judge run has completed in Notebook 08
+  against one actual redacted packet/response row. It passed with aggregate
+  score `0.9`, six dimension scores 4/4/5/5/5/4, and 2,994 judge tokens;
+  human review remains pending. Notebook 09 remains the proposal-drafter
+  workbench and its exact low-cost cloud-action record.
 - The Foundry deployment, no-tools agent, and one redacted invocation are real
   and recorded in Notebook 07. Agent Insights analysis remains blocked by the
   recorded `Forbidden` dependency error.
@@ -808,16 +810,19 @@ the Git log and the source-controlled historical records.
 Two follow-on workbenches are now present and have been executed locally:
 
 1. [Notebook 08](../notebooks/08_foundry_evaluation_workbench.ipynb) reuses the
-   promoted analyst contracts with a fixed redacted fixture, proves the
-   deterministic response gate and a planning-field hard stop, and records a
-   cloud-dormant Foundry Evaluations/LLM-as-judge rubric. It does not call
-   Foundry, invoke a model, or claim a quality score.
+   promoted analyst contracts with the actual redacted packet and recorded
+   response, proves the deterministic response gate, and completes one
+   dataset-targeted Foundry Evaluation with aggregate score `0.9`. It does
+   not invoke the analyst or claim a game-quality score.
 2. [Notebook 09](../notebooks/09_foundry_orchestration_workbench.ipynb) now
    completes the local analyst-to-reasoning handoff, full one-parameter
-   proposal contract, five deterministic refusal guards, and deferred-cloud
-   decision record. Its eight code cells executed in dependency order and four
-   presentation cards retain actual local results. It does not deploy a second
-   agent or create a multi-agent workflow.
+   proposal contract, five deterministic refusal guards, and the live
+   idempotent create/reuse/readback path. Discovery found zero endpoints; the
+   apply created `experiment-proposal-drafter` version 1, a schema repair
+   created version 2, and the final explicit JSON-contract repair created
+   version 3. A live readback verified version 3; three redacted boundary
+   cases (valid, incomplete, and authority-injection) all passed. It did not
+   run a simulator or create a multi-agent workflow resource.
 
 Both notebooks are design/prototype evidence, not new authority. Before any
 cloud evaluation or second-agent deployment, the owner must review the visible
@@ -834,8 +839,49 @@ Its local cells load the actual packet at
 `var/carrot-tuning-system/candidate-evidence-smoke/evidence-packets/` and the
 actual `RECORDED_INVOCATION_OUTPUT` receipt from Notebook 07, verify the
 checksum and deterministic response gate, construct one redacted JSONL row,
-define the six-dimension ordinal judge rubric, and stage exact evaluator/run
-cells. The evaluator and run cells are fail-closed and have not contacted
-Foundry; their receipts remain `staged_not_run`. All 29 notebook cells parse,
-compile, and pass the local execution harness. The next cloud action is the
-separately reviewed dataset-targeted evaluation.
+define the six-dimension ordinal judge rubric, and execute exact evaluator/run
+cells. The evaluator and run were reused idempotently on the final rerun; the
+one-row result completed with aggregate score `0.9`, pass label, and 2,994 judge
+tokens. All notebook cells parse, compile, and retain actual local/cloud
+outputs. Human review remains pending.
+
+## Latest Foundry Evaluation readback — 2026-09-24
+
+Notebook 08 now contains the actual cloud readback for the first fixed,
+dataset-targeted evaluation. The exact evaluator and run were reused on the
+final idempotent rerun; no duplicate billable run was created.
+
+- Evaluation: `evidence-analyst-language-v1`
+- Evaluation ID: `eval_b73c2e65f474419d9e2e39be5661d413`
+- Run ID: `evalrun_19e057784a3448a0baed96708db3b6f7`
+- Dataset hash: `2bcfd98a9b91f6637710e3cb63d67d58275accb7f681d9589463f0e4dadc8350`
+- Status: `completed`; one item passed; zero errors
+- Aggregate judge score: `0.9`; label: `pass`
+- Judge token usage: 2,994 total tokens for the one item
+- Dimension scores: grounding 4, citation discipline 4, limitation preservation 5,
+  boundedness 5, review boundary 5, usefulness 4
+
+The judge specifically praised the preserved smoke limitation, human-review
+boundary, and refusal to rank or propose experiments. It noted that the
+aggregate claims were cited at packet paths but that the underlying aggregate
+contents were not independently visible in the supplied context. This is a
+language-quality assessment of the analyst response, not a game result or
+policy recommendation. Human review remains pending.
+
+The current separation-of-concerns path is now also real: Notebook 08 created
+or reused the distinct no-tools prompt agent `evidence-analyst-judge`, version
+1, on the existing `evidence-analyst-luna-v1` deployment. It invoked that
+agent once with the redacted brief and recorded analyst response. Response ID
+`resp_08209bffa392b90c006ab5ed1e70388195967de3a666869f9c` passed the local
+judge-response gate with overall score `1.0` and six dimension scores of 5.
+The request hash is
+`2b4eadb9ddf1f5d07b0884d51f8b4c1e5bedbec4851fbfff9e9d4915e2bbd1e5`.
+The response remains `pending_human_review`. The prior direct Foundry
+Evaluator run is historical evidence, not the current judge-agent path.
+
+Notebook 08 then ran two judge-agent boundary cases. The valid response scored
+`1.0` with all six dimensions at 5. A schema-valid overclaiming response scored
+`0.46`, with boundedness at 1 and limitation preservation at 2. Wrong packet
+binding and missing `pending_human_review` were rejected locally before any
+agent call. These are judge-boundary results, not game-quality evidence; human
+review remains pending.

@@ -29,7 +29,12 @@ readbacks show an active `evidence-analyst-luna-v1` deployment:
 `gpt-5.6-luna` `2026-07-09`, `DataZoneStandard`, capacity 6 (6,000 TPM),
 `Microsoft.DefaultV2`, and `NoAutoUpgrade`. They also show no-tools prompt
 agent `evidence-analyst`, version 2, using the source-controlled
-`evidence-analyst-v2` contract.
+`evidence-analyst-v2` contract, plus no-tools prompt agent
+`experiment-proposal-drafter`, version 3, using the source-controlled
+`proposal-drafter-v3` instructions and the same model deployment. Notebook 08
+also created no-tools `evidence-analyst-judge`, version 1, and invoked it once
+with a redacted brief/analyst-response pair; its deterministic gate passed
+overall score `1.0` with `pending_human_review`.
 
 One fixed redacted evidence brief completed successfully and passed the local
 deterministic response gate. Its `pending_human_review` state remains open; it
@@ -195,10 +200,11 @@ Use a focused conversation only after reading the current
 [next-agent Foundry notebook handoff](./next-agent-foundry-notebook-handoff.md).
 The parent [Foundry setup guide](../../docs/foundry-project-setup-guide.md) is
 a reference, not an alternative action surface. The next agent should not
-restart component 2 or recreate the agent; it may build the separately staged
-fixture-and-judge evaluation path under the standing low-cost authority, or
-investigate the deferred telemetry permission blocker only after a new explicit
-owner decision.
+restart component 2, recreate the analyst, or repeat the completed
+evaluation/judge runs. It may prepare a human-review packet for the existing
+scores, or invoke the verified proposal-drafter only after a new redacted
+fixture invocation review. The deferred telemetry permission blocker still
+requires a new explicit owner decision.
 
 For the submission window, prioritize the smallest deployable vertical slice
 over extra local tuning. Keep any work on the farming agent in a separate

@@ -199,26 +199,63 @@ next-test design, and preservation of the pending-human-review boundary.
 Deterministic code continues to validate packet eligibility, output schema,
 citations, prohibited actions, and review status. Neither the prompt agent
 nor the LLM judge determines game outcomes, audit status, target binding, or a
-policy change. See the [Foundry control-plane diagram](./docs/architecture-diagrams.md#7-planned-foundry-control-plane-llm-judge-and-review).
+policy change. See the [Foundry control-plane diagram](./docs/architecture-diagrams.md#7-foundry-control-plane-deployed-analystjudge-planned-review).
 
 ### What did the next two Foundry workbenches establish?
 
 [Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb) now loads the
 actual redacted Carrot packet and recorded Notebook 07 analyst response,
 revalidates both locally, constructs one JSONL evaluation row, and records a
-cloud-dormant rubric for grounding, audit discipline, uncertainty, boundedness,
-usefulness, and review-boundary preservation. It does not call Foundry or
-produce a model-quality score. Synthetic data remains limited to local guard
-tests.
+rubric for grounding, audit discipline, uncertainty, boundedness, usefulness,
+and review-boundary preservation. Its one-row dataset-targeted run completed
+with aggregate score `0.9`; synthetic data remains limited to local guard tests.
 
 [Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb) now exercises
 an optional analyst-to-proposal-drafter handoff. The drafter can prepare a
 bounded proposal record only; it cannot run a simulator, use tools, change
 source, or approve a new experiment. It now validates the promoted analyst
 response, enforces one parameter and a fixture-only candidate envelope,
-rejects five unsafe cases, and records a deferred second-agent deployment as
-`pending_human_review`. Its local execution passed; cloud deployment and live
-evaluation remain separate human decisions.
+rejects five unsafe cases, and records the exact no-tools proposal-drafter
+creation/reuse/readback. Discovery found zero endpoints, creation produced
+version 1, and the idempotence rerun reused the exact version. The
+proposal-drafter has not been invoked; its invocation remains a separate human
+decision. Notebook 08's separate judge-agent invocation has already completed
+and passed its deterministic gate.
+
+### What did the first real Foundry Evaluation establish?
+
+Notebook 08 loaded the actual redacted Carrot packet and recorded Notebook 07
+analyst response, revalidated both locally, and submitted one dataset-targeted
+evaluation row. The exact evaluator and run were reused on rerun. The run
+completed with one passed item, no errors, aggregate score `0.9`, and six
+dimension scores: grounding 4, citation discipline 4, limitation preservation
+5, boundedness 5, review boundary 5, and usefulness 4. It used 2,994 judge
+tokens. The judge's reason praised the preserved smoke-only limitation and
+human-review boundary, while noting that the cited aggregate paths did not
+expose all underlying aggregate contents in the context. This remains a
+language-quality result with `pending_human_review`; it is not a game result,
+candidate ranking, or policy authority.
+
+### Why is the judge a separate agent now?
+
+The owner required separation of concerns: `evidence-analyst` produces the
+evidence interpretation, while `evidence-analyst-judge` independently judges
+that response. They may share the `evidence-analyst-luna-v1` model deployment,
+but they must not share an agent identity or instructions. Notebook 08 created
+judge-agent version 1 and invoked it once with only the redacted brief and
+recorded response. Its deterministic gate passed an overall score of `1.0`
+with six dimension scores of 5, while preserving `pending_human_review`.
+The earlier direct Foundry Evaluation run is retained as historical evidence;
+it is not the current judge-agent path.
+
+### Did the separate judge agent catch boundary violations?
+
+Yes. Notebook 08 rejected wrong packet binding and missing review status before
+any agent call. The valid analyst response received overall score `1.0` with
+all six dimensions at 5. A schema-valid overclaiming response received
+`0.46`, including boundedness `1` and limitation preservation `2`. This
+demonstrates semantic guard behavior in the separate judge agent, while the
+local deterministic gate still remains the hard authority.
 
 ### Where does Foundry-facing evidence-analyst work begin?
 
@@ -236,13 +273,15 @@ Read the current [next-agent Foundry notebook handoff](./docs/next-agent-foundry
 and the latest stored results in [Notebook 07](./notebooks/07_foundry_component_build.ipynb).
 Do not restart the early discovery or deployment components: their zero-resource
 result and rollback are historical receipts, not live inventory. The live
-resources are deployment `evidence-analyst-luna-v1` at 6,000 TPM and no-tools
-agent `evidence-analyst` version 2. The deferred Agent Insights preview run
-that failed with `Forbidden` remains excluded unless the owner asks for that
-exact investigation. Otherwise, the next product task is a small fixed-fixture
-evaluation and LLM-as-judge workbench. The standing low-cost notebook build
-authority in [AGENTS.md](./AGENTS.md) covers that path but not IAM,
-authentication, new Azure services, capacity expansion, or telemetry repair.
+resources are deployment `evidence-analyst-luna-v1`, analyst `evidence-analyst`
+version 2, judge `evidence-analyst-judge` version 1, and proposal-drafter
+`experiment-proposal-drafter` version 1. The deferred Agent Insights preview
+run that failed with `Forbidden` remains excluded unless the owner asks for
+that exact investigation. The next product task is human review of the
+evaluation/judge results or a separately reviewed proposal-drafter invocation.
+The standing low-cost notebook build authority in [AGENTS.md](./AGENTS.md)
+covers those exact paths but not IAM, authentication, new Azure services,
+capacity expansion, or telemetry repair.
 
 ### How should work be delegated from now on?
 

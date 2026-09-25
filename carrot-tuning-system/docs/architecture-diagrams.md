@@ -272,13 +272,14 @@ candidate envelope, suite, target revision, or acceptance rule gets a new
 versioned specification. Historical records preserve the exact controls and
 expected classification that a future runner must reproduce.
 
-## 7. Foundry control plane: deployed analyst, planned judge and review
+## 7. Foundry control plane: deployed analyst/judge, planned review
 
 This is the source-controlled Foundry vertical slice. The no-tools Workflow /
-Analyst path is deployed and has one accepted redacted smoke response; the
-Evaluation/Judge, Review, and richer Trace analysis remain future or blocked
-work. The important distinction is between an LLM used to *generate or judge
-language* and deterministic components that retain mechanical authority.
+Analyst path, separate judge agent, one fixed Foundry Evaluation, and the
+proposal-drafter's three redacted boundary tests are now recorded. Human Review
+and richer Trace analysis remain open or deferred. The important distinction is
+between an LLM used to *generate or judge language* and deterministic
+components that retain mechanical authority.
 
 ```mermaid
 flowchart LR
@@ -317,19 +318,20 @@ flowchart LR
     classDef deployed fill:#d0e0e3,stroke:#134f5c,color:#000;
     classDef planned fill:#fce5cd,stroke:#b45f06,color:#000;
     classDef human fill:#ead1dc,stroke:#741b47,color:#000;
-    class Packet,Assess,Stop local;
+    class Packet,Assess,Stop,EvalSet local;
     class Gate deterministic;
-    class Workflow,Analyst deployed;
-    class Review,EvalSet,Judge,Trace planned;
+    class Workflow,Analyst,Judge deployed;
+    class Review,Trace planned;
     class Human,NextSpec human;
 ```
 
-The first deployment is one no-tools prompt agent, not a hidden multi-agent
-workflow. The evidence analyst may restate only packet-cited facts; the
+The first slice uses separate no-tools prompt-agent identities, not a hidden
+multi-agent workflow: `evidence-analyst`, `evidence-analyst-judge`, and the
+not-yet-invoked `experiment-proposal-drafter`. The evidence analyst may restate only packet-cited facts; the
 deterministic gate rejects invalid output regardless of how persuasive the
 model response sounds. A planner or governance role can be added later only
 through its own reviewed contract and approval; it is not implied by the first
-analyst deployment.
+analyst deployment or the existence of the proposal-drafter resource.
 
 Foundry Evaluations provides the LLM-as-judge layer for fixed test fixtures.
 Its rubric should score whether an analyst response is grounded in the supplied

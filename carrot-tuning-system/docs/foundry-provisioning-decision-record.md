@@ -136,6 +136,15 @@ no-tools prompt agent `evidence-analyst` version 2 and one accepted fixed
 redacted-fixture response. That response remains `pending_human_review`; it
 does not authorize another invocation, a policy change, or a new experiment.
 
+Notebook 09 now adds no-tools prompt agent `experiment-proposal-drafter`,
+version 3, using the existing `evidence-analyst-luna-v1` deployment and the
+source-controlled `proposal-drafter-v3` instructions. Discovery found no
+existing endpoint, the list-first apply created the exact version, and an
+idempotence rerun reused it. A live version readback verified the model and
+instruction text. No model invocation occurred; the proposal-drafter endpoint
+was the one additional Azure resource created under the existing low-cost
+authority.
+
 ## Resource-group separation: completed and checked
 
 On 2026-09-24, an empty dedicated resource group,
@@ -207,3 +216,48 @@ The Agent Insights investigation is now closed as abandoned/deferred. The
 deterministic evidence analyst and ordinary redacted tracing remain the
 submission boundary; future quality work should use the staged Foundry
 Evaluations/LLM-as-judge workbench instead of this preview analysis path.
+
+## Separate judge-agent readback
+
+Notebook 08 then created the required separation-of-concerns agent
+`evidence-analyst-judge`, version 1, using the existing
+`evidence-analyst-luna-v1` deployment. It has no tools, connectors, Knowledge
+source, repository access, simulator access, or policy authority. One guarded
+invocation sent only the redacted evidence brief and recorded Notebook 07
+analyst response. Response
+`resp_08209bffa392b90c006ab5ed1e70388195967de3a666869f9c` passed the
+deterministic judge gate with overall score `1.0` and six dimension scores of
+5. Its request hash was
+`2b4eadb9ddf1f5d07b0884d51f8b4c1e5bedbec4851fbfff9e9d4915e2bbd1e5`;
+review remains pending. This separate agent is now the active LLM-as-judge
+path. The earlier direct evaluator run remains historical and must not be
+rerun as the current architecture.
+
+## Foundry Evaluation readback
+
+The first small fixed-fixture evaluation is complete and remains within the
+standing low-cost authority. Notebook 08 reused the exact evaluator and run
+after its idempotent rerun: evaluator `evidence-analyst-language-v1`, run
+`evalrun_19e057784a3448a0baed96708db3b6f7`, one dataset row, one passed item,
+zero errors, and 2,994 total judge tokens. The aggregate score was `0.9`; the
+dimension scores were grounding 4, citation discipline 4, limitation
+preservation 5, boundedness 5, review boundary 5, and usefulness 4.
+
+The actual inputs were the redacted Carrot packet and recorded Notebook 07
+response. The run evaluated pre-existing output and did not invoke the agent
+again. The result is still pending human review and does not authorize a
+reasoning-agent deployment, a new experiment, or a source-policy change.
+
+Notebook 08 then created/reused the distinct no-tools judge agent
+`evidence-analyst-judge`, version 1, on the existing deployment and invoked it
+once with the redacted brief/analyst-response pair. Response
+`resp_08209bffa392b90c006ab5ed1e70388195967de3a666869f9c` passed the local
+judge-response gate with overall score `1.0` and six dimension scores of 5.
+The judge result remains `pending_human_review`; it is language-quality
+evidence, not game or policy authority.
+
+The boundary suite then rejected wrong packet binding and missing review status
+before agent calls. It sent two schema-valid cases through the separate judge:
+the valid response scored `1.0`, while the overclaiming response scored `0.46`
+with boundedness `1` and limitation preservation `2`. No additional agent or
+model deployment was created for these fixed cases.

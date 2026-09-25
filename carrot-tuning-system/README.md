@@ -60,10 +60,16 @@ evaluation workbench](./notebooks/08_foundry_evaluation_workbench.ipynb) now
 loads the actual redacted packet and recorded analyst response from Notebook 07,
 revalidates them, and defines the LLM-as-judge rubric; [09 Foundry orchestration workbench](./notebooks/09_foundry_orchestration_workbench.ipynb)
 now completes the local no-tools proposal-drafter handoff, full one-parameter
-proposal contract, five refusal guards, and deferred-deployment decision
-record. Both are local, simulator-free, and cloud-dormant. They do not deploy,
-invoke, add tools, or grant either model authority over game outcomes or policy
-source.
+proposal contract, five refusal guards, and the low-cost deployment/readback
+record. It also completed idempotent creation/readback of
+`experiment-proposal-drafter` version 3 using the existing
+`evidence-analyst-luna-v1` deployment. Notebook 08 has completed its one small
+dataset-targeted Foundry Evaluation from the actual redacted packet and
+recorded response. It also created/invoked the separate no-tools
+`evidence-analyst-judge` version 1 once; its deterministic judge gate passed
+with overall score `1.0`. Notebook 09 has created/read back but not invoked the
+proposal-drafter. Neither notebook deploys tools, connectors, or policy
+authority.
 
 Two parallel local decision-graph tuners now use the same evaluator pattern:
 [Wheat Tuner](../wheat-tuning-system/docs/first-pass-result.md) and
@@ -540,22 +546,22 @@ word "agent" can suggest:
    agent version, decision status, and refusal reason). It must not become a
    back door for raw simulator state, target source, or secrets.
 
-The first deployment is one versioned no-tools prompt agent, not a hidden
-multi-agent workflow or three separately deployed services. That keeps the
-first vertical slice modifiable, inexpensive, and easy to reason about.
-Separate analyst, planner, and governance roles remain a later orchestration
-decision with their own contracts and approvals.
+The current vertical slice uses separate no-tools prompt-agent identities for
+the analyst and judge, plus a created-but-not-invoked proposal-drafter. This is
+not a hidden multi-agent workflow: each role has its own contract and review
+boundary, and no role can run the simulator, edit policy, or approve an
+experiment. A full orchestrated planner/governance workflow remains a later
+decision.
 
 For the visual authority map and component inventory, see the
-[Foundry control-plane diagram](./docs/architecture-diagrams.md#7-planned-foundry-control-plane-llm-judge-and-review).
+[Foundry control-plane diagram](./docs/architecture-diagrams.md#7-foundry-control-plane-deployed-analystjudge-planned-review).
 
 The first implementation of the evaluation layer and optional orchestration
 extension is in [Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb)
 and [Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb). Their
-local cards prove contract shape and guard behavior only. Notebook 09 executed
-eight code cells and stored four presentation cards. A future Foundry
-Evaluation request and any second-agent deployment remain separate reviewed
-cloud actions.
+local cards prove contract shape and guard behavior. Notebook 09 also records
+the actual create/reuse/readback of proposal-drafter version 1. A future
+proposal-drafter invocation remains a separate reviewed action.
 
 ## The automatic workflow to implement next
 
@@ -861,7 +867,31 @@ and one redacted fixture invocation passed the deterministic gate. The next
 Foundry work is the fixed-fixture evaluation/LLM-judge design and the optional
 proposal-drafter role. The standing low-cost build authority in
 [AGENTS.md](./AGENTS.md) permits a narrowly declared live evaluation resource
-cell; a second agent and further telemetry remain separate human decisions.
+cell and the exact no-tools proposal-drafter creation/readback. Proposal-drafter
+invocation and further telemetry remain separate human decisions.
+
+The first real Foundry Evaluation has now completed through Notebook 08 using
+the actual redacted packet and recorded Notebook 07 response. Its one-item
+dataset run passed with aggregate judge score `0.9` and dimension scores
+4/4/5/5/5/4 for grounding, citation discipline, limitation preservation,
+boundedness, review boundary, and usefulness. The run consumed 2,994 judge
+tokens, produced no errors, and remains `pending_human_review`. This evaluates
+analyst-language quality only; it does not rank Carrot candidates or authorize
+a policy change.
+
+The current separation-of-concerns path now also creates and invokes a distinct
+no-tools prompt agent, `evidence-analyst-judge` version 1, using the same
+`evidence-analyst-luna-v1` deployment. It received only the redacted brief and
+recorded analyst response, returned six rubric scores of 5, and passed the
+deterministic judge-response gate with `pending_human_review`. The earlier
+direct evaluator run remains a historical Foundry receipt; it is not the
+current judge-agent architecture.
+
+Notebook 08 also ran the judge-agent boundary suite. Wrong packet binding and
+missing `pending_human_review` were rejected locally before any agent call. The
+valid response scored `1.0`; the schema-valid overclaiming response scored
+`0.46` with boundedness `1`, demonstrating that the separate judge detects
+semantic overreach even when the response shape is valid.
 The deployed prompt agent must remain an
 evidence interpreter with no simulator, target-policy, cache, packet-write, or
 experiment-expansion tool.

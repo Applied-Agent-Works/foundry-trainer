@@ -90,7 +90,10 @@ def validate_analyst_response(
     """
     if not isinstance(response_json, dict) or set(response_json) != RESPONSE_FIELDS:
         raise ValueError("response fields differ from the analyst v1 contract")
-    if response_json["analyst_contract_version"] != ANALYST_CONTRACT_VERSION:
+    if (
+        type(response_json["analyst_contract_version"]) is not int
+        or response_json["analyst_contract_version"] != ANALYST_CONTRACT_VERSION
+    ):
         raise ValueError("response uses an unsupported analyst contract version")
     if response_json["packet_sha256"] != packet_sha256:
         raise ValueError("response is not bound to the submitted packet")

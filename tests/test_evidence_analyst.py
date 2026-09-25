@@ -94,11 +94,63 @@ def test_failed_audit_is_refused_before_a_brief_can_be_built(
         build_evidence_brief(request, eligibility)
 
 
+@pytest.mark.parametrize(
+    ("label", "mutate"),
+    [
+        ("unhashable aggregate value", lambda packet: packet["aggregates"][0].__setitem__("candidate_value", [])),
+        ("unhashable match seed", lambda packet: packet["per_match"][0].__setitem__("seed", [])),
+    ],
+)
+def test_malformed_types_are_refused_cleanly_not_leaked_as_type_errors(
+    smoke_packet_json: dict[str, Any], label: str, mutate: Any
+) -> None:
+    malformed = deepcopy(smoke_packet_json)
+    mutate(malformed)
+    request = EvidenceAnalystRequest(
+        ANALYST_CONTRACT_VERSION, SubmittedEvidencePacket.from_jsonable(malformed)
+    )
+
+    eligibility = assess_packet_eligibility(request)
+
+    assert not eligibility.accepted, label
+    assert any("invalid" in reason or "type" in reason for reason in eligibility.reasons)
+
+
+def test_oversized_packet_identity_is_refused_before_model_context_building(
+    smoke_packet_json: dict[str, Any],
+) -> None:
+    malformed = deepcopy(smoke_packet_json)
+    malformed["experiment_id"] = "x" * 100_000
+    request = EvidenceAnalystRequest(
+        ANALYST_CONTRACT_VERSION, SubmittedEvidencePacket.from_jsonable(malformed)
+    )
+
+    eligibility = assess_packet_eligibility(request)
+
+    assert not eligibility.accepted
+    assert any("provenance" in reason for reason in eligibility.reasons)
+
+
 def test_response_must_be_bound_to_the_exact_submitted_packet(accepted_brief: Any) -> None:
     response = compliant_response(accepted_brief)
     response["packet_sha256"] = "not-the-submitted-packet"
 
     with pytest.raises(ValueError, match="not bound"):
+        validate_analyst_response(
+            response,
+            packet_sha256=accepted_brief.packet_sha256,
+            allowed_citations=accepted_brief.citations,
+            required_limitations=accepted_brief.limitations,
+        )
+
+
+def test_response_rejects_boolean_contract_version_as_not_an_integer(
+    accepted_brief: Any,
+) -> None:
+    response = compliant_response(accepted_brief)
+    response["analyst_contract_version"] = True
+
+    with pytest.raises(ValueError, match="unsupported analyst contract version"):
         validate_analyst_response(
             response,
             packet_sha256=accepted_brief.packet_sha256,
