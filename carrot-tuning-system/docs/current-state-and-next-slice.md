@@ -885,3 +885,13 @@ Notebook 08 then ran two judge-agent boundary cases. The valid response scored
 binding and missing `pending_human_review` were rejected locally before any
 agent call. These are judge-boundary results, not game-quality evidence; human
 review remains pending.
+
+## Packaging audit update — 2026-09-24
+
+Notebook 03 now preserves its real immutable-packet guard failure and no longer
+stores dependent success output from an earlier kernel state. Packet completion
+remains visibly unchecked; no new simulator run or packet overwrite was
+performed. The promoted Evidence Analyst tests use a source-controlled redacted
+fixture rather than ignored `var/` state. Wheat and Watermelon receipts remain
+ignored generated outputs, and Watermelon's next receipt now includes the same
+top-level `audit_status` field already present in Wheat.

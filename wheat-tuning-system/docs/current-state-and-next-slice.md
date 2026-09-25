@@ -16,8 +16,10 @@ The first local Wheat Tuner vertical slice is complete:
 
 The detailed result is in [first-pass-result.md](./first-pass-result.md).
 
-The canonical current generated receipt is
+The current generated receipt path is
 [`wheat-future-price-multiplier-smoke-v1.json`](../../var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
+It is ignored run output and is absent from a fresh checkout until the
+approved command generates it.
 Earlier generated receipts are historical/superseded and remain disposable.
 
 ## Remaining limitations

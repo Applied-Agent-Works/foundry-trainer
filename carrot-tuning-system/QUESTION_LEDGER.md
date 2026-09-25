@@ -986,3 +986,16 @@ Use a deliberately different fixed opponent or market regime to determine
 whether the currently inert belief/price parameters become decision-relevant.
 Do not widen values arbitrarily or start open-ended searching without a
 predeclared, human-approved specification.
+
+### What changed during the packaging audit?
+
+The shared evaluator remains crop-neutral: baseline, replay, restored-suffix,
+and clean-audit paths dispatch through the explicit target adapter. Notebook 03
+did contain a real evidence-integrity issue: a packet-write mismatch was stored
+as an error while later dependent success outputs remained from an earlier
+kernel state. Those stale outputs are now removed, the failure is preserved,
+and packet completion is visibly unchecked. Analyst tests now use a
+source-controlled redacted fixture, and the next Watermelon receipt exposes a
+top-level clean-audit status. No new simulator or cloud action was taken. The
+remaining owner decision is whether canonical tuner receipts should be
+promoted into source control or remain ignored generated artifacts.

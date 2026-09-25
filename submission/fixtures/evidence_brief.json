@@ -1,0 +1,27 @@
+{
+  "baseline_value": 20.0,
+  "candidates": [
+    {"candidate_value": 10.0, "divergent_match_count": 0, "match_count": 2, "mean_paired_decision_delta": 0.0, "total_suffix_actions": 0},
+    {"candidate_value": 40.0, "divergent_match_count": 0, "match_count": 2, "mean_paired_decision_delta": 0.0, "total_suffix_actions": 0},
+    {"candidate_value": 60.0, "divergent_match_count": 0, "match_count": 2, "mean_paired_decision_delta": 0.0, "total_suffix_actions": 0},
+    {"candidate_value": 80.0, "divergent_match_count": 2, "match_count": 2, "mean_paired_decision_delta": 937.0, "total_suffix_actions": 1224}
+  ],
+  "citations": [
+    {"claim": "candidate 10: mean paired delta 0 across 2 matches", "packet_path": "aggregates[0]"},
+    {"claim": "candidate 40: mean paired delta 0 across 2 matches", "packet_path": "aggregates[1]"},
+    {"claim": "candidate 60: mean paired delta 0 across 2 matches", "packet_path": "aggregates[2]"},
+    {"claim": "candidate 80: mean paired delta 937 across 2 matches", "packet_path": "aggregates[3]"}
+  ],
+  "experiment_id": "carrot-seed-opportunity-candidate-evidence-smoke-v1",
+  "limitations": [
+    "descriptive-smoke-only; human interpretation required",
+    "observed seed count: 1",
+    "no source-policy mutation is authorized",
+    "this brief does not rank candidates or propose a new experiment"
+  ],
+  "packet_sha256": "bd840913cc4d0728f1cca07187438072e76bcfaab1ab0c8084469e1241c27cf3",
+  "parameter_name": "seed_opportunity_value",
+  "suite_seed_count": 1,
+  "suite_seats": [0, 1],
+  "suite_steps": 720
+}

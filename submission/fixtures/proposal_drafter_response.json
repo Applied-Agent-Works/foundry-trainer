@@ -1,0 +1,29 @@
+{
+  "assessment": "test_candidate",
+  "evidence_cited": [
+    {"packet_path": "aggregates[0]", "claim": "candidate 10: mean paired delta 0 across 2 matches"},
+    {"packet_path": "aggregates[1]", "claim": "candidate 40: mean paired delta 0 across 2 matches"},
+    {"packet_path": "aggregates[2]", "claim": "candidate 60: mean paired delta 0 across 2 matches"},
+    {"packet_path": "aggregates[3]", "claim": "candidate 80: mean paired delta 937 across 2 matches"}
+  ],
+  "alternative_explanations": [
+    "The one-seed smoke fixture may reflect a realized threshold rather than a general effect.",
+    "The observed delta may depend on opponent and seat coverage not present in this fixture."
+  ],
+  "single_hypothesis": {
+    "parameter": "seed_opportunity_value",
+    "current_value": 20.0,
+    "proposed_value": 40.0,
+    "rationale": "The declared value is a bounded follow-up question, not a conclusion from this smoke fixture.",
+    "prediction": "A held-out suite will determine whether the candidate changes audited paired outcomes."
+  },
+  "next_measurement": "Run a separately approved held-out seed and seat suite with the same clean-audit requirement.",
+  "confidence_and_limits": "This proposal is provisional and cannot establish a game outcome or policy recommendation.",
+  "limitations": [
+    "descriptive-smoke-only; human interpretation required",
+    "observed seed count: 1",
+    "no source-policy mutation is authorized",
+    "this brief does not rank candidates or propose a new experiment"
+  ],
+  "review_status": "pending_human_review"
+}

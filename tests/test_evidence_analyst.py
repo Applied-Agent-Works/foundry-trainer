@@ -28,11 +28,8 @@ from analyst import (  # noqa: E402
 
 @pytest.fixture
 def smoke_packet_json() -> dict[str, Any]:
-    """Read the existing immutable packet; no simulator or packet write occurs."""
-    path = REPOSITORY_ROOT / (
-        "var/carrot-tuning-system/candidate-evidence-smoke/evidence-packets/"
-        "carrot-seed-opportunity-candidate-evidence-smoke-v1.json"
-    )
+    """Read the source-controlled redacted smoke fixture; no simulator runs."""
+    path = REPOSITORY_ROOT / "tests/fixtures/carrot_candidate_evidence_smoke_v1.json"
     return json.loads(path.read_text(encoding="utf-8"))
 
 

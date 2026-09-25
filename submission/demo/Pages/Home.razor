@@ -1,0 +1,184 @@
+﻿@page "/"
+@using demo.Models
+@inject IAgentConversation Conversations
+
+<PageTitle>Carrot evidence review</PageTitle>
+
+<section class="hero-grid">
+    <div>
+        <span class="eyebrow">HUMAN-IN-THE-LOOP DEMONSTRATION</span>
+        <h1>Ask the evidence.<br /><span>Keep the decision yours.</span></h1>
+        <p class="lede">
+            This screen is the handoff between deterministic local evidence and
+            three no-tools Foundry roles: the Evidence Analyst, its independent
+            Judge, and the bounded Proposal Drafter. The displayed receipts are
+            redacted and replayable so the review conversation is safe to capture.
+        </p>
+        <div class="guard-row">
+            <span>✓ packet-bound</span>
+            <span>✓ no source mutation</span>
+            <span>✓ review required</span>
+        </div>
+    </div>
+    <aside class="evidence-card">
+        <div class="card-label">CURRENT EVIDENCE PACKET</div>
+        <div class="metric"><strong>4</strong><span>declared candidates</span></div>
+        <div class="metric"><strong>2</strong><span>decision seats</span></div>
+        <div class="metric"><strong>1</strong><span>fixed smoke seed</span></div>
+        <div class="status-line"><span class="status-dot"></span> deterministic gate passed</div>
+        <small>Interpretation remains pending human review.</small>
+    </aside>
+</section>
+
+<section class="loop-strip" aria-label="Double loop status">
+    <div class="loop-step complete"><span>01</span><strong>Inner loop</strong><small>audited evidence</small></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-step complete"><span>02</span><strong>Evidence analyst</strong><small>packet-backed explanation</small></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-step active"><span>03</span><strong>Human review</strong><small>decision still yours</small></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-step"><span>04</span><strong>Next envelope</strong><small>only after approval</small></div>
+</section>
+
+<section class="workbench" aria-label="Agent chat workbench">
+    <div class="agent-rail">
+        <div class="section-kicker">CHOOSE A ROLE</div>
+        @foreach (var agent in Conversations.Agents)
+        {
+            <button class="agent-choice @(agent.Id == selectedAgentId ? "selected" : "")"
+                    @onclick="() => SelectAgent(agent.Id)">
+                <span class="agent-icon">@agent.ShortName</span>
+                <span class="agent-copy">
+                    <strong>@agent.DisplayName</strong>
+                    <small>@agent.Description</small>
+                </span>
+                <span class="chevron">›</span>
+            </button>
+        }
+        <div class="review-note">
+            <strong>Human review</strong>
+            <p>Neither role can approve a candidate or edit policy source.</p>
+            <label><input type="checkbox" @bind="reviewAcknowledged" /> I understand this is a proposal</label>
+        </div>
+    </div>
+
+    <div class="chat-panel">
+        <div class="chat-header">
+            <div>
+                <div class="section-kicker">ACTIVE ROLE</div>
+                <h2>@ActiveAgent.DisplayName</h2>
+            </div>
+            <span class="role-status">@ActiveAgent.Status</span>
+        </div>
+
+        <div class="messages" aria-live="polite">
+            @foreach (var message in Messages)
+            {
+                <article class="message @(message.Role == "human" ? "human" : "agent")">
+                    <div class="message-meta">@(message.Role == "human" ? "YOU" : ActiveAgent.DisplayName.ToUpperInvariant())</div>
+                    <p>@message.Text</p>
+                </article>
+            }
+        </div>
+
+        <div class="composer">
+            <textarea @bind="question" placeholder="Ask what the evidence supports..." aria-label="Question"></textarea>
+            <button class="send-button" disabled="@(string.IsNullOrWhiteSpace(question) || !reviewAcknowledged)" @onclick="SendMessage">Send question</button>
+            @if (!reviewAcknowledged)
+            {
+                <small>Check the human-review acknowledgement to continue the review.</small>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="decision-grid" aria-label="Human decision packet">
+    <article class="decision-card evidence-summary">
+        <div class="section-kicker">DETERMINISTIC EVIDENCE</div>
+        <h2>What the packet says</h2>
+        <p class="muted">One seed · two seats · four declared values · all clean audits passed.</p>
+        <table>
+            <thead><tr><th>Candidate</th><th>Paired Δ</th><th>Divergence</th><th>Audit</th></tr></thead>
+            <tbody>
+                <tr><td>10</td><td>0</td><td>none</td><td><span class="pass">passed</span></td></tr>
+                <tr><td>40</td><td>0</td><td>none</td><td><span class="pass">passed</span></td></tr>
+                <tr><td>60</td><td>0</td><td>none</td><td><span class="pass">passed</span></td></tr>
+                <tr class="highlight"><td>80</td><td>+937</td><td>turn 107</td><td><span class="pass">passed</span></td></tr>
+            </tbody>
+        </table>
+        <ul class="limits"><li>Descriptive smoke evidence only.</li><li>Not a ranking or global optimum.</li><li>No policy mutation is authorized.</li></ul>
+    </article>
+
+    <article class="decision-card proposal-card">
+        <div class="section-kicker">BOUNDED PROPOSAL</div>
+        <h2>What the next role suggests</h2>
+        <div class="proposal-value"><span>parameter</span><strong>seed_opportunity_value</strong></div>
+        <div class="proposal-value"><span>current → proposed</span><strong>20 → 40</strong></div>
+        <p>Run a separately approved held-out seed and seat suite with the same clean-audit requirement.</p>
+        <span class="review-pill">pending_human_review</span>
+    </article>
+
+    <article class="decision-card human-card">
+        <div class="section-kicker">YOUR DECISION</div>
+        <h2>Choose the next boundary</h2>
+        <p class="muted">These buttons record a review disposition locally. They do not run a test or change policy.</p>
+        <div class="decision-buttons">
+            <button class="decision-button retain" disabled="@(!reviewAcknowledged)" @onclick='() => RecordDecision("retain_baseline")'>Retain baseline</button>
+            <button class="decision-button approve" disabled="@(!reviewAcknowledged)" @onclick='() => RecordDecision("approve_held_out_test")'>Approve held-out test</button>
+            <button class="decision-button reject" disabled="@(!reviewAcknowledged)" @onclick='() => RecordDecision("reject_proposal")'>Reject proposal</button>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(decisionStatus))
+        {
+            <div class="decision-status"><span class="status-dot"></span>@decisionStatus</div>
+        }
+        else
+        {
+            <small class="decision-hint">A checked acknowledgement enables the review controls.</small>
+        }
+    </article>
+</section>
+
+@code {
+    private string selectedAgentId = "evidence-analyst";
+    private string question = string.Empty;
+    private bool reviewAcknowledged;
+    private string decisionStatus = string.Empty;
+    private List<ChatMessage> Messages = new();
+
+    private AgentProfile ActiveAgent => Conversations.GetAgent(selectedAgentId);
+
+    protected override void OnInitialized()
+    {
+        Messages = Conversations.StartConversation(selectedAgentId).ToList();
+    }
+
+    private void SelectAgent(string agentId)
+    {
+        selectedAgentId = agentId;
+        Messages = Conversations.StartConversation(agentId).ToList();
+        question = string.Empty;
+    }
+
+    private void SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(question) || !reviewAcknowledged)
+        {
+            return;
+        }
+
+        var submitted = question.Trim();
+        Messages.Add(new ChatMessage("human", submitted));
+        Messages.Add(new ChatMessage("agent", Conversations.Reply(ActiveAgent, submitted)));
+        question = string.Empty;
+    }
+
+    private void RecordDecision(string decision)
+    {
+        if (!reviewAcknowledged)
+        {
+            return;
+        }
+
+        decisionStatus = $"Recorded locally: {decision}. No experiment or source change was performed.";
+    }
+}

@@ -29,5 +29,6 @@ working-tree material at this pinned revision. That is why both the Git
 revision and SHA-256 hashes are recorded: revision alone does not identify
 those files completely.
 
-The canonical receipt for this provenance record is
+The generated receipt path for this provenance record is
 `var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json`.
+The path is ignored run output and must be regenerated in a fresh checkout.
