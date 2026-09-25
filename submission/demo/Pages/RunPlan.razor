@@ -18,6 +18,8 @@
     <div class="section-kicker">CARROT DETERMINISTIC AGENT · UNIFIED DECISION MAP</div>
     <h2>Where the knobs enter, and what the agent does next</h2>
     <p class="muted">Choose one parameter from the economic gate, then follow the runtime branches below. The parameter cards are the only editing surface; the action branches are read-only.</p>
+    <div class="gate-and-influence-layout @(economicGateFocused ? "visible" : "hidden")">
+        <div class="gate-controls-column">
     @if (economicGateFocused)
     {
         <div class="economic-input-map" aria-label="Economic decision graph knobs">
@@ -82,6 +84,7 @@
             </div>
         </section>
     }
+        </div>
 
     @if (economicGateFocused && FocusedEvidence is { } focusedEvidence)
     {
@@ -121,6 +124,7 @@
             <p class="muted"><b>In plain English:</b> @RelationshipCaption(focusedEvidence, influence)</p>
         </section>
     }
+    </div>
     <div class="control-flow-legend">
         <span><b class="legend-swatch decision-swatch"></b>decision point</span>
         <span><b class="legend-swatch action-swatch"></b>action taken when the answer is yes</span>
@@ -251,8 +255,12 @@
     <div class="run-stages horizontal">
         @foreach (var stage in Workbench.RunStages)
         {
-            <div class="run-stage @stage.Status @(stage.Id == "packet" ? "final-stage" : "")"><span class="stage-mark">@(stage.Status == "complete" ? "✓" : stage.Status == "current" ? "…" : "○")</span><span><strong>@stage.Title</strong><small>@stage.Detail</small></span></div>
+            <div class="run-stage @stage.Status @(stage.Id == "packet" ? "final-stage" : "")"><span class="stage-mark">@(stage.Status == "complete" ? "✓" : stage.Status == "current" ? "…" : "○")</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(stage.Status)</em><small>@stage.Detail</small></span></div>
         }
+    </div>
+    <div class="run-cycle-indicator">
+        <span class="run-cycle-symbol" aria-hidden="true">↻</span>
+        <span><strong>This is a tuning cycle.</strong> After the evidence and Foundry review are complete, the next bounded experiment returns to the plan at the beginning. Each cycle changes one approved knob, measures it, and feeds the evidence into the next decision.</span>
     </div>
 
     <div class="execution-actions">
@@ -407,6 +415,13 @@
         string.IsNullOrWhiteSpace(status)
             ? $"{stage.Title}. {stage.Detail}"
             : status;
+
+    private static string StageStateLabel(string status) => status switch
+    {
+        "complete" => "DONE",
+        "current" => "CURRENT · NOT EXECUTED",
+        _ => "TO DO · NOT EXECUTED",
+    };
 
     private async Task ExecuteCurrentStep()
     {
