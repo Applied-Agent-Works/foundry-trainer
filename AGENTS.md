@@ -23,6 +23,14 @@ virtual-environment, lockfile, and cloud changes as separate reviewable
 boundaries. The Foundry evidence analyst receives only redacted packets and
 cannot run the simulator, edit policy source, or approve a new experiment.
 
+The owner has granted a standing, low-cost build authority for Carrot Foundry
+work. Read [`carrot-tuning-system/AGENTS.md`](./carrot-tuning-system/AGENTS.md)
+for the exact allowed resource classes, cost envelope, and stop conditions.
+Within that envelope, an agent must build and execute the reviewed notebook
+cell rather than waiting for a redundant per-resource approval. This does not
+apply to Wheat, Watermelon, the shared evaluator, Kaggriculture source, or a
+new Azure infrastructure/security class.
+
 ## Mandatory iterative notebook authoring protocol
 
 When a notebook is both an executable artifact and a teaching/design artifact,
@@ -60,11 +68,12 @@ reuse a subsection label or append an unstructured tail.
 
 If a request could mean notebook editing, a pure local check, an environment
 change, an authenticated cloud read, or a cloud mutation, list those choices
-and ask the owner to select one. Do not infer the broadest action from “do it”
+and ask the owner to select one—unless the local subsystem's standing authority
+already names the exact action. Do not infer the broadest action from “do it”
 or “run it.” A harmless implementation choice inside the stated envelope may
 be documented as an assumption and flagged for later review; anything changing
 scope, cost, security, data handling, contract, source policy, or external
-state is a stop point.
+state outside that envelope is a stop point.
 
 When a cell errors, preserve the exact actionable error, classify the blocker,
 make only the smallest in-scope fix, and rerun the same cell. A missing

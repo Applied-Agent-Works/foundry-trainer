@@ -56,6 +56,22 @@ general quality, or authorize additional model invocations.
   card separate. The card consumes actual computed facts; it does not invent
   output or conceal an approval boundary.
 
+## Standing build authority
+
+The owner has already authorized the low-cost, notebook-backed Foundry build
+path described in [Carrot's agent instructions](../AGENTS.md). After a
+workbench has an exact desired-state record, local guard, declared small token
+budget, idempotent apply, and readback predicate, execute that cell rather than
+asking for another per-resource approval. This covers the existing-envelope
+model deployment, no-tools prompt-agent versions, and small fixed-fixture
+Foundry Evaluation artifacts/runs in this project only.
+
+It does **not** cover an IAM/role or authentication change, new Azure service
+or region, capacity increase, spillover/auto-upgrade, scheduled monitoring,
+destructive cleanup, package/environment mutation, tools/connectors/Knowledge,
+or a retry of the deferred Agent Insights investigation. Stop for the owner on
+those boundaries.
+
 ## Immediate status and stop point
 
 The Agent Insights investigation is now abandoned/deferred. The notebook
@@ -77,9 +93,11 @@ than invented evaluation inputs, and has a passing simulator-free execution.
 The optional course-facing second
 role is staged in [Notebook 09](../notebooks/09_foundry_orchestration_workbench.ipynb):
 it accepts only an analyst response and emits a proposal record that remains
-`pending_human_review`. Neither notebook performs a Foundry action. The next
-agent must not deploy or invoke either role until the owner reviews the cards
-and approves the exact request.
+`pending_human_review`. Neither notebook currently performs a Foundry action.
+The next agent may add and execute the narrowly declared evaluation resource
+cell under the standing build authority; the optional second-agent deployment
+remains a separate owner decision because Notebook 09 deliberately records
+`defer_second_agent_deployment`.
 
 Notebook 09 is now complete for its local role. It validates the promoted
 analyst response shape, constructs the richer reasoning proposal required by

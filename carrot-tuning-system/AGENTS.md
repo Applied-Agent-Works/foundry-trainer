@@ -89,6 +89,41 @@ the recorded result rather than sending another message. Preserve precondition
 snapshots so a later live read does not make an already-approved plan fail
 merely because the approved action succeeded.
 
+## Standing owner authorization: low-cost Carrot Foundry build
+
+The owner authorizes agents to build the real Carrot Foundry component without
+a second per-resource permission request when all of the following are true:
+
+- the action is represented, explained, executed, and read back in a reviewed
+  notebook cell under this project;
+- it targets only `foundry-trainer-resource` / `foundry-trainer` in
+  `rg-foundry-trainer-eastus2` and sends only the project's redacted evidence
+  fixtures;
+- it creates, reuses, or updates only a no-tools prompt-agent version, a model
+  deployment at or below the existing 6,000-TPM Data Zone Standard envelope,
+  or a Foundry Evaluation dataset/evaluator/configuration/run with a declared
+  small fixed fixture set and token budget;
+- it lists/reads first, reuses an exact match, refuses drift, records actual
+  output, and stays within the existing $5 monthly project ceiling; and
+- it does not add a tool, connector, Knowledge source, repository access,
+  simulator access, source-policy authority, or unredacted data.
+
+This is execution authority, not permission to skip notebook design or hide
+the side effect. Once the exact desired state, guard, expected cost/data
+boundary, and readback predicate are present in the notebook, proceed through
+the approved low-cost build path; do not ask the owner again merely because the
+next cell creates the declared Foundry resource.
+
+The standing authority deliberately excludes a new resource group or region,
+new Azure service type (including compute, storage, Search, private networking,
+or a capability host), model capacity above 6,000 TPM, spillover or automatic
+model upgrades, subscription/resource-group moves, a budget change, IAM role
+or authentication changes, API keys/connection-string integrations, scheduled
+monitoring, destructive operations, package/environment changes, or any action
+likely to exceed the $5 ceiling. Those are separate human decisions. The
+deferred Agent Insights preview repair remains excluded: do not treat this
+authorization as permission to retry or broaden that investigation.
+
 ### Cloud diagnostics are bounded actions, not an implicit repair campaign
 
 Label a cloud section as exactly one of: read-only discovery, request

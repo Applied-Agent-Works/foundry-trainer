@@ -269,7 +269,8 @@ The system must not:
   agent architecture on its own;
 - treat game constants, such as seed cost or crop yield, as policy parameters;
 - use Azure provisioning, cloud storage, credentials, external connectors, or
-  model calls until a separate explicit authorization is given;
+  model calls outside the standing low-cost Foundry build authority in
+  [AGENTS.md](./AGENTS.md);
 - conduct an unbounded, unreviewed parameter search, write a value into target
   source, or use interim results to expand a candidate envelope without a new
   approved specification; or
@@ -858,8 +859,10 @@ The local spec-driven evaluator is now the stable, tested foundation for the
 Foundry-facing layer. The first no-tools Foundry evidence analyst is deployed
 and one redacted fixture invocation passed the deterministic gate. The next
 Foundry work is the fixed-fixture evaluation/LLM-judge design and the optional
-proposal-drafter role; live evaluation, a second agent, and further telemetry
-remain separate reviewed actions. The deployed prompt agent must remain an
+proposal-drafter role. The standing low-cost build authority in
+[AGENTS.md](./AGENTS.md) permits a narrowly declared live evaluation resource
+cell; a second agent and further telemetry remain separate human decisions.
+The deployed prompt agent must remain an
 evidence interpreter with no simulator, target-policy, cache, packet-write, or
 experiment-expansion tool.
 

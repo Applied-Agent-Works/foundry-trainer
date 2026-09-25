@@ -6,9 +6,12 @@ This is the source-controlled decision record for the smallest real Foundry
 slice of the Carrot Tuning system. It records choices already made by the
 owner, the controls those choices require, and the remaining infrastructure and
 cost decisions.
-It is **not** an Azure deployment request, an `azd` manifest, or permission to
-create a model deployment, prompt agent, connection, credential, or storage
-resource.
+It is not an `azd` manifest and does not authorize arbitrary Azure
+infrastructure, identity, credential, or storage changes. Together with the
+standing low-cost build authority in [Carrot's agent instructions](../AGENTS.md),
+it does authorize reviewed notebook cells to create/reuse the named low-cost
+model, no-tools prompt-agent, and fixed-fixture Foundry Evaluation resources
+inside this project's existing envelope.
 
 The local [evidence analyst boundary](../analyst/) remains the truth owner for
 packet eligibility and output validation. Foundry will receive only its

@@ -237,10 +237,12 @@ and the latest stored results in [Notebook 07](./notebooks/07_foundry_component_
 Do not restart the early discovery or deployment components: their zero-resource
 result and rollback are historical receipts, not live inventory. The live
 resources are deployment `evidence-analyst-luna-v1` at 6,000 TPM and no-tools
-agent `evidence-analyst` version 2. The immediate stop point is the bounded
-Agent Insights run that failed with `Forbidden`; investigate it only after the
-owner asks for that exact action. Otherwise, the next safe product task is a
-small fixed-fixture evaluation and LLM-as-judge workbench.
+agent `evidence-analyst` version 2. The deferred Agent Insights preview run
+that failed with `Forbidden` remains excluded unless the owner asks for that
+exact investigation. Otherwise, the next product task is a small fixed-fixture
+evaluation and LLM-as-judge workbench. The standing low-cost notebook build
+authority in [AGENTS.md](./AGENTS.md) covers that path but not IAM,
+authentication, new Azure services, capacity expansion, or telemetry repair.
 
 ### How should work be delegated from now on?
 

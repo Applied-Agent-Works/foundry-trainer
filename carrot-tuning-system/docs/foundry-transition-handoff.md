@@ -53,9 +53,21 @@ temporary agents or monitors. The current blocker is therefore independent of
 our real-agent trace shape and ordinary App Insights ingestion.
 
 The Agent Insights investigation is now closed as abandoned/deferred. Do not
-retry the preview run, change roles, or add resources. The supported next
-quality path is the staged Foundry Evaluations/LLM-as-judge workbench, with
-the deterministic local gate remaining authoritative.
+retry the preview run, change roles, or add telemetry resources. The supported
+next quality path is the staged Foundry Evaluations/LLM-as-judge workbench,
+with the deterministic local gate remaining authoritative.
+
+### Standing low-cost build authority
+
+The owner has authorized agents to execute the reviewed, idempotent notebook
+cells that build this project's low-cost Foundry path: no-tools prompt-agent
+versions, model deployments at or below the existing 6,000-TPM Data Zone
+Standard envelope, and small fixed-fixture Foundry Evaluation artifacts/runs.
+The exact rules and exclusions live in [Carrot's agent instructions](../AGENTS.md).
+This removes the earlier bottleneck where an agent could design a notebook but
+felt unable to run its declared resource cell. It does not authorize identity
+or authentication changes, new Azure service types, capacity expansion,
+scheduled monitoring, or the deferred Agent Insights repair.
 
 The evaluator and local `analyst/` boundary remain normal source-controlled
 Python. The prompt-agent definition, local response gate, and notebook action
@@ -182,10 +194,11 @@ work uses the same contracts to improve the agent deliberately.
 Use a focused conversation only after reading the current
 [next-agent Foundry notebook handoff](./next-agent-foundry-notebook-handoff.md).
 The parent [Foundry setup guide](../../docs/foundry-project-setup-guide.md) is
-a reference, not permission to provision. The next agent should not restart
-component 2 or recreate the agent; it should either investigate the exact
-telemetry permission blocker after explicit approval, or build the separate
-fixture-and-judge evaluation workbench.
+a reference, not an alternative action surface. The next agent should not
+restart component 2 or recreate the agent; it may build the separately staged
+fixture-and-judge evaluation path under the standing low-cost authority, or
+investigate the deferred telemetry permission blocker only after a new explicit
+owner decision.
 
 For the submission window, prioritize the smallest deployable vertical slice
 over extra local tuning. Keep any work on the farming agent in a separate

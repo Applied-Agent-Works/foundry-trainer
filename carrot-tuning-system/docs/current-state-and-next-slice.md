@@ -639,6 +639,18 @@ zero matching insights. Do not retry, alter RBAC, enable scheduled monitoring,
 or add a telemetry resource without a new bounded owner decision. Earlier
 zero-inventory and rollback wording remains useful only as historical receipt.
 
+### Standing authority for the next low-cost build slice
+
+The owner has removed the earlier per-resource approval bottleneck for the
+ordinary Carrot Foundry build path. An agent may execute an idempotent,
+notebook-backed create/reuse/readback cell for the existing-envelope model,
+no-tools agent, or small fixed-fixture Foundry Evaluation resource after the
+cell declares its target, token budget, redacted data boundary, and guard. The
+exact scope and exclusions are canonical in [AGENTS.md](../AGENTS.md). This is
+not authority to repair Agent Insights, alter IAM/authentication, add Azure
+services, raise capacity, enable spillover/auto-upgrade, or expand the agent's
+tools or data access.
+
 The [mock graduation protocol](./mock-graduation-protocol.md) governs the
 remaining illustrative system-model components. It prevents a rush to replace
 teaching code with unproven behavior: deterministic assessment is the next

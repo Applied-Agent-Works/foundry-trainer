@@ -10,6 +10,17 @@ projects live under [`carrot-tuning-system/`](carrot-tuning-system/),
 [`watermelon-tuning-system/`](watermelon-tuning-system/). This root package
 remains the shared deterministic evaluator and simulator-proof test surface.
 
+## Agent starting points
+
+Repository-wide rules are in [AGENTS.md](./AGENTS.md). Before changing a tuner,
+read that tuner's local instructions: [Carrot](./carrot-tuning-system/AGENTS.md),
+[Wheat](./wheat-tuning-system/AGENTS.md), or
+[Watermelon](./watermelon-tuning-system/AGENTS.md). Carrot Foundry work also
+starts with its [Foundry transition handoff](./carrot-tuning-system/docs/foundry-transition-handoff.md)
+and [next-agent handoff](./carrot-tuning-system/docs/next-agent-foundry-notebook-handoff.md).
+Those Carrot instructions contain the standing low-cost cloud-build authority;
+the other tuner projects remain local-only.
+
 The initial proof records a deterministic baseline against the target's
 `conveyor` opponent, saves a pre-action simulator checkpoint for every turn,
 and evaluates one human-specified `CarrotParameters` change.  A candidate is
