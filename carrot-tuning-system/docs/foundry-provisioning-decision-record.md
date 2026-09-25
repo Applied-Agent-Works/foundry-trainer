@@ -193,3 +193,14 @@ agent. The redacted call succeeded and cleanup removed the temporary
 conversation and agent version. This confirms that tracing bootstrap and
 ordinary agent invocation work in this project; it does not clear the
 separate Agent Insights service-side dependency blocker.
+
+The newer Azure SDK sample was also reproduced in Notebook 07 with a
+preview-enabled client, fictional spans, Azure Monitor Logs ingestion polling,
+and a temporary monitor. Ingestion reached the expected counts, but the run
+still returned the same `Forbidden` dependency error. Cleanup readback found
+zero temporary resources. No further blind Agent Insights retry is justified.
+
+The Agent Insights investigation is now closed as abandoned/deferred. The
+deterministic evidence analyst and ordinary redacted tracing remain the
+submission boundary; future quality work should use the staged Foundry
+Evaluations/LLM-as-judge workbench instead of this preview analysis path.

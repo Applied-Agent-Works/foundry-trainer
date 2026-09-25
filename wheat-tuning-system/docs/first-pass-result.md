@@ -8,9 +8,9 @@ conveyor opponent. It used seeds 42 and 43, both seats, and 720 steps. The
 candidate parameter was `future_price_multiplier`, with baseline `1.0` and
 declared values `0.05`, `0.8`, and `1.2`.
 
-The generated JSON report is disposable but authoritative for this run's
-recorded facts:
-[`wheat-future-price-multiplier-smoke-v1.json`](../../var/wheat-tuning-system/repair-first-pass/wheat-future-price-multiplier-smoke-v1.json).
+The canonical generated JSON report is disposable but authoritative for this
+run's recorded facts:
+[`wheat-future-price-multiplier-smoke-v1.json`](../../var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
 
 | Candidate | Mean reward | Paired delta | Divergences | Suffix actions | Audits |
 |---:|---:|---:|---:|---:|---|
@@ -67,6 +67,8 @@ ignored `var/wheat-tuning-system/`.
 ⚠️ The wheat policy files in the sibling Kaggriculture checkout were already
 uncommitted draft files when this run began. The report's shared-policy hash
 therefore matters: future reruns must bind to the same hash or fail closed.
+Earlier `first-pass/` and `repair-first-pass/` receipts are
+historical/superseded copies; the canonical current receipt is the path above.
 
 ## Next safe experiment
 

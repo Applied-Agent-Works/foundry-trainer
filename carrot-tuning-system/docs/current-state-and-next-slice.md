@@ -601,6 +601,21 @@ the Agent Insights analysis dependency or its preview/model compatibility.
 The notebook records the sample result as green and keeps Agent Insights red;
 no further retry is justified without a new owner decision.
 
+The current Azure SDK Agent Insights sample was then reproduced in the same
+notebook: a temporary external agent emitted fictional spans, the notebook
+queried Azure Monitor Logs until all expected spans were ingested, and a
+preview-enabled client created a temporary monitor and started one run. The
+run returned the same `Forbidden` dependency error after ingestion succeeded.
+The temporary agent and monitor cleanup readback found zero leftovers. This
+isolates the blocker to the Agent Insights service dependency/model or preview
+path, not to our real-agent trace production or ingestion timing.
+
+This Agent Insights investigation is now **abandoned/deferred**. The durable
+submission boundary is the deterministic evidence analyst plus ordinary
+redacted tracing; no scheduled monitor or further on-demand insight run is
+authorized. Future quality work should use the staged Foundry Evaluations and
+LLM-as-judge workbench instead.
+
 The next documentation hardening task is to retrofit notebooks 01–06 with the
 same rehydration pattern now demonstrated in notebook 07: desired state,
 preflight, validated request, idempotent create/reuse, readback, historical
@@ -785,14 +800,30 @@ Two follow-on workbenches are now present and have been executed locally:
    deterministic response gate and a planning-field hard stop, and records a
    cloud-dormant Foundry Evaluations/LLM-as-judge rubric. It does not call
    Foundry, invoke a model, or claim a quality score.
-2. [Notebook 09](../notebooks/09_foundry_orchestration_workbench.ipynb) defines
-   an optional analyst-to-proposal-drafter handoff, a constrained proposal
-   shape, and a tool-request refusal. It does not deploy a second agent or
-   create a multi-agent workflow.
+2. [Notebook 09](../notebooks/09_foundry_orchestration_workbench.ipynb) now
+   completes the local analyst-to-reasoning handoff, full one-parameter
+   proposal contract, five deterministic refusal guards, and deferred-cloud
+   decision record. Its eight code cells executed in dependency order and four
+   presentation cards retain actual local results. It does not deploy a second
+   agent or create a multi-agent workflow.
 
 Both notebooks are design/prototype evidence, not new authority. Before any
 cloud evaluation or second-agent deployment, the owner must review the visible
 unchecked tasks, confirm the fixture/rubric and role boundary, and approve the
 exact Foundry operation in its own notebook cell. Their code cells were run
 locally in dependency order; the only initial repair was adding the required
-`mean_candidate_decision_reward` field to the synthetic aggregate fixture.
+`mean_candidate_decision_reward` field to the synthetic aggregate fixture in
+Notebook 08. Notebook 09's local fixture is bound through the promoted analyst
+response validator; its proposal envelope is explicitly fixture-only and does
+not authorize a new experiment.
+
+Notebook 08 has since been rebuilt as the full numbered evaluation notebook.
+Its local cells load the actual packet at
+`var/carrot-tuning-system/candidate-evidence-smoke/evidence-packets/` and the
+actual `RECORDED_INVOCATION_OUTPUT` receipt from Notebook 07, verify the
+checksum and deterministic response gate, construct one redacted JSONL row,
+define the six-dimension ordinal judge rubric, and stage exact evaluator/run
+cells. The evaluator and run cells are fail-closed and have not contacted
+Foundry; their receipts remain `staged_not_run`. All 29 notebook cells parse,
+compile, and pass the local execution harness. The next cloud action is the
+separately reviewed dataset-targeted evaluation.

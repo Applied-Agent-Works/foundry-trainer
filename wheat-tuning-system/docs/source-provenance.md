@@ -21,3 +21,6 @@ planned unfertilized yield 4, planned harvest day 4, and base price 25. The
 first tunable policy input is the provisional point-estimate
 `future_price_multiplier`; animal-feed value, fertilizer, and multi-crop
 selection are outside this first graph.
+
+The canonical receipt for this provenance record is
+`var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json`.

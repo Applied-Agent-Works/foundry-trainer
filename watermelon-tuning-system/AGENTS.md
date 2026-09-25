@@ -21,3 +21,19 @@ MELON conveyor opponent, a small matched seed/seat suite, checkpoint/resume,
 and clean full-run audits. Do not expand into search, Foundry deployment, or
 automatic policy mutation until the first-pass audit is green.
 
+## Notebook authoring contract
+
+When adding a notebook, begin with Markdown describing the objective, current
+state, bounded autonomy, non-goals, checklist, and pending human decisions.
+Build each unique section as: description Markdown; focused commented source
+code; a separate hideable presentation-only Markdown card; and success/guard
+evidence. Execute every code cell in dependency order and retain actual
+outputs. Never leave a cell unrun, reuse a section label, fabricate output, or
+replace notebook work with a side-channel command.
+
+If wording is ambiguous between editing, a pure local check, an environment
+change, or an external action, state the choices and stop. On an error, retain
+the exact actionable failure, make only the smallest in-scope correction, and
+rerun the same cell. Do not install missing packages or retry external work
+without separate approval. Flag scope, contract, source, cost, or policy
+decisions with an unchecked review task.

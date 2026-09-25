@@ -56,12 +56,14 @@ read-only claims-sample boundary, and the constrained orchestration rules, see
 the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md).
 
 The next two capability workbenches are staged separately: [08 Foundry
-evaluation workbench](./notebooks/08_foundry_evaluation_workbench.ipynb) defines
-fixed redacted fixtures, deterministic preconditions, and an LLM-as-judge
-rubric; [09 Foundry orchestration workbench](./notebooks/09_foundry_orchestration_workbench.ipynb)
-defines an optional no-tools proposal-drafter handoff. Both are local,
-simulator-free, and cloud-dormant. They do not deploy, invoke, add tools, or
-grant either model authority over game outcomes or policy source.
+evaluation workbench](./notebooks/08_foundry_evaluation_workbench.ipynb) now
+loads the actual redacted packet and recorded analyst response from Notebook 07,
+revalidates them, and defines the LLM-as-judge rubric; [09 Foundry orchestration workbench](./notebooks/09_foundry_orchestration_workbench.ipynb)
+now completes the local no-tools proposal-drafter handoff, full one-parameter
+proposal contract, five refusal guards, and deferred-deployment decision
+record. Both are local, simulator-free, and cloud-dormant. They do not deploy,
+invoke, add tools, or grant either model authority over game outcomes or policy
+source.
 
 Two parallel local decision-graph tuners now use the same evaluator pattern:
 [Wheat Tuner](../wheat-tuning-system/docs/first-pass-result.md) and
@@ -549,7 +551,8 @@ For the visual authority map and component inventory, see the
 The first implementation of the evaluation layer and optional orchestration
 extension is in [Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb)
 and [Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb). Their
-local cards prove contract shape and guard behavior only. A future Foundry
+local cards prove contract shape and guard behavior only. Notebook 09 executed
+eight code cells and stored four presentation cards. A future Foundry
 Evaluation request and any second-agent deployment remain separate reviewed
 cloud actions.
 
@@ -859,6 +862,15 @@ proposal-drafter role; live evaluation, a second agent, and further telemetry
 remain separate reviewed actions. The deployed prompt agent must remain an
 evidence interpreter with no simulator, target-policy, cache, packet-write, or
 experiment-expansion tool.
+
+Notebook 07's Agent Insights investigation is now closed as abandoned/deferred.
+The Microsoft seeded-trace sample reproduced successfully through ingestion,
+but its preview analysis run returned the same service-side `Forbidden`
+dependency error after exact connection and RBAC readbacks. Temporary sample
+agents and monitors were removed. This is recorded as a platform/preview
+boundary, not as a failure of the local evaluator or ordinary tracing. The
+project's supported quality path is the staged Foundry Evaluations/LLM-as-judge
+workbench.
 
 For the precise rule that prevents illustrative notebook logic from becoming
 unearned production authority, see the [mock graduation protocol](./docs/mock-graduation-protocol.md).

@@ -45,6 +45,18 @@ redacted response and was deleted, along with its conversation. That green
 sample-path result isolates the remaining red failure to Agent Insights
 analysis rather than ordinary tracing or agent invocation.
 
+It subsequently reproduced the newer Azure SDK Agent Insights sample: a
+temporary external agent emitted fictional spans, Logs Query confirmed
+ingestion, and a preview-enabled Agent Insights monitor was run. That run
+returned the same dependency `Forbidden` after ingestion, and cleanup left no
+temporary agents or monitors. The current blocker is therefore independent of
+our real-agent trace shape and ordinary App Insights ingestion.
+
+The Agent Insights investigation is now closed as abandoned/deferred. Do not
+retry the preview run, change roles, or add resources. The supported next
+quality path is the staged Foundry Evaluations/LLM-as-judge workbench, with
+the deterministic local gate remaining authoritative.
+
 The evaluator and local `analyst/` boundary remain normal source-controlled
 Python. The prompt-agent definition, local response gate, and notebook action
 history make the remote slice modifiable without granting it simulator, source,

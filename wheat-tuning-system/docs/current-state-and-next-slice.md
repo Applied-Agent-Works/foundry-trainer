@@ -16,6 +16,10 @@ The first local Wheat Tuner vertical slice is complete:
 
 The detailed result is in [first-pass-result.md](./first-pass-result.md).
 
+The canonical current generated receipt is
+[`wheat-future-price-multiplier-smoke-v1.json`](../../var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
+Earlier generated receipts are historical/superseded and remain disposable.
+
 ## Remaining limitations
 
 The target wheat wrapper accepts only an observation. The reviewed

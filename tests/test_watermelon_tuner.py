@@ -34,6 +34,14 @@ def test_first_pass_spec_is_schema_valid() -> None:
     }
 
 
+def test_documented_first_pass_command_uses_unique_receipt_paths() -> None:
+    readme = (ROOT / "watermelon-tuning-system" / "README.md").read_text(encoding="utf-8")
+    assert "RUN_ID=20260924-next" in readme
+    assert "var/watermelon-tuning-system/runs/$RUN_ID/cache" in readme
+    assert "var/watermelon-tuning-system/runs/$RUN_ID/report" in readme
+    assert "canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json" in readme
+
+
 def test_watermelon_path_uses_only_the_explicit_melon_adapter() -> None:
     assert watermelon_runner.MELON_ADAPTER is MELON_ADAPTER
     assert "CARROT_ADAPTER" not in watermelon_runner.__dict__
@@ -120,4 +128,3 @@ def test_early_divergence_restored_suffix_matches_clean_audit(melon_binding) -> 
     )
     assert audited["audit_status"] == "passed"
     assert audited["clean_audit"]["outcome"] == audited["outcome"]
-

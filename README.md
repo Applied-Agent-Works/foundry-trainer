@@ -101,12 +101,17 @@ suffixes, and clean-audits every candidate. See its
 run it with:
 
 ```bash
+RUN_ID=20260924-next
+
 ../kaggriculture/.venv/bin/python scripts/run_watermelon_first_pass.py \
   --spec watermelon-tuning-system/experiments/approved/melon_investment/future_price_multiplier_smoke_v1.json \
   --target-root ../kaggriculture \
-  --cache-root var/watermelon-tuning-system \
-  --report-dir var/watermelon-tuning-system/first-pass
+  --cache-root var/watermelon-tuning-system/runs/$RUN_ID/cache \
+  --report-dir var/watermelon-tuning-system/runs/$RUN_ID/report
 ```
+
+The canonical current Watermelon receipt is
+[melon-future-price-multiplier-smoke-v1.json](var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
 
 ## Wheat first pass
 
@@ -118,9 +123,14 @@ both seats. See its
 with:
 
 ```bash
+RUN_ID=20260924-next
+
 ../kaggriculture/.venv/bin/python scripts/run_wheat_first_pass.py \
   --spec wheat-tuning-system/experiments/approved/wheat_crop/future_price_multiplier_smoke_v1.json \
   --target-root ../kaggriculture \
-  --cache-root var/wheat-tuning-system/repair-first-pass-cache \
-  --report-dir var/wheat-tuning-system/repair-first-pass
+  --cache-root var/wheat-tuning-system/runs/$RUN_ID/cache \
+  --report-dir var/wheat-tuning-system/runs/$RUN_ID/report
 ```
+
+The canonical current Wheat receipt is
+[wheat-future-price-multiplier-smoke-v1.json](var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).

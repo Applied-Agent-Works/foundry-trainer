@@ -46,12 +46,17 @@ From this repository root, with the Kaggriculture virtual environment
 available:
 
 ```bash
+RUN_ID=20260924-next
+
 ../kaggriculture/.venv/bin/python scripts/run_watermelon_first_pass.py \
   --spec watermelon-tuning-system/experiments/approved/melon_investment/future_price_multiplier_smoke_v1.json \
   --target-root ../kaggriculture \
-  --cache-root var/watermelon-tuning-system \
-  --report-dir var/watermelon-tuning-system/first-pass
+  --cache-root var/watermelon-tuning-system/runs/$RUN_ID/cache \
+  --report-dir var/watermelon-tuning-system/runs/$RUN_ID/report
 ```
+
+Choose a new unique `RUN_ID` for each reproduction; never point a new run at
+an existing incompatible report directory.
 
 The command is bounded by the contract. It can only use the declared
 parameter, candidates, deterministic conveyor opponent, seeds, seats, and
@@ -69,6 +74,12 @@ payloads, cache validation, and the final report.
 The recorded first proof is summarized in
 [`first-pass-result.md`](./docs/first-pass-result.md); the ignored JSON report
 contains the per-match details.
+
+The canonical current receipt is
+[`melon-future-price-multiplier-smoke-v1.json`](../var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
+Earlier `first-pass/`, `first-pass-v2/`, and `repair-pass-20260924/` receipts
+are historical/superseded copies and must not be treated as the current audit
+artifact.
 
 ## Source and policy seam
 

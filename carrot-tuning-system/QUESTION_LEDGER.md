@@ -203,18 +203,22 @@ policy change. See the [Foundry control-plane diagram](./docs/architecture-diagr
 
 ### What did the next two Foundry workbenches establish?
 
-[Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb) now exercises a
-fixed, redacted packet/response fixture against the promoted deterministic
-analyst gate. It rejects an extra planning field before any judge score and
-records a cloud-dormant rubric for grounding, audit discipline, uncertainty,
-boundedness, usefulness, and review-boundary preservation. The notebook does
-not call Foundry or produce a model-quality score.
+[Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb) now loads the
+actual redacted Carrot packet and recorded Notebook 07 analyst response,
+revalidates both locally, constructs one JSONL evaluation row, and records a
+cloud-dormant rubric for grounding, audit discipline, uncertainty, boundedness,
+usefulness, and review-boundary preservation. It does not call Foundry or
+produce a model-quality score. Synthetic data remains limited to local guard
+tests.
 
 [Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb) now exercises
 an optional analyst-to-proposal-drafter handoff. The drafter can prepare a
 bounded proposal record only; it cannot run a simulator, use tools, change
-source, or approve a new experiment. Both workbenches passed local execution
-and remain pending human review before any cloud deployment or evaluation.
+source, or approve a new experiment. It now validates the promoted analyst
+response, enforces one parameter and a fixture-only candidate envelope,
+rejects five unsafe cases, and records a deferred second-agent deployment as
+`pending_human_review`. Its local execution passed; cloud deployment and live
+evaluation remain separate human decisions.
 
 ### Where does Foundry-facing evidence-analyst work begin?
 
@@ -395,6 +399,20 @@ invocation and tracing are proven; the remaining `Forbidden` is specific to
 the Agent Insights analysis dependency or its preview/model compatibility.
 The notebook records the sample result as green and keeps Agent Insights red;
 no further retry is justified without a new owner decision.
+
+The Agent Insights investigation is now closed as abandoned/deferred. The
+deterministic evidence analyst and ordinary redacted tracing remain the
+submission boundary; the staged Foundry Evaluations/LLM-as-judge workbench is
+the next quality path. No scheduled monitor, role change, resource change, or
+additional preview run is authorized by this decision.
+
+The newer Azure SDK Agent Insights sample was then followed exactly in
+Notebook 07: preview-enabled client, temporary external agent, fictional
+OpenTelemetry spans, resource-scoped Logs Query ingestion confirmation,
+temporary monitor, and cleanup. Ingestion succeeded, but the Agent Insights
+run still returned the same dependency `Forbidden`; cleanup left no temporary
+agent or monitor. This is now evidence of a service-side preview/model or
+dependency-path blocker rather than a real-agent trace or ingestion problem.
 
 ### What is the current Foundry review and technical blocker?
 

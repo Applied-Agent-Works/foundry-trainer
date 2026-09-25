@@ -4,6 +4,28 @@ Read [README.md](./README.md) and the
 [current-state snapshot](./docs/current-state-and-next-slice.md) in full before
 working in this directory.
 
+## Canonical notebook session and section contract
+
+Every explanatory or cloud-component notebook in this project follows one
+unambiguous pattern. The opening Markdown cell states the objective, current
+state, autonomy envelope, non-goals, checklist, and later human decisions.
+Each unique section then contains, in order: a Markdown description of its
+purpose/inputs/output/boundary; one focused source-of-truth code cell with
+comments only for non-obvious invariants and safety choices; a separate
+hideable presentation-only Markdown card; and success/guard evidence. Every
+code cell runs in dependency order and retains its real output. No cell may be
+silently unrun or replaced by a side-channel action, and no subsection label
+may be reused.
+
+If a request is ambiguous between editing, a local check, an environment
+change, a cloud read, or a cloud mutation, restate those choices and stop for
+the owner's selection. If a cell fails, preserve its exact actionable error,
+classify it, make the smallest in-scope fix, and rerun that same cell. Missing
+packages are prerequisites, not installation permission; cloud errors are not
+retry or fallback permission. Any scope, contract, cost, security, data,
+source-policy, or external-state change becomes a visible unchecked human
+decision and is recorded in the continuity documents.
+
 For Foundry, Azure, prompt-agent, model, deployment, external-connection, or
 analyst work, also read the [Foundry transition handoff](./docs/foundry-transition-handoff.md)
 and the [next-agent Foundry notebook handoff](./docs/next-agent-foundry-notebook-handoff.md)
@@ -67,6 +89,34 @@ the recorded result rather than sending another message. Preserve precondition
 snapshots so a later live read does not make an already-approved plan fail
 merely because the approved action succeeded.
 
+### Cloud diagnostics are bounded actions, not an implicit repair campaign
+
+Label a cloud section as exactly one of: read-only discovery, request
+construction, resource creation/update, role assignment, security/authentication
+configuration, model invocation, or diagnostic reproduction. A cell may not
+bundle two action classes under “setup,” “tracing,” or “diagnosis.” A new
+connection, shared resource, role assignment, local-authentication change,
+temporary agent/monitor, or synthetic trace is a separate external change with
+its own preceding Markdown boundary and owner authorization.
+
+After an unexpected cloud error, preserve it and stop. Rerun only when the
+same reviewed cell needs a local-only correction or documented
+eventual-consistency wait; do not add roles, relax authentication, change a
+connection, create a temporary resource, or alter the request. A diagnostic
+follow-up must state one falsifiable hypothesis, its minimum test, its
+cost/data/security impact, cleanup/readback, and the owner authority covering
+it. A vendor sample is a pattern source, not standing authority for a
+reproduction.
+
+Least privilege is a review boundary, not a loop over likely roles. Before a
+role or authentication change, show the exact principal, role, scope, reason
+existing access is insufficient, and narrower alternative considered.
+`Privileged Monitoring Data Reader`, a connection-string/API-key connection,
+and enabling local authentication are sensitive exceptions: name them plainly,
+leave an unchecked review task, and never describe that state as Entra-only.
+Stored presentation output must not disclose connection strings, principal IDs,
+subscription IDs, or other unnecessary infrastructure identifiers.
+
 For a substantive governance, experiment-authority, automation-review, or
 human-decision question, consult the relevant entries in the
 [question-and-answer ledger](./QUESTION_LEDGER.md). Read the whole ledger when
@@ -118,3 +168,9 @@ append a second cell under a reused subsection name. When a component expands,
 add a short boundary note and update its checklist rather than allowing an
 unstructured tail of telemetry, diagnostics, or retries to obscure the next
 human decision.
+
+Before calling a cloud notebook component complete, reconcile its opening
+checklist with the executed evidence, verify its ordered section labels are
+unique, and make its final card separate the working product path, historical
+diagnostic work, unresolved blockers, and deferred follow-up. A later optional
+investigation must not obscure the original component's result.

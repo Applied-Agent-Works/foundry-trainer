@@ -24,12 +24,17 @@ to the declared values.
 Run it from the repository root:
 
 ```bash
+RUN_ID=20260924-next
+
 ../kaggriculture/.venv/bin/python scripts/run_wheat_first_pass.py \
   --spec wheat-tuning-system/experiments/approved/wheat_crop/future_price_multiplier_smoke_v1.json \
   --target-root ../kaggriculture \
-  --cache-root var/wheat-tuning-system/repair-first-pass-cache \
-  --report-dir var/wheat-tuning-system/repair-first-pass
+  --cache-root var/wheat-tuning-system/runs/$RUN_ID/cache \
+  --report-dir var/wheat-tuning-system/runs/$RUN_ID/report
 ```
+
+Choose a new unique `RUN_ID` for each reproduction; never point a new run at
+an existing incompatible report directory.
 
 The report and baseline caches are disposable under ignored `var/`. Existing
 valid reports are never overwritten. Any mismatch between a cached result and
@@ -41,6 +46,12 @@ and next decision are in
 [docs/current-state-and-next-slice.md](./docs/current-state-and-next-slice.md).
 The pinned checkout and dirty-source warning are recorded in
 [docs/source-provenance.md](./docs/source-provenance.md).
+
+The canonical current receipt is
+[`wheat-future-price-multiplier-smoke-v1.json`](../var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
+Earlier `first-pass/` and `repair-first-pass/` receipts are
+historical/superseded copies and must not be treated as the current audit
+artifact.
 
 ## Known limits
 

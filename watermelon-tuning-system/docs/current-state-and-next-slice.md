@@ -22,6 +22,10 @@ the core mechanical invariant before adding evidence-analyst or Foundry work.
 The observed outcome is preserved in the
 [first-pass result](./first-pass-result.md).
 
+The canonical current generated receipt is
+[`melon-future-price-multiplier-smoke-v1.json`](../../var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
+Earlier generated receipts are historical/superseded and remain disposable.
+
 ## Controls held constant
 
 The first contract fixes target revision and hashes, the deterministic MELON

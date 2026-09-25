@@ -43,6 +43,14 @@ def test_wheat_contract_and_explicit_binding_are_valid() -> None:
     assert binding.source_hashes["agents/one_time_crop.py"] == specification["target"]["expected_parameter_sha256"]
 
 
+def test_documented_first_pass_command_uses_unique_receipt_paths() -> None:
+    readme = (ROOT / "wheat-tuning-system" / "README.md").read_text(encoding="utf-8")
+    assert "RUN_ID=20260924-next" in readme
+    assert "var/wheat-tuning-system/runs/$RUN_ID/cache" in readme
+    assert "var/wheat-tuning-system/runs/$RUN_ID/report" in readme
+    assert "canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json" in readme
+
+
 def test_wheat_contract_rejects_baseline_candidate() -> None:
     specification = read_and_validate_spec(SPEC)
     binding = bind_target(ROOT.parent / "kaggriculture", adapter=WHEAT_ADAPTER)

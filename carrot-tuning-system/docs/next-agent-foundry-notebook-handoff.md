@@ -58,11 +58,11 @@ general quality, or authorize additional model invocations.
 
 ## Immediate status and stop point
 
-The currently recorded blocker is the failed Agent Insights analysis run. Do
-not retry it, modify roles, change the connection, enable scheduled monitoring,
-or add telemetry resources unless the owner asks for that exact bounded
-investigation. The notebook already records the exact failure and the existing
-connection/role readbacks.
+The Agent Insights investigation is now abandoned/deferred. The notebook
+records the exact failure, the official seeded-trace reproduction, successful
+ingestion, and cleanup. Do not retry it, modify roles, change the connection,
+enable scheduled monitoring, or add telemetry resources. The submission
+boundary is the deterministic evaluator plus ordinary redacted tracing.
 
 If the owner chooses to defer telemetry, the next product-quality task is a
 small fixed redacted evaluation fixture set plus a Foundry-compatible
@@ -71,13 +71,22 @@ packet eligibility, JSON schema, citations, limitations, prohibited fields,
 and `pending_human_review`; an LLM judge assesses only groundedness, audit
 discipline, uncertainty, boundedness, and usefulness.
 
-That local task is now staged in [Notebook 08](../notebooks/08_foundry_evaluation_workbench.ipynb)
-and has a passing simulator-free execution. The optional course-facing second
+That local task is now staged in [Notebook 08](../notebooks/08_foundry_evaluation_workbench.ipynb).
+It consumes the actual redacted packet and Notebook 07 response receipt, rather
+than invented evaluation inputs, and has a passing simulator-free execution.
+The optional course-facing second
 role is staged in [Notebook 09](../notebooks/09_foundry_orchestration_workbench.ipynb):
 it accepts only an analyst response and emits a proposal record that remains
 `pending_human_review`. Neither notebook performs a Foundry action. The next
 agent must not deploy or invoke either role until the owner reviews the cards
 and approves the exact request.
+
+Notebook 09 is now complete for its local role. It validates the promoted
+analyst response shape, constructs the richer reasoning proposal required by
+the architecture, rejects five unsafe cases, and records
+`defer_second_agent_deployment` as a pending human decision. Do not treat the
+fixture envelope as an approved experiment or add a cloud deployment section
+without a new explicit owner decision.
 
 ## Delegation protocol
 
