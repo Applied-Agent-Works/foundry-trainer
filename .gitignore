@@ -4,3 +4,6 @@ __pycache__/
 *.egg-info/
 .venv/
 var/
+submission/dist/
+submission/demo/bin/
+submission/demo/obj/

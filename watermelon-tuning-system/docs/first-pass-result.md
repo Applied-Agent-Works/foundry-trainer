@@ -8,8 +8,9 @@ helper hash was
 `2645298bf3348cd53f6025348104bfc2dac28655de822f5db27a73cb0c23c995`; the
 engine hash was `bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e`.
 
-Canonical receipt:
+Generated receipt path:
 [`melon-future-price-multiplier-smoke-v1.json`](../../var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
+The path is ignored run output; it is not bundled in a fresh checkout.
 
 Controls were the approved deterministic MELON conveyor opponent, seeds 42 and
 43, both seats, and 720 turns. The one changed field was
@@ -31,7 +32,7 @@ clean reruns.
 This is a mechanical proof, not a promotion recommendation. Four matched
 games are intentionally too small to establish a robust melon policy choice.
 The +41 result is a hypothesis for a later held-out suite, not evidence of a
-global improvement. The canonical generated JSON report and gzip caches are
+global improvement. The generated JSON report and gzip caches are
 disposable under ignored `var/watermelon-tuning-system/`; this document
 preserves the source revision, complete hash set, controls, and aggregate facts
 needed to understand the run. Earlier `first-pass/`, `first-pass-v2/`, and

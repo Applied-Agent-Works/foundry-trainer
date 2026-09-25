@@ -47,8 +47,10 @@ and next decision are in
 The pinned checkout and dirty-source warning are recorded in
 [docs/source-provenance.md](./docs/source-provenance.md).
 
-The canonical current receipt is
+The current generated receipt path is
 [`wheat-future-price-multiplier-smoke-v1.json`](../var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
+Because `var/` is ignored, a fresh checkout does not contain this receipt
+until the approved command generates it; no new reproduction is implied here.
 Earlier `first-pass/` and `repair-first-pass/` receipts are
 historical/superseded copies and must not be treated as the current audit
 artifact.

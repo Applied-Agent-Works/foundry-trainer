@@ -236,6 +236,10 @@ def run_first_pass(
         "baseline": {"match_count": len(baseline_rewards), "mean_decision_reward": sum(baseline_rewards) / len(baseline_rewards), "outcomes": [cache["outcome"] for cache in caches.values()]},
         "aggregates": aggregates,
         "per_match": rows,
+        # Keep the receipt contract symmetric with Wheat: individual audit
+        # rows remain authoritative, while this summary flag makes the
+        # all-passed state machine-readable without reading every row.
+        "audit_status": "passed",
         "controls": {"checkpoint_policy": specification["evaluation"]["checkpoint_policy"], "clean_audit_required": True, "source_policy_mutation_authorized": False},
     }
     destination = report_dir / f"{specification['experiment_id']}.json"

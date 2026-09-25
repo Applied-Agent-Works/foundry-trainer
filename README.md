@@ -121,8 +121,10 @@ RUN_ID=20260924-next
   --report-dir var/watermelon-tuning-system/runs/$RUN_ID/report
 ```
 
-The canonical current Watermelon receipt is
+The current generated Watermelon receipt path is
 [melon-future-price-multiplier-smoke-v1.json](var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
+It is ignored run output and is not present in a fresh checkout until the
+approved command generates it; no new reproduction is implied by this link.
 
 ## Wheat first pass
 
@@ -143,5 +145,7 @@ RUN_ID=20260924-next
   --report-dir var/wheat-tuning-system/runs/$RUN_ID/report
 ```
 
-The canonical current Wheat receipt is
+The current generated Wheat receipt path is
 [wheat-future-price-multiplier-smoke-v1.json](var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
+It is ignored run output and is not present in a fresh checkout until the
+approved command generates it; no new reproduction is implied by this link.

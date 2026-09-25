@@ -880,3 +880,13 @@ unearned production authority, see the [mock graduation protocol](./docs/mock-gr
 It inventories every remaining system-model mock, distinguishes already
 replaced behavior from deferred design, and names the required source/test/
 authority gate for each graduation.
+
+### Packaging boundary update
+
+The current submission package compiles promoted source and the Evidence
+Analyst fixture/gates; notebooks remain teaching and evidence records. Notebook
+03 now records its packet-write mismatch as an unresolved historical guard
+failure rather than displaying stale completion output. No new simulator run,
+packet overwrite, or Foundry action was performed during packaging. The
+proposal-drafter remains local-only until a separate Foundry deployment is
+approved.

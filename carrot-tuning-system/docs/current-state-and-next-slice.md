@@ -839,3 +839,13 @@ cells. The evaluator and run cells are fail-closed and have not contacted
 Foundry; their receipts remain `staged_not_run`. All 29 notebook cells parse,
 compile, and pass the local execution harness. The next cloud action is the
 separately reviewed dataset-targeted evaluation.
+
+## Packaging audit update — 2026-09-24
+
+Notebook 03 now preserves its real immutable-packet guard failure and no longer
+stores dependent success output from an earlier kernel state. Packet completion
+remains visibly unchecked; no new simulator run or packet overwrite was
+performed. The promoted Evidence Analyst tests use a source-controlled redacted
+fixture rather than ignored `var/` state. Wheat and Watermelon receipts remain
+ignored generated outputs, and Watermelon's next receipt now includes the same
+top-level `audit_status` field already present in Wheat.

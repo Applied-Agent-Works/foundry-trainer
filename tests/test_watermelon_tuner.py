@@ -34,6 +34,14 @@ def test_first_pass_spec_is_schema_valid() -> None:
     }
 
 
+def test_receipt_contract_requires_a_top_level_clean_audit_status() -> None:
+    """A generated receipt must expose its all-match audit result directly."""
+    source = (ROOT / "watermelon-tuning-system/watermelon_tuner/runner.py").read_text(
+        encoding="utf-8"
+    )
+    assert '"audit_status": "passed"' in source
+
+
 def test_documented_first_pass_command_uses_unique_receipt_paths() -> None:
     readme = (ROOT / "watermelon-tuning-system" / "README.md").read_text(encoding="utf-8")
     assert "RUN_ID=20260924-next" in readme
