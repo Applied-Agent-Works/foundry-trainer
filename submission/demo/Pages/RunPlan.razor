@@ -13,191 +13,240 @@
       <p>Before anything runs, this is where a human can see and edit the bounded envelope. Editing changes only the in-memory proposal until the run is submitted.</p>
 </section>
 
-<section class="graph-choice">
-    <div class="section-kicker">DECISION GRAPH</div>
-    <label>Choose the deterministic agent<select aria-label="Decision graph" value="@Workbench.Plan.GraphId" @onchange="GraphChanged"><option value="carrot_investment">Carrot</option><option value="wheat_crop" disabled>Wheat · adapter pending</option><option value="melon_investment" disabled>Watermelon / Melon · adapter pending</option></select></label>
-</section>
-
-<section class="decision-graph-card">
-    <div class="section-kicker">@CarrotStages[0].Title</div>
-    <p class="graph-header-description">@CarrotStages[0].Description</p>
-    <p class="muted">Click a parameter card to see what it changes and choose one proposed value.</p>
-    @if (Workbench.SelectedParameterEvidence is { } selectedEvidence && IsModified(selectedEvidence))
+<section class="control-flow-card" aria-label="Carrot runtime control-flow graph">
+    <label class="decision-graph-selector unified-graph-selector">Deterministic agent<select aria-label="Decision graph" value="@Workbench.Plan.GraphId" @onchange="GraphChanged"><option value="carrot_investment">Carrot</option><option value="wheat_crop" disabled>Wheat · adapter pending</option><option value="melon_investment" disabled>Watermelon / Melon · adapter pending</option></select></label>
+    <div class="section-kicker">CARROT DETERMINISTIC AGENT · UNIFIED DECISION MAP</div>
+    <h2>Where the knobs enter, and what the agent does next</h2>
+    <p class="muted">Choose one parameter from the economic gate, then follow the runtime branches below. The parameter cards are the only editing surface; the action branches are read-only.</p>
+    @if (economicGateFocused)
     {
-        <div class="graph-modified-callout"><strong>Modified parameter</strong><span>@selectedEvidence.Name = @(Workbench.Plan.ProposedValue.ToString("0.####"))</span></div>
-    }
-    <div class="decision-graph-flow">
-        @for (var stageIndex = 1; stageIndex < CarrotStages.Count; stageIndex++)
-        {
-            var stage = CarrotStages[stageIndex];
-            <article class="graph-stage @stage.Kind">
-                <span class="graph-stage-number">@stage.Number</span>
-                <strong>@stage.Title</strong>
-                <small>@stage.Description</small>
-                @foreach (var parameterName in stage.ParameterNames)
+        <div class="economic-input-map" aria-label="Economic decision graph knobs">
+            <div class="economic-input-heading"><span>ECONOMIC GATE · PARAMETER CHOICES</span><small>Choose one knob to test. The other graph branches have no tuning controls.</small></div>
+            <div class="economic-knob-groups">
+                @foreach (var group in EconomicParameterGroups)
                 {
-                    var stageEvidence = Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == parameterName);
-                    if (stageEvidence is not null)
-                    {
-                        <button class="graph-parameter priority-@stageEvidence.Priority @(showEditor && editorParameterName == stageEvidence.Name ? "selected" : "") @(IsModified(stageEvidence) ? "modified" : "")" data-tooltip="Tested: @stageEvidence.Tested. Result: @stageEvidence.Result. Why: @stageEvidence.Why" @onclick="() => SelectParameter(stageEvidence)">
-                            <strong>@stageEvidence.Name</strong>
-                            <span>baseline @stageEvidence.Baseline</span>
-                            @if (IsModified(stageEvidence))
+                    <section class="economic-knob-group">
+                        <span class="economic-knob-group-title">@group.Title</span>
+                        <small>@group.Description</small>
+                        <div class="economic-knob-list">
+                            @foreach (var parameterName in group.ParameterNames)
                             {
-                                <small class="modified-label">MODIFIED · proposed @(Workbench.Plan.ProposedValue.ToString("0.##"))</small>
+                                var evidence = Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == parameterName);
+                                if (evidence is not null)
+                                {
+                                    <button class="economic-knob priority-@evidence.Priority @(showEditor && editorParameterName == evidence.Name ? "selected" : "") @(IsModified(evidence) ? "modified" : "")" data-tooltip="Tested: @evidence.Tested. Result: @evidence.Result. Why: @evidence.Why" @onclick="() => SelectParameter(evidence)">
+                                        <strong>@evidence.Name</strong>
+                                        <span>baseline @evidence.Baseline</span>
+                                        @if (IsModified(evidence))
+                                        {
+                                            <small>MODIFIED · proposed @(Workbench.Plan.ProposedValue.ToString("0.##"))</small>
+                                        }
+                                    </button>
+                                }
                             }
-                        </button>
-                    }
-                }
-            </article>
-            @if (stageIndex < CarrotStages.Count - 1)
-            {
-                <span class="graph-arrow" aria-hidden="true">→</span>
-            }
-        }
-    </div>
-    <p class="form-note">Every card is backed by bounded recorded evidence with clean-audit checks.</p>
-</section>
-
-@if (FocusedEvidence is { } focusedEvidence)
-{
-    var influence = WorkbenchState.InfluenceFor(focusedEvidence.Name);
-    <section class="influence-card">
-        <div class="section-kicker">PARAMETER INFLUENCE</div>
-        <h2>How this parameter fits into the decision</h2>
-        <div class="modal-influence-flow main-influence-flow">
-            <div class="modal-influence-group">
-                <span class="relationship-label">UPSTREAM</span>
-                @foreach (var upstream in influence.Upstream)
-                {
-                    <button class="relation-chip kind-@upstream.Kind @(modalRelationLabel == upstream.Label ? "active" : "")" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
-                }
-            </div>
-            <b aria-hidden="true">→</b>
-            <button class="relation-chip parameter-chip kind-parameter @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(focusedEvidence.Name)">@focusedEvidence.Name</button>
-            <b aria-hidden="true">→</b>
-            <div class="modal-influence-group">
-                <span class="relationship-label">DOWNSTREAM</span>
-                @foreach (var downstream in influence.Downstream)
-                {
-                    <button class="relation-chip kind-@downstream.Kind @(modalRelationLabel == downstream.Label ? "active" : "")" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
+                        </div>
+                    </section>
                 }
             </div>
         </div>
-        @if (influence.Related.Any(node => node.Label != focusedEvidence.Name))
-        {
-            <div class="related-parameter-list">
-                <span class="relationship-label">OTHER PARAMETERS IN THIS CALCULATION</span>
-                @foreach (var related in influence.Related.Where(node => node.Label != focusedEvidence.Name))
-                {
-                    <button class="relation-chip kind-@related.Kind @(modalRelationLabel == related.Label ? "active" : "")" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
-                }
-            </div>
-        }
-        <p class="muted"><b>In plain English:</b> @RelationshipCaption(focusedEvidence, influence)</p>
-    </section>
-}
+    }
 
-@if (showEditor && EditorParameterEvidence is { } modalEvidence)
-{
-    var modalInfluence = WorkbenchState.InfluenceFor(modalEvidence.Name);
-    <div class="parameter-modal-backdrop" role="presentation" @onclick="CloseEditor">
-        <div class="parameter-modal-stack" @onclick:stopPropagation="true">
-            <section class="parameter-modal" role="dialog" aria-modal="true" aria-labelledby="parameter-modal-title">
-                <button class="modal-close" aria-label="Close parameter editor" @onclick="CloseEditor">×</button>
-                <div class="section-kicker">EDIT ONE PARAMETER</div>
-                <h2 id="parameter-modal-title" class="parameter-name-heading">@modalEvidence.Name</h2>
-                <p class="muted">This editor has one value on purpose. The run contract accepts one parameter override; selecting another graph tile resets the old parameter to baseline and starts the new one at baseline.</p>
+    @if (economicGateFocused && showEditor && EditorParameterEvidence is { } inlineEvidence)
+    {
+        <section class="inline-parameter-editor" aria-label="Inline parameter editor">
+            <div class="inline-editor-heading">
+                <div>
+                    <div class="section-kicker">EDIT ONE PARAMETER</div>
+                    <h2>@inlineEvidence.Name</h2>
+                </div>
+                <button type="button" class="inline-editor-cancel" @onclick="CloseEditor">Cancel</button>
+            </div>
+            <p class="muted">This is the only editing surface. The run contract accepts one parameter override; choosing another knob replaces this draft, while Cancel leaves the committed change untouched.</p>
+            <div class="inline-editor-grid">
                 <label>Proposed value<select @bind="editorProposedValue">
                     <option class="baseline-option" value="@editorBaselineValue">@(editorBaselineValue.ToString("0.####")) · baseline</option>
-                    @foreach (var value in WorkbenchState.ProposedValuesFor(modalEvidence))
+                    @foreach (var value in WorkbenchState.ProposedValuesFor(inlineEvidence))
                     {
                         <option value="@value">@value.ToString("0.####")</option>
                     }
                 </select></label>
                 <div class="selected-evidence @(IsEditorModified ? "modified-evidence" : "")">
-                    <p>Baseline: <b>@modalEvidence.Baseline</b> · Tested: <b>@modalEvidence.Tested</b></p>
-                    <p class="muted"><b class="priority-@modalEvidence.Priority">@modalEvidence.Priority priority</b> — @modalEvidence.Why</p>
-                    <p class="muted"><b>In plain English:</b> @PlainEnglishEvidence(modalEvidence)</p>
+                    <p>Baseline: <b>@inlineEvidence.Baseline</b> · Tested: <b>@inlineEvidence.Tested</b></p>
+                    <p class="muted"><b class="priority-@inlineEvidence.Priority">@inlineEvidence.Priority priority</b> — @inlineEvidence.Why</p>
+                    <p class="muted"><b>In plain English:</b> @PlainEnglishEvidence(inlineEvidence)</p>
                 </div>
-                <div class="parameter-modal-actions">
-                    <button class="wizard-button" @onclick="CommitEditor">Done</button>
+            </div>
+            <div class="inline-editor-actions">
+                <button type="button" class="wizard-button" @onclick="CloseEditor">Cancel</button>
+                <button type="button" class="wizard-button primary" @onclick="CommitEditor">Done</button>
+            </div>
+        </section>
+    }
+
+    @if (economicGateFocused && FocusedEvidence is { } focusedEvidence)
+    {
+        var influence = WorkbenchState.InfluenceFor(focusedEvidence.Name);
+        <section class="influence-card unified-influence-card">
+            <div class="section-kicker">PARAMETER INFLUENCE</div>
+            <h2>How the selected knob fits into the decision</h2>
+            <div class="modal-influence-flow main-influence-flow">
+                <div class="modal-influence-group">
+                    <span class="relationship-label">UPSTREAM</span>
+                    @foreach (var upstream in influence.Upstream)
+                    {
+                        <button class="relation-chip kind-@upstream.Kind @(modalRelationLabel == upstream.Label ? "active" : "")" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
+                    }
                 </div>
-            </section>
-            <section class="parameter-modal-float">
-                <div class="section-kicker">HOW IT FITS THE DECISION</div>
-                <div class="modal-influence-flow">
-                    <div class="modal-influence-group">
-                        <span class="relationship-label">UPSTREAM</span>
-                        @foreach (var upstream in modalInfluence.Upstream)
-                        {
-                            <button class="relation-chip kind-@upstream.Kind @(modalRelationLabel == upstream.Label ? "active" : "")" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
-                        }
-                    </div>
-                    <b aria-hidden="true">→</b>
-                    <button class="relation-chip parameter-chip kind-parameter @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(modalEvidence.Name)">@modalEvidence.Name</button>
-                    <b aria-hidden="true">→</b>
-                    <div class="modal-influence-group">
-                        <span class="relationship-label">DOWNSTREAM</span>
-                        @foreach (var downstream in modalInfluence.Downstream)
-                        {
-                            <button class="relation-chip kind-@downstream.Kind @(modalRelationLabel == downstream.Label ? "active" : "")" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
-                        }
-                    </div>
+                <b aria-hidden="true">→</b>
+                <button class="relation-chip parameter-chip kind-parameter @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(focusedEvidence.Name)">@focusedEvidence.Name</button>
+                <b aria-hidden="true">→</b>
+                <div class="modal-influence-group">
+                    <span class="relationship-label">DOWNSTREAM</span>
+                    @foreach (var downstream in influence.Downstream)
+                    {
+                        <button class="relation-chip kind-@downstream.Kind @(modalRelationLabel == downstream.Label ? "active" : "")" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
+                    }
                 </div>
-                @if (modalInfluence.Related.Any(node => node.Label != modalEvidence.Name))
-                {
-                    <div class="related-parameter-list">
-                        <span class="relationship-label">OTHER PARAMETERS IN THIS CALCULATION</span>
-                        @foreach (var related in modalInfluence.Related.Where(node => node.Label != modalEvidence.Name))
-                        {
-                            <button class="relation-chip kind-@related.Kind @(modalRelationLabel == related.Label ? "active" : "")" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
-                        }
-                    </div>
-                }
-                <p class="muted">@RelationshipCaption(modalEvidence, modalInfluence)</p>
-            </section>
+            </div>
+            @if (influence.Related.Any(node => node.Label != focusedEvidence.Name))
+            {
+                <div class="related-parameter-list">
+                    <span class="relationship-label">OTHER PARAMETERS IN THIS CALCULATION</span>
+                    @foreach (var related in influence.Related.Where(node => node.Label != focusedEvidence.Name))
+                    {
+                        <button class="relation-chip kind-@related.Kind @(modalRelationLabel == related.Label ? "active" : "")" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
+                    }
+                </div>
+            }
+            <p class="muted"><b>In plain English:</b> @RelationshipCaption(focusedEvidence, influence)</p>
+        </section>
+    }
+    <div class="control-flow-legend">
+        <span><b class="legend-swatch decision-swatch"></b>decision point</span>
+        <span><b class="legend-swatch action-swatch"></b>action taken when the answer is yes</span>
+        <span><b class="legend-swatch continue-swatch"></b>no: continue along the main path</span>
+    </div>
+    <div class="control-flow-scroll">
+        <div class="control-flow-spine-label">NO / CONTINUE</div>
+        <div class="control-flow-spine">
+            <article class="control-flow-node start-node">
+                <span>START</span>
+                <strong>Read the current observation</strong>
+                <small>day · farmer tile · crops · seeds · money</small>
+            </article>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <div class="control-flow-step">
+                <article class="control-flow-node decision-node">
+                    <span>PRIORITY 1</span>
+                    <strong>Current tile needs water?</strong>
+                    <small>Protect an existing crop before investing.</small>
+                </article>
+                <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
+                <article class="control-flow-node action-node"><span>ACTION</span><strong>WATER</strong><small>Care takes priority.</small></article>
+            </div>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <div class="control-flow-step">
+                <article class="control-flow-node decision-node">
+                    <span>PRIORITY 2</span>
+                    <strong>Current tile is peak-ready?</strong>
+                    <small>Harvest only when the crop is ready.</small>
+                </article>
+                <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
+                <article class="control-flow-node action-node"><span>ACTION</span><strong>HARVEST</strong><small>Collect the ready crop.</small></article>
+            </div>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <div class="control-flow-step">
+                <button type="button" class="control-flow-node decision-node priority-gate-node @(economicGateFocused ? "focused" : "")" @onclick="FocusEconomicGate">
+                    <span>PRIORITY 3</span>
+                    <strong>Empty tile, seed, horizon, and utility beats PASS?</strong>
+                    <small>Reads the economic gate above; this is where the plant/pass result becomes actionable.</small>
+                    <span class="control-flow-gate-hint">@(economicGateFocused ? "KNOB CHOICES SHOWN ABOVE" : "CLICK TO SHOW 12 TUNING KNOBS")</span>
+                </button>
+                <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
+                <article class="control-flow-node action-node"><span>ACTION</span><strong>PLANT CARROT</strong><small>Use the seed on the current tile.</small></article>
+            </div>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <div class="control-flow-step">
+                <article class="control-flow-node decision-node">
+                    <span>PRIORITY 4</span>
+                    <strong>Any care work elsewhere?</strong>
+                    <small>Find the nearest watering target before harvest work.</small>
+                    <span class="control-flow-fixed">FIXED CARE RULE · no tunable knob</span>
+                </article>
+                <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
+                <article class="control-flow-node action-node"><span>ACTION</span><strong>MOVE TO WATER</strong><small>Take one Manhattan step.</small></article>
+            </div>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <div class="control-flow-step">
+                <article class="control-flow-node decision-node">
+                    <span>PRIORITY 5</span>
+                    <strong>Any crop is ready elsewhere?</strong>
+                    <small>Harvest work comes after watering work.</small>
+                    <span class="control-flow-fixed">FIXED CARE RULE · no tunable knob</span>
+                </article>
+                <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
+                <article class="control-flow-node action-node"><span>ACTION</span><strong>MOVE TO HARVEST</strong><small>Take one Manhattan step.</small></article>
+            </div>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <div class="control-flow-step">
+                <article class="control-flow-node decision-node">
+                    <span>PRIORITY 6</span>
+                    <strong>May the policy invest?</strong>
+                    <small>If yes, move toward an empty planting tile.</small>
+                    <span class="control-flow-fixed">USES THE ECONOMIC GATE ABOVE</span>
+                </article>
+                <div class="control-flow-yes"><b>YES</b><span>↓</span></div>
+                <article class="control-flow-node action-node"><span>ACTION</span><strong>MOVE TO PLANT</strong><small>Otherwise the final action is PASS.</small></article>
+            </div>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <article class="control-flow-node pass-node"><span>NO</span><strong>PASS</strong><small>No safe or worthwhile action remains this turn.</small></article>
         </div>
     </div>
-}
-
-<section class="plan-layout">
-    <article class="plan-card one-parameter-rule-card">
-        <div class="section-kicker">ONE-PARAMETER RULE</div>
-        <h2>One change per run</h2>
-        <p class="muted">Click a graph tile to edit it. The modified tile is the only parameter sent to the runner; clicking another tile opens a draft, and only Done replaces the current change.</p>
-    </article>
+    <div class="market-flow">
+        <div class="market-flow-label">MARKET ORDERS RUN ALONGSIDE THE FARMER ACTION</div>
+        <div class="market-flow-row">
+            <article class="control-flow-node market-node"><span>1</span><strong>Sell stored carrots</strong><small>If the shed has any.</small></article>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <article class="control-flow-node market-node"><span>2</span><strong>Investing?</strong><small>No: stop after selling.</small></article>
+            <span class="control-flow-arrow" aria-hidden="true">→</span>
+            <article class="control-flow-node market-node"><span>3</span><strong>Buy seeds if legal</strong><small>Empty space, affordability, seed need, and season horizon must all pass.</small></article>
+        </div>
+    </div>
+    <p class="form-note">This is a static reading aid, not a live execution trace. It separates “what influences the decision” from “what the agent does next.”</p>
 </section>
 
 <section class="execution-cell">
-    <div>
-        <div class="section-kicker">STEP-BY-STEP EXECUTION</div>
-        <h2>Run the approved Carrot experiment</h2>
-        <p class="muted">This first live adapter executes the approved local smoke envelope atomically, then reports each real stage below.</p>
+    <div class="run-selection-indicator">
+        <div class="section-kicker">SELECTED RUN</div>
+        <div class="run-selection-grid">
+            <div><span>Changed parameter</span><strong>@Workbench.Plan.ParameterName</strong></div>
+            <div><span>Baseline</span><strong>@Workbench.Plan.BaselineValue.ToString("0.####")</strong></div>
+            <div><span>Proposed value</span><strong>@Workbench.Plan.ProposedValue.ToString("0.####")</strong></div>
+        </div>
+        @if (CurrentRunEvidence is { } runEvidence)
+        {
+            <p>@RunSelectionStory(runEvidence)</p>
+        }
     </div>
     <div class="execution-fields">
-        <div class="two-fields">
+        <div class="execution-control-grid">
             <label>Seeds<input @bind="Workbench.Plan.Seeds" /></label>
+            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" /></label>
             <div class="seat-table">
                 <div class="seat-table-header"><span>Seat</span><span>Player assignment</span></div>
                 <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
                 <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
                 <small class="field-help">Assign exactly one tested agent and one opponent.</small>
             </div>
-        </div>
-        <div class="two-fields">
-            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" /></label>
             <label>Opponent model<select @bind="Workbench.Plan.OpponentMode"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
-        </div>
-        <div class="two-fields">
             <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
             <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
+            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" /> Clean full-run audit required</label>
         </div>
-        <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" /> Require a clean full-run audit before accepting results</label>
     </div>
 </section>
 
-<section class="receipt-cell">
+<section class="execution-workbench">
     <div class="section-kicker">LIVE RUN RECEIPT</div>
     <div class="run-stages horizontal">
         @foreach (var stage in Workbench.RunStages)
@@ -205,26 +254,7 @@
             <div class="run-stage @stage.Status @(stage.Id == "packet" ? "final-stage" : "")"><span class="stage-mark">@(stage.Status == "complete" ? "✓" : stage.Status == "current" ? "…" : "○")</span><span><strong>@stage.Title</strong><small>@stage.Detail</small></span></div>
         }
     </div>
-</section>
 
-@if (CurrentGuidanceStage is { } guidance)
-{
-    <article class="stage-explanation-card @(guidance.Id == "packet" && guidance.Status == "complete" ? "stage-explanation-final" : "")">
-        <div class="section-kicker">WHAT THIS STEP MEANS</div>
-        <h2>@GuidanceTitle(guidance)</h2>
-        <p>@GuidanceText(guidance)</p>
-        @if (guidance.Id == "packet" && guidance.Status == "complete" && Workbench.LastRunResult is { } result)
-        {
-            <div class="stage-result-summary">
-                <div class="section-kicker">CONGRATULATIONS · RESULTS IN PLAIN ENGLISH</div>
-                <p>@result.PlainEnglish</p>
-                <p class="muted">This describes this exact approved suite. It is not a global claim and it does not automatically change policy.</p>
-            </div>
-        }
-    </article>
-}
-
-<section class="execution-actions-cell">
     <div class="execution-actions">
         <button class="wizard-button" @onclick="BackOneStep">← Back one step</button>
         <button class="play-button" disabled="@(running || !Workbench.LiveRunSupported)" @onclick="ExecuteCurrentStep">@(running ? "Running…" : "▶ Run approved experiment")</button>
@@ -232,6 +262,24 @@
     @if (!string.IsNullOrWhiteSpace(status))
     {
         <div class="playback-status"><span class="status-dot"></span>@status</div>
+    }
+
+    @if (CurrentGuidanceStage is { } guidance)
+    {
+        <article class="stage-explanation-card @(guidance.Id == "packet" && guidance.Status == "complete" ? "stage-explanation-final" : "")">
+            <div class="section-kicker">WHAT THIS STEP MEANS</div>
+            <h2>@GuidanceTitle(guidance)</h2>
+            <p class="run-current-status"><strong>Currently:</strong> @CurrentRunStatus(guidance)</p>
+            <p>@GuidanceText(guidance)</p>
+            @if (guidance.Id == "packet" && guidance.Status == "complete" && Workbench.LastRunResult is { } result)
+            {
+                <div class="stage-result-summary">
+                    <div class="section-kicker">CONGRATULATIONS · RESULTS IN PLAIN ENGLISH</div>
+                    <p>@result.PlainEnglish</p>
+                    <p class="muted">This describes this exact approved suite. It is not a global claim and it does not automatically change policy.</p>
+                </div>
+            }
+        </article>
     }
 </section>
 
@@ -253,6 +301,7 @@
     private string status = string.Empty;
     private bool running;
     private bool showEditor;
+    private bool economicGateFocused;
     private string editorParameterName = string.Empty;
     private double editorBaselineValue;
     private double editorProposedValue;
@@ -260,16 +309,15 @@
     private string modalRelationLabel = string.Empty;
     private string modalRelationNodeKind = "parameter";
 
-    private static readonly IReadOnlyList<GraphStageView> CarrotStages =
+    private static readonly IReadOnlyList<EconomicParameterGroup> EconomicParameterGroups =
     [
-        new("0", "Carrot deterministic agent", "This is the rule-based agent we are testing. It looks at the current game state and decides whether to plant or pass; it does not learn during this run.", "agent", []),
-        new("1", "Read supply context", "First, it looks at how many ripe carrots are already available. These parameters describe low, medium, and high supply so the agent knows what kind of harvest it might face.", "supply", ["supply_high_given_zero_ripe", "supply_high_given_one_to_three_ripe", "supply_high_given_four_plus_ripe"]),
-        new("2", "Estimate price context", "Next, it turns supply and market conditions into price estimates. These parameters control how strongly low and high prices respond, helping the agent estimate what a harvest could be worth.", "price", ["low_price_multiplier", "high_price_multiplier", "low_price_base", "low_price_supply_weight", "high_price_base", "high_price_demand_weight", "high_price_supply_penalty"]),
-        new("3", "Value the opportunity", "Then it asks how valuable it is to spend an owned seed right now. This parameter changes the point at which planting seems worth the seed instead of waiting.", "opportunity", ["seed_opportunity_value"]),
-        new("4", "Choose the action", "Finally, it compares the estimated benefit of planting with the utility of passing. This parameter shifts how willing the agent is to pass, producing the final plant-or-pass action.", "decision", ["pass_utility"]),
+        new("SUPPLY BELIEF", "How visible opponent crops change the supply estimate.", ["supply_high_given_zero_ripe", "supply_high_given_one_to_three_ripe", "supply_high_given_four_plus_ripe"]),
+        new("PRICE MODEL", "How supply and demand become an expected sale price.", ["low_price_multiplier", "high_price_multiplier", "low_price_base", "low_price_supply_weight", "high_price_base", "high_price_demand_weight", "high_price_supply_penalty"]),
+        new("VALUE", "How valuable it is to spend an owned seed now.", ["seed_opportunity_value"]),
+        new("ACTION", "How attractive passing is compared with planting.", ["pass_utility"]),
     ];
 
-    private sealed record GraphStageView(string Number, string Title, string Description, string Kind, IReadOnlyList<string> ParameterNames);
+    private sealed record EconomicParameterGroup(string Title, string Description, IReadOnlyList<string> ParameterNames);
 
     private bool IsModified(ParameterEvidence evidence) =>
         Workbench.Plan.ParameterName == evidence.Name && Workbench.Plan.ProposedValue != Workbench.Plan.BaselineValue;
@@ -279,7 +327,18 @@
             ? null
             : Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == editorParameterName);
 
+    private ParameterEvidence? CurrentRunEvidence =>
+        Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == Workbench.Plan.ParameterName);
+
     private bool IsEditorModified => editorProposedValue != editorBaselineValue;
+
+    private void FocusEconomicGate()
+    {
+        economicGateFocused = !economicGateFocused;
+        status = economicGateFocused
+            ? "Economic gate selected. Choose one parameter to inspect or test."
+            : "Economic gate choices hidden. The runtime branches remain unchanged.";
+    }
 
     private void FocusRelation(string kind, string label, string nodeKind)
     {
@@ -311,6 +370,9 @@
         _ => $"The tested change produced this recorded result: {evidence.Result}. It tells us how the agent behaved in this bounded suite, but not how it must behave in every possible game.",
     };
 
+    private string RunSelectionStory(ParameterEvidence evidence) =>
+        $"We are testing the {evidence.Name} knob: the agent normally uses {evidence.Baseline}, and this run proposes changing it to {Workbench.Plan.ProposedValue:0.####}. {PlainEnglishEvidence(evidence)}";
+
     private RunStage? CurrentGuidanceStage =>
         Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")
         ?? Workbench.RunStages.LastOrDefault(stage => stage.Status == "complete");
@@ -340,6 +402,11 @@
         "foundry" => "The deterministic evidence is ready. The separate Foundry review agents can now explain, judge, and propose the next bounded test.",
         _ => stage.Detail,
     };
+
+    private string CurrentRunStatus(RunStage stage) =>
+        string.IsNullOrWhiteSpace(status)
+            ? $"{stage.Title}. {stage.Detail}"
+            : status;
 
     private async Task ExecuteCurrentStep()
     {
