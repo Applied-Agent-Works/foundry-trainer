@@ -30,6 +30,82 @@
     </aside>
 </section>
 
+<section class="orientation-card">
+    <div class="section-kicker">START HERE</div>
+    <h2>What are we running?</h2>
+    <p>
+        You are looking at one review cycle, not a free-form chat. The local
+        farming agents already produced controlled simulation evidence. The
+        Foundry agents interpret that evidence. You choose which recorded step
+        to inspect, then decide whether a new bounded test is worth approving.
+    </p>
+    <div class="orientation-grid">
+        <div><strong>Inner loop</strong><span>Runs deterministic farming simulations, checkpoints, replays, and clean audits.</span></div>
+        <div><strong>Outer loop</strong><span>Explains evidence, judges explanation quality, and frames one next question.</span></div>
+        <div><strong>Human boundary</strong><span>Approves, rejects, or defers the next experiment envelope.</span></div>
+    </div>
+</section>
+
+<section class="execution-console" aria-label="Guided execution console">
+    <div class="console-heading">
+        <div>
+            <div class="section-kicker">GUIDED PLAYBACK</div>
+            <h2>Walk through one review cycle</h2>
+        </div>
+        <span class="receipt-badge">recorded receipts · no new side effects</span>
+    </div>
+    <div class="wizard-intro"><strong>Step @SelectedRunOption.Number of 04</strong><span>Select a step directly or use Next to follow the system’s normal order.</span></div>
+    <div class="run-options">
+        @foreach (var option in RunOptions)
+        {
+            <button class="run-option @(selectedRun == option.Id ? "selected" : "")" @onclick="() => SelectRun(option.Id)">
+                <span class="run-number">@option.Number</span>
+                <span><strong>@option.Title</strong><small>@option.ShortDescription</small></span>
+            </button>
+        }
+    </div>
+    <div class="run-detail">
+        <div>
+            <div class="section-kicker">SELECTED STEP</div>
+            <h3>@SelectedRunOption.Title</h3>
+            <p>@SelectedRunOption.Explanation</p>
+        </div>
+        <div class="run-contract">
+            <div><span>Consumes</span><strong>@SelectedRunOption.Input</strong></div>
+            <div><span>Produces</span><strong>@SelectedRunOption.Output</strong></div>
+            <div><span>Side effect</span><strong>@SelectedRunOption.SideEffect</strong></div>
+        </div>
+        <button class="play-button" @onclick="PlaySelectedRun">▶ Play this step</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(playbackStatus))
+    {
+        <div class="playback-status"><span class="status-dot"></span>@playbackStatus</div>
+    }
+    <div class="wizard-nav">
+        <button class="wizard-button" disabled="@(selectedRun == RunOptions[0].Id)" @onclick="PreviousRun">← Back</button>
+        <span>Review step @SelectedRunOption.Number / 04</span>
+        <button class="wizard-button primary" disabled="@(selectedRun == RunOptions[^1].Id)" @onclick="NextRun">Next step →</button>
+    </div>
+</section>
+
+<section class="uml-card" aria-label="UML-style execution map">
+    <div class="section-kicker">EXECUTION MAP</div>
+    <h2>How one review cycle moves through the system</h2>
+    <p class="muted">Read left to right. The arrows show data flow; the gold boundary is where a human decision is required.</p>
+    <div class="uml-flow">
+        <div class="uml-node inner"><span>INNER LOOP</span><strong>Deterministic farming agents</strong><small>simulate → checkpoint → replay → clean audit</small></div>
+        <div class="uml-arrow">→</div>
+        <div class="uml-node evidence"><span>PACKET</span><strong>Audited evidence</strong><small>candidates · deltas · divergence · provenance</small></div>
+        <div class="uml-arrow">→</div>
+        <div class="uml-node foundry"><span>FOUNDRY ROLE 1</span><strong>Evidence Analyst</strong><small>explain only; cite and preserve limits</small></div>
+        <div class="uml-arrow">→</div>
+        <div class="uml-node judge"><span>FOUNDRY ROLE 2</span><strong>Analyst Judge</strong><small>score grounding and boundedness</small></div>
+        <div class="uml-arrow">→</div>
+        <div class="uml-node human"><span>HUMAN BOUNDARY</span><strong>You decide</strong><small>retain · approve · reject</small></div>
+    </div>
+    <div class="uml-return"><span>approved envelope returns to the inner loop</span><b>↺</b></div>
+</section>
+
 <section class="loop-strip" aria-label="Double loop status">
     <div class="loop-step complete"><span>01</span><strong>Inner loop</strong><small>audited evidence</small></div>
     <div class="loop-arrow">→</div>
@@ -139,13 +215,26 @@
 </section>
 
 @code {
+    private sealed record RunOption(string Id, string Number, string Title, string ShortDescription, string Explanation, string Input, string Output, string SideEffect);
+
+    private static readonly IReadOnlyList<RunOption> RunOptions =
+    [
+        new("inner", "01", "Inspect inner-loop evidence", "Read the audited simulation result", "This step shows what the deterministic farming agents actually did. It does not rerun a game; it replays the recorded receipt so you can inspect the evidence before trusting an explanation.", "audited packet", "candidate table + provenance", "none"),
+        new("analyst", "02", "Ask the Evidence Analyst", "Explain the packet in plain language", "This step sends only the redacted evidence brief to the constrained analyst role. It may explain facts and limitations, but it cannot rank candidates or approve a policy change.", "redacted evidence brief", "cited explanation", "recorded response only"),
+        new("judge", "03", "Inspect the Analyst Judge", "Check explanation quality independently", "This step checks whether the analyst stayed grounded, cited the packet, preserved limitations, and respected the review boundary. It does not judge game reward.", "brief + analyst response", "quality score + reasons", "recorded judge receipt"),
+        new("proposal", "04", "Review the Proposal Drafter", "Frame one bounded next test", "This step turns the accepted handoff into one proposed measurement. It is still a proposal: selecting it here does not create a contract or start a simulation.", "validated analyst + judge context", "one next-test proposal", "human approval required"),
+    ];
+
     private string selectedAgentId = "evidence-analyst";
+    private string selectedRun = "inner";
     private string question = string.Empty;
     private bool reviewAcknowledged;
     private string decisionStatus = string.Empty;
+    private string playbackStatus = string.Empty;
     private List<ChatMessage> Messages = new();
 
     private AgentProfile ActiveAgent => Conversations.GetAgent(selectedAgentId);
+    private RunOption SelectedRunOption => RunOptions.First(option => option.Id == selectedRun);
 
     protected override void OnInitialized()
     {
@@ -157,6 +246,37 @@
         selectedAgentId = agentId;
         Messages = Conversations.StartConversation(agentId).ToList();
         question = string.Empty;
+    }
+
+    private void SelectRun(string runId)
+    {
+        selectedRun = runId;
+        playbackStatus = string.Empty;
+    }
+
+    private void PlaySelectedRun()
+    {
+        playbackStatus = $"Played {SelectedRunOption.Title}. This was a recorded receipt; no new simulator, model call, or policy change occurred.";
+    }
+
+    private void PreviousRun()
+    {
+        var index = RunOptions.ToList().FindIndex(option => option.Id == selectedRun);
+        if (index > 0)
+        {
+            selectedRun = RunOptions[index - 1].Id;
+            playbackStatus = string.Empty;
+        }
+    }
+
+    private void NextRun()
+    {
+        var index = RunOptions.ToList().FindIndex(option => option.Id == selectedRun);
+        if (index >= 0 && index < RunOptions.Count - 1)
+        {
+            selectedRun = RunOptions[index + 1].Id;
+            playbackStatus = string.Empty;
+        }
     }
 
     private void SendMessage()

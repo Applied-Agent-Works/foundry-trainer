@@ -75,6 +75,7 @@ def copy_runtime_sources() -> list[str]:
 def main() -> int:
     DIST.mkdir(parents=True, exist_ok=True)
     validate_python_surface()
+    run("dotnet", "build", str(ROOT / "submission/backend/backend.csproj"), "--nologo")
     run("dotnet", "publish", str(ROOT / "submission/demo/demo.csproj"), "-c", "Release", "-o", str(WEB_OUT), "--nologo")
     copied = copy_runtime_sources()
     fixture_paths = sorted((ROOT / "submission/fixtures").glob("*.json"))
@@ -95,7 +96,7 @@ def main() -> int:
         "web_publish_directory": str(WEB_OUT.relative_to(ROOT)),
         "notebooks_in_runtime": False,
         "cloud_actions_performed": False,
-        "commands": ["compileall analyst evaluator", "dotnet publish demo.csproj"],
+        "commands": ["compileall analyst evaluator", "dotnet build backend.csproj", "dotnet publish demo.csproj"],
     }
     (DIST / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"

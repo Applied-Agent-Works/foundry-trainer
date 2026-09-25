@@ -1,0 +1,44 @@
+@page "/decision"
+@using demo.Models
+@inject WorkbenchState Workbench
+
+<PageTitle>Human decision</PageTitle>
+
+<section class="screen-heading">
+    <div class="section-kicker">SCREEN 04 · HUMAN BOUNDARY</div>
+    <h1>Decide what happens next.</h1>
+    <p>Nothing below executes automatically. Your decision becomes the review disposition for the next bounded envelope.</p>
+</section>
+
+<section class="decision-layout">
+    <article class="plan-card">
+        <div class="section-kicker">CURRENT PROPOSAL</div>
+        <h2>@Workbench.Plan.ParameterName: @Workbench.Plan.BaselineValue → @Workbench.Plan.ProposedValue</h2>
+        <p>Seeds: @Workbench.Plan.Seeds · seats: @Workbench.Plan.Seats · steps: @Workbench.Plan.Steps</p>
+        <p>Opponent: @Workbench.Plan.Opponent</p>
+        <div class="review-pill">@Workbench.Plan.Status</div>
+    </article>
+    <article class="plan-card">
+        <div class="section-kicker">YOUR DISPOSITION</div>
+        <div class="decision-buttons">
+            <button class="decision-button retain" @onclick='() => Decide("retain_baseline")'>Retain baseline</button>
+            <button class="decision-button approve" @onclick='() => Decide("approve_proposed_envelope")'>Approve proposed envelope</button>
+            <button class="decision-button reject" @onclick='() => Decide("reject_and_revise")'>Reject and revise</button>
+        </div>
+        <div class="decision-status"><span class="status-dot"></span>@Workbench.Decision</div>
+    </article>
+</section>
+
+<section class="uml-card decision-explanation">
+    <div class="section-kicker">WHAT YOUR CLICK MEANS</div>
+    <h2>The next action remains separate</h2>
+    <p>Retain keeps the current baseline. Approve records permission for a separate execution step. Reject returns the plan to the editor. None of these buttons runs a simulation or edits policy source.</p>
+</section>
+
+@code {
+    private void Decide(string decision)
+    {
+        Workbench.Decision = $"review disposition recorded: {decision}";
+        Workbench.Plan.LastAction = "Human disposition recorded locally; execution remains a separate step";
+    }
+}

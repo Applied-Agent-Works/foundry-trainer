@@ -13,6 +13,229 @@ public sealed record AgentProfile(
 
 public sealed record ChatMessage(string Role, string Text);
 
+public sealed class RunPlan
+{
+    public string GraphId { get; set; } = "carrot_investment";
+    public string Crop { get; set; } = "Carrot";
+    public string ParameterName { get; set; } = "seed_opportunity_value";
+    public double BaselineValue { get; set; } = 20;
+    public double ProposedValue { get; set; } = 40;
+    public string Seeds { get; set; } = "42";
+    public bool SeatOneSelected { get; set; } = true;
+    public bool SeatTwoSelected { get; set; } = true;
+    public string SeatOneRole { get; set; } = "our_agent";
+    public string SeatTwoRole { get; set; } = "opponent";
+    public string Seats => string.Join(", ", new[] { SeatOneSelected ? "1" : null, SeatTwoSelected ? "2" : null }.Where(value => value is not null));
+    public int Steps { get; set; } = 720;
+    public string Opponent { get; set; } = "deterministic conveyor";
+    public string OpponentMode { get; set; } = "deterministic_conveyor";
+    public string ExecutionMode { get; set; } = "full_simulator";
+    public string DivergenceStrategy { get; set; } = "first_action_then_suffix";
+    public bool CleanAuditRequired { get; set; } = true;
+    public string Status { get; set; } = "draft · pending human review";
+    public string LastAction { get; set; } = "No execution requested";
+}
+
+public sealed class WorkbenchState
+{
+    public RunPlan Plan { get; } = new();
+    public RunResultSummary? LastRunResult { get; private set; }
+    public string SelectedAgentId { get; set; } = "evidence-analyst";
+    public string Decision { get; set; } = "pending_human_review";
+    public IReadOnlyList<RunStage> RunStages => runStages;
+    public int CurrentStageIndex => runStages.FindIndex(stage => stage.Status == "current");
+    private List<RunStage> runStages =
+    [
+        new("plan", "Plan validated", "complete", "The proposed envelope is structurally valid."),
+        new("baseline", "Baseline prepared", "current", "Ready to submit the approved local run."),
+        new("simulate", "Inner loop executed", "pending", "Simulator has not been started."),
+        new("divergence", "Divergence analyzed", "pending", "No candidate result is available yet."),
+        new("audit", "Clean audit completed", "pending", "A full independent rerun is required."),
+        new("packet", "Evidence packet assembled", "pending", "Evidence is created only after audits pass."),
+        new("foundry", "Foundry review completed", "pending", "The three Foundry roles remain downstream of the packet."),
+    ];
+
+    public void RequestRun()
+    {
+        runStages = runStages.Select((stage, index) => index == 0
+            ? stage with { Status = "complete", Detail = "The proposed envelope was validated." }
+            : index == 1
+                ? stage with { Status = "current", Detail = "Backend execution requested; waiting for explicit simulator adapter." }
+                : stage with { Status = "pending" }).ToList();
+    }
+
+    public string AdvanceStage()
+    {
+        var current = CurrentStageIndex;
+        if (current < 0) return "All planned stages are complete.";
+        runStages[current] = runStages[current] with { Status = "complete", Detail = "Completed through the guided execution control." };
+        if (current + 1 < runStages.Count)
+        {
+            runStages[current + 1] = runStages[current + 1] with { Status = "current", Detail = "Current guided step." };
+            return $"Completed {runStages[current].Title}; ready for {runStages[current + 1].Title}.";
+        }
+        return "Completed the final planned stage.";
+    }
+
+    public string RetreatStage()
+    {
+        var current = CurrentStageIndex;
+        var completed = current < 0 ? runStages.Count - 1 : current - 1;
+        if (completed <= 0) return "The plan-validation stage is the first recorded stage.";
+        runStages[completed] = runStages[completed] with { Status = "current", Detail = "Returned here by the human reviewer." };
+        for (var index = completed + 1; index < runStages.Count; index++)
+            runStages[index] = runStages[index] with { Status = "pending", Detail = "Waiting for the preceding step." };
+        return $"Returned to {runStages[completed].Title}.";
+    }
+    public IReadOnlyList<TestScenario> TestScenarios => scenarios;
+    private List<TestScenario> scenarios =
+    [
+        new("baseline-reuse", "Baseline reuse", "Candidate follows the recorded action path", true),
+        new("early-divergence", "Early divergence", "Candidate diverges at the first decision", true),
+        new("late-divergence", "Late divergence", "Candidate diverges after a shared prefix", false),
+        new("clean-audit", "Clean audit", "Fast result matches a fresh full run", true),
+        new("provenance-guard", "Provenance guard", "Wrong source hash refuses cache reuse", true),
+        new("agent-boundary", "Agent boundary", "Unsupported recommendation is refused", true),
+    ];
+
+    public int CoverageCount => TestScenarios.Count(item => item.Included);
+    public int CoveragePercent => (int)Math.Round(CoverageCount * 100.0 / TestScenarios.Count);
+    public IReadOnlyList<GraphOption> Graphs { get; } =
+    [
+        new("carrot_investment", "Carrot", "seed_opportunity_value", "carrot conveyor"),
+        new("wheat_crop", "Wheat", "future_price_multiplier", "wheat conveyor"),
+        new("melon_investment", "Watermelon / Melon", "future_price_multiplier", "melon conveyor"),
+    ];
+
+    public IReadOnlyList<ParameterEvidence> CarrotParameters { get; } =
+    [
+        new("supply_high_given_zero_ripe", "0.05", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("supply_high_given_one_to_three_ripe", "0.30", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("supply_high_given_four_plus_ripe", "0.70", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("low_price_multiplier", "0.60", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("high_price_multiplier", "1.20", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("low_price_base", "0.15", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("low_price_supply_weight", "0.65", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("high_price_base", "0.05", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("high_price_demand_weight", "0.02", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("high_price_supply_penalty", "0.30", "±10%", "inert in 60-game screen", "low", "No observed decision divergence in the fine screen."),
+        new("seed_opportunity_value", "20.0", "10 / 40 / 60 / 80", "active above threshold; wider values harmful", "high", "Wider values changed rewards and produced audited divergences."),
+        new("pass_utility", "0.0", "-25 / 25 / 50 / 100", "25+ changes decisions; clean audits passed", "high", "Positive values removed profitable planting in the recorded suite."),
+    ];
+
+    public IReadOnlyList<ParameterEvidence> ParametersForSelectedGraph
+    {
+        get
+        {
+            var source = Plan.GraphId switch
+            {
+                "wheat_crop" => new[] { new ParameterEvidence("future_price_multiplier", "1.0", "0.05 / 0.8 / 1.2", "0.05 diverged; 0.8 and 1.2 inert", "high", "A low value crossed the observed plant/pass threshold.") },
+                "melon_investment" => new[] { new ParameterEvidence("future_price_multiplier", "1.0", "0.05 / 0.8 / 1.2", "0.05 diverged; 0.8 and 1.2 inert", "high", "A low value crossed the observed plant/pass threshold.") },
+                _ => CarrotParameters.ToArray(),
+            };
+            return source.OrderByDescending(item => item.Priority == "high").ThenBy(item => item.Name).ToArray();
+        }
+    }
+
+    public ParameterEvidence? SelectedParameterEvidence =>
+        ParametersForSelectedGraph.FirstOrDefault(item => item.Name == Plan.ParameterName);
+
+    public IReadOnlyList<double> ProposedValuesForSelectedParameter =>
+        SelectedParameterEvidence is { } evidence ? ProposedValuesFor(evidence) : Array.Empty<double>();
+
+    public bool LiveRunSupported =>
+        Plan.GraphId == "carrot_investment"
+        && Plan.ParameterName == "seed_opportunity_value"
+        && new[] { 10d, 40d, 60d, 80d }.Contains(Plan.ProposedValue);
+
+    public static IReadOnlyList<double> ProposedValuesFor(ParameterEvidence evidence) => evidence.Name switch
+    {
+        "pass_utility" => [-25, -12.5, 25, 50, 100],
+        "seed_opportunity_value" => [10, 40, 60, 80, 100],
+        "supply_high_given_zero_ripe" => [0, 0.025, 0.075, 0.1, 0.15],
+        "supply_high_given_one_to_three_ripe" => [0.15, 0.225, 0.375, 0.45, 0.6],
+        "supply_high_given_four_plus_ripe" => [0.35, 0.525, 0.775, 0.875, 1.0],
+        "low_price_multiplier" => [0.3, 0.45, 0.75, 0.9, 1.2],
+        "high_price_multiplier" => [0.6, 0.9, 1.5, 1.8, 2.4],
+        "low_price_base" => [0, 0.075, 0.1875, 0.225, 0.3],
+        "low_price_supply_weight" => [0.325, 0.4875, 0.8125, 0.975, 1.0],
+        "high_price_base" => [0, 0.025, 0.0625, 0.075, 0.1],
+        "high_price_demand_weight" => [0, 0.01, 0.025, 0.03, 0.04],
+        "high_price_supply_penalty" => [0.15, 0.225, 0.375, 0.45, 0.6],
+        _ => [evidence.BaselineValue(), evidence.BaselineValue()],
+    };
+
+    public static ParameterInfluence InfluenceFor(string parameterName) => parameterName switch
+    {
+        "supply_high_given_zero_ripe" or "supply_high_given_one_to_three_ripe" or "supply_high_given_four_plus_ripe" => new(
+            ["visible ripe-carrot count"],
+            ["low/high price probabilities", "expected sale price"],
+            "This is one branch of the supply belief. It changes how likely the agent thinks high supply is, which can make the expected price look better or worse."),
+        "low_price_multiplier" or "high_price_multiplier" => new(
+            ["low/high price probability"],
+            ["expected sale price"],
+            "This changes the payout used for one price scenario. Its effect matters only when that price scenario has some probability."),
+        "low_price_base" or "low_price_supply_weight" or "high_price_base" or "high_price_demand_weight" or "high_price_supply_penalty" => new(
+            ["supply probability", "known and future demand"],
+            ["low/high price probabilities"],
+            "This changes how the model turns supply and demand clues into price probabilities. Those probabilities then feed the expected sale price."),
+        "seed_opportunity_value" => new(
+            ["expected sale price", "baseline harvest yield"],
+            ["plant utility", "plant/pass threshold"],
+            "This is the value the agent assigns to keeping the seed for later. Increasing it makes planting harder to justify."),
+        "pass_utility" => new(
+            ["plant utility"],
+            ["final plant/pass action"],
+            "This is the score required before planting is preferred. Increasing it makes passing easier to choose."),
+        _ => new(
+            ["observed game state"],
+            ["next decision stage"],
+            "This parameter changes a bounded part of the decision model. Its broader effect still needs direct evidence."),
+    };
+
+    public void ReplaceScenarios(IEnumerable<TestScenario> replacement) => scenarios = replacement.ToList();
+
+    public void ApplyBackendReceipt(IReadOnlyList<RunStage> stages, RunResultSummary result, string action)
+    {
+        runStages = stages.ToList();
+        LastRunResult = result;
+        Plan.Status = "completed · real simulator receipt";
+        Plan.LastAction = action;
+    }
+}
+
+public sealed record TestScenario(string Id, string Title, string Description, bool Included);
+public sealed record GraphOption(string Id, string DisplayName, string ParameterName, string Opponent);
+public sealed record ParameterEvidence(string Name, string Baseline, string Tested, string Result, string Priority, string Why);
+public sealed record ParameterInfluence(IReadOnlyList<string> Upstream, IReadOnlyList<string> Downstream, string Explanation)
+{
+    public string UpstreamDisplay => string.Join(" + ", Upstream);
+    public string DownstreamDisplay => string.Join(" + ", Downstream);
+}
+public static class ParameterEvidenceExtensions
+{
+    public static double BaselineValue(this ParameterEvidence evidence) =>
+        double.TryParse(evidence.Baseline, out var value) ? value : 0;
+}
+public sealed record RunStage(string Id, string Title, string Status, string Detail);
+public sealed record RunResultSummary(
+    string ParameterName,
+    double BaselineValue,
+    int MatchCount,
+    int CandidateCount,
+    double BestCandidateValue,
+    double BestMeanDecisionDelta,
+    int BestDivergenceCount,
+    bool AuditsPassed,
+    string PacketPath)
+{
+    public string PlainEnglish =>
+        $"We tested {CandidateCount} values against the baseline of {BaselineValue:0.##} across {MatchCount} matches. " +
+        $"The strongest observed average change was at {BestCandidateValue:0.##}, with a reward difference of {BestMeanDecisionDelta:+0.##;-0.##;0}. " +
+        $"That value diverged in {BestDivergenceCount} match{(BestDivergenceCount == 1 ? "" : "es")}. " +
+        (AuditsPassed ? "Every result passed its clean audit." : "The clean-audit gate did not pass.");
+}
+
 public interface IAgentConversation
 {
     IReadOnlyList<AgentProfile> Agents { get; }

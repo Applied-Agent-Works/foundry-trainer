@@ -25,6 +25,14 @@ python3 scripts/build_submission.py
 From inside this directory, the same build is available as
 `./build.sh`. The demo can be launched with `./run-demo.sh`.
 
+The backend can be started separately with `./run-backend.sh`; it listens on
+port 5100. Its Carrot run endpoint invokes the approved local Python evaluator
+against an isolated pinned Kaggriculture checkout and returns the actual
+simulator, clean-audit, and immutable-packet receipt. Wheat, Watermelon, and
+Foundry transport remain separate downstream adapters. The backend requires
+the repository root, `.venv`, the approved contract, and the pinned checkout;
+the standalone web publish does not copy those runtime dependencies.
+
 The command performs four checks:
 
 1. compiles the promoted `analyst/` and `evaluator/` Python sources;
@@ -52,7 +60,8 @@ candidate, change policy source, run the simulator, or silently expand the
 experiment envelope.
 
 The UI is a recorded-receipt review surface for the already-completed analyst
-and judge integrations. It does not expose credentials or mutate Foundry. The
-Proposal Drafter is displayed as a completed review-only role: it can frame one
-bounded next test, but it cannot approve or mutate anything. The UI and review
-controls preserve that authority boundary.
+and judge integrations, plus a bounded live Carrot smoke-run control. It does
+not expose credentials, mutate Foundry, or edit Kaggriculture policy source.
+The Proposal Drafter is displayed as a completed review-only role: it can frame
+one bounded next test, but it cannot approve or mutate anything. The UI and
+review controls preserve that authority boundary.

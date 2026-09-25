@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "experiment_id": "strawberry-future-price-multiplier-smoke-v1",
+  "lifecycle_status": "draft",
+  "decision_graph": {
+    "id": "strawberry_crop",
+    "parameter_namespace": "OngoingCropParameters",
+    "actions": ["plant-and-care", "preserve-option-do-not-invest"],
+    "eligibility_summary": "An empty eligible tile with a Strawberry seed or enough money to buy one and enough season remaining to reach the fourth scheduled production."
+  },
+  "target": {
+    "binding_mode": "explicit_sibling_target",
+    "expected_revision": "a8ddda74aa344e6d2eed6aa026e6408a76e2d5af",
+    "expected_shared_sha256": "69d2dead30174953dbbf20a74b72ea1096965376265cc3c1558fc1771c361208",
+    "expected_parameter_sha256": "1ba25a9fa6e0c5d0cd4a111b006efa726ea10eaec7641685945353602be569ac",
+    "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e",
+    "source_hashes": {
+      "agents/strawberry/shared.py": "69d2dead30174953dbbf20a74b72ea1096965376265cc3c1558fc1771c361208",
+      "agents/ongoing_crop.py": "1ba25a9fa6e0c5d0cd4a111b006efa726ea10eaec7641685945353602be569ac",
+      "kaggriculture.py": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
+    }
+  },
+  "parameter": {
+    "name": "future_price_multiplier",
+    "baseline_value": 1.0,
+    "candidate_values": [0.05, 0.8, 1.2],
+    "mutation_mode": "in_memory_single_field_override"
+  },
+  "suite": {
+    "opponent_id": "target.agents.strawberry.shared.strawberry_conveyor_agent",
+    "opponent_deterministic": true,
+    "seeds": [42, 43],
+    "seats": [0, 1],
+    "steps": 720
+  },
+  "evaluation": {
+    "checkpoint_policy": "before_every_decision",
+    "reuse_no_divergence_baseline": true,
+    "clean_audit_required": true,
+    "result_storage": "local_ignored_var_directory"
+  },
+  "purpose": "Draft local Strawberry Tuner proof: verify one explicit point-price parameter against a deterministic Strawberry conveyor using matched seeds, both seats, checkpoint/resume, and clean full-run audits. Candidate execution is not yet authorized.",
+  "governance": {
+    "human_decision_required": true,
+    "source_policy_mutation_authorized": false,
+    "candidate_expansion_authorized": false
+  },
+  "execution_authorization": {
+    "operations": []
+  }
+}

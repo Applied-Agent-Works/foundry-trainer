@@ -149,3 +149,30 @@ The current generated Wheat receipt path is
 [wheat-future-price-multiplier-smoke-v1.json](var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
 It is ignored run output and is not present in a fresh checkout until the
 approved command generates it; no new reproduction is implied by this link.
+
+## Foundry submission package
+
+The current submission package lives in [`submission/`](submission/) and is
+documented in [submission/README.md](submission/README.md). Its build packages
+the promoted analyst/evaluator source, redacted receipts, and the Blazor review
+surface. The package records Evidence Analyst v2, Evidence Analyst Judge v1,
+and Proposal Drafter v3 as review-only roles; it does not copy notebooks,
+credentials, raw packets, or the Kaggriculture checkout.
+
+## Ongoing-crop tuner scaffolds
+
+The current branch also contains bounded first-pass scaffolds for the ongoing
+crop graphs:
+
+- [Strawberry Tuner](strawberry-tuning-system/README.md) — canonical reviewed
+  receipt under `var/strawberry-tuning-system/runs/20260925-strawberry-v3/`;
+  candidate `0.05` produced a paired delta of `-745.00`, while `0.8` and `1.2`
+  were inert, with all four clean audits passing.
+- [Tomato Tuner](tomato-tuning-system/README.md) — approved first-pass receipt
+  under `var/tomato-tuning-system/first-pass-20260925/`; candidate `0.05`
+  produced a paired delta of `-438.50`, while `0.8` and `1.2` were inert, with
+  all four clean audits passing.
+
+These are four-match infrastructure proofs, not policy promotions. Both remain
+bounded to one point-estimate parameter, fixed seeds/seats, checkpoint/resume,
+and independent clean audits.

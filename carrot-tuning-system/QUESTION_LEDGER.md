@@ -216,11 +216,11 @@ bounded proposal record only; it cannot run a simulator, use tools, change
 source, or approve a new experiment. It now validates the promoted analyst
 response, enforces one parameter and a fixture-only candidate envelope,
 rejects five unsafe cases, and records the exact no-tools proposal-drafter
-creation/reuse/readback. Discovery found zero endpoints, creation produced
-version 1, and the idempotence rerun reused the exact version. The
-proposal-drafter has not been invoked; its invocation remains a separate human
-decision. Notebook 08's separate judge-agent invocation has already completed
-and passed its deterministic gate.
+creation/reuse/readback. Discovery found zero endpoints; the notebook created a
+schema-repair version 2 and final explicit-contract version 3, then ran three
+redacted boundary tests. The proposal-drafter is not approved for broad use or
+experiment execution. Notebook 08's separate judge-agent invocation has
+already completed and passed its deterministic gate.
 
 ### What did the first real Foundry Evaluation establish?
 
@@ -275,7 +275,7 @@ Do not restart the early discovery or deployment components: their zero-resource
 result and rollback are historical receipts, not live inventory. The live
 resources are deployment `evidence-analyst-luna-v1`, analyst `evidence-analyst`
 version 2, judge `evidence-analyst-judge` version 1, and proposal-drafter
-`experiment-proposal-drafter` version 1. The deferred Agent Insights preview
+`experiment-proposal-drafter` version 3. The deferred Agent Insights preview
 run that failed with `Forbidden` remains excluded unless the owner asks for
 that exact investigation. The next product task is human review of the
 evaluation/judge results or a separately reviewed proposal-drafter invocation.
@@ -999,3 +999,18 @@ source-controlled redacted fixture, and the next Watermelon receipt exposes a
 top-level clean-audit status. No new simulator or cloud action was taken. The
 remaining owner decision is whether canonical tuner receipts should be
 promoted into source control or remain ignored generated artifacts.
+
+### What did the packaging conversation add afterward?
+
+The submission package now contains promoted analyst/evaluator source, redacted
+fixtures, a backend build check, and a Blazor receipt-backed review surface.
+The package roles are Evidence Analyst v2, Evidence Analyst Judge v1, and
+Proposal Drafter v3. The live Foundry proposal-drafter v3 is created/read back
+and has passed three redacted boundary tests, but it is not approved for broad
+experiment execution.
+
+The same work added bounded Strawberry and Tomato ongoing-crop tuner scaffolds.
+Their first-pass receipts are four-match-per-graph smoke proofs: Strawberry
+`0.05` produced `-745.00` paired delta and Tomato `0.05` produced `-438.50`;
+`0.8` and `1.2` were inert in both graphs, and every clean audit passed. These
+results remain hypotheses for held-out suites, not policy promotions.

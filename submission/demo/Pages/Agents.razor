@@ -1,0 +1,47 @@
+@page "/agents"
+@using demo.Models
+@inject IAgentConversation Conversations
+@inject WorkbenchState Workbench
+
+<PageTitle>Agent review</PageTitle>
+
+<section class="screen-heading">
+    <div class="section-kicker">SCREEN 03 · THREE FOUNDRY ROLES</div>
+    <h1>Ask each role its one question.</h1>
+    <p>These roles have different jobs. The analyst explains, the judge evaluates the explanation, and the proposal drafter frames one bounded next test.</p>
+</section>
+
+<section class="agent-screen">
+    <aside class="agent-list">
+        @foreach (var agent in Conversations.Agents)
+        {
+            <button class="agent-choice @(agent.Id == Workbench.SelectedAgentId ? "selected" : "")" @onclick="() => Select(agent.Id)">
+                <span class="agent-icon">@agent.ShortName</span><span class="agent-copy"><strong>@agent.DisplayName</strong><small>@agent.Description</small></span>
+            </button>
+        }
+    </aside>
+    <article class="agent-conversation">
+        <div class="chat-header"><div><div class="section-kicker">ACTIVE ROLE</div><h2>@ActiveAgent.DisplayName</h2></div><span class="role-status">@ActiveAgent.Status</span></div>
+        <div class="role-explanation"><strong>@RolePurpose</strong><span>@RoleBoundary</span></div>
+        <div class="messages">
+            @foreach (var message in messages)
+            {
+                <article class="message agent"><div class="message-meta">@ActiveAgent.DisplayName.ToUpperInvariant()</div><p>@message.Text</p></article>
+            }
+        </div>
+        <div class="composer"><textarea @bind="question" placeholder="Ask a focused question..."></textarea><button class="send-button" @onclick="Ask">Ask role</button></div>
+    </article>
+</section>
+
+@code {
+    private string question = string.Empty;
+    private List<ChatMessage> messages = new();
+    private AgentProfile ActiveAgent => Conversations.GetAgent(Workbench.SelectedAgentId);
+    private string RolePurpose => ActiveAgent.Id switch { "evidence-analyst-judge" => "Quality check", "experiment-proposal-drafter" => "Next-test framing", _ => "Evidence explanation" };
+    private string RoleBoundary => ActiveAgent.Id switch { "evidence-analyst-judge" => "Does not judge game reward or approve policy.", "experiment-proposal-drafter" => "Does not approve, execute, or edit source.", _ => "Does not rank candidates or mutate policy." };
+
+    protected override void OnInitialized() => Load();
+    private void Load() => messages = Conversations.StartConversation(Workbench.SelectedAgentId).ToList();
+    private void Select(string id) { Workbench.SelectedAgentId = id; question = string.Empty; Load(); }
+    private void Ask() { if (string.IsNullOrWhiteSpace(question)) return; messages.Add(new ChatMessage("human", question.Trim())); messages.Add(new ChatMessage("agent", Conversations.Reply(ActiveAgent, question.Trim()))); question = string.Empty; }
+}

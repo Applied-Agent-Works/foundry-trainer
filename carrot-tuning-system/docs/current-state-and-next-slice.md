@@ -895,3 +895,20 @@ performed. The promoted Evidence Analyst tests use a source-controlled redacted
 fixture rather than ignored `var/` state. Wheat and Watermelon receipts remain
 ignored generated outputs, and Watermelon's next receipt now includes the same
 top-level `audit_status` field already present in Wheat.
+
+## Repository verification snapshot — 2026-09-25
+
+The packaging/submission conversation added the receipt-backed Blazor demo,
+backend build/publish checks, redacted fixture package, and current submission
+manifest. The ongoing-crop scaffolds now include approved Strawberry and Tomato
+first-pass contracts and canonical local receipts alongside Carrot, Wheat, and
+Watermelon/Melon.
+
+The current verification run reports **69 fast tests passed and 7 simulator
+tests passed**. All notebooks compile and all JSON files parse when the .NET
+`launchSettings.json` BOM is decoded as UTF-8-with-signature. The BOM is a
+normal .NET-generated encoding marker, not a secret or content-integrity issue.
+
+The working tree remains intentionally uncommitted while packaging and tuner
+agents finish their shared-worktree changes. No generated `var/` receipt is a
+source-controlled contract or a policy-promotion decision.

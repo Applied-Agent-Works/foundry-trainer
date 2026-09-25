@@ -547,7 +547,8 @@ word "agent" can suggest:
    back door for raw simulator state, target source, or secrets.
 
 The current vertical slice uses separate no-tools prompt-agent identities for
-the analyst and judge, plus a created-but-not-invoked proposal-drafter. This is
+the analyst and judge, plus a created/read-back proposal-drafter v3 whose three
+redacted boundary tests have passed. This is
 not a hidden multi-agent workflow: each role has its own contract and review
 boundary, and no role can run the simulator, edit policy, or approve an
 experiment. A full orchestrated planner/governance workflow remains a later
@@ -560,8 +561,9 @@ The first implementation of the evaluation layer and optional orchestration
 extension is in [Notebook 08](./notebooks/08_foundry_evaluation_workbench.ipynb)
 and [Notebook 09](./notebooks/09_foundry_orchestration_workbench.ipynb). Their
 local cards prove contract shape and guard behavior. Notebook 09 also records
-the actual create/reuse/readback of proposal-drafter version 1. A future
-proposal-drafter invocation remains a separate reviewed action.
+the actual create/reuse/readback of proposal-drafter version 3 and three
+redacted boundary tests. A broader proposal-drafter evaluation remains a
+separate reviewed action.
 
 ## The automatic workflow to implement next
 

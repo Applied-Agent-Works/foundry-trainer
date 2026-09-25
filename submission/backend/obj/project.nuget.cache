@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "RBbGFKNhBRQ=",
+  "success": true,
+  "projectFilePath": "/home/experiments/frontier-week/foundry-trainer/submission/backend/backend.csproj",
+  "expectedPackageFiles": [
+    "/home/dorian/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.31/microsoft.netcore.app.host.linux-x64.8.0.31.nupkg.sha512"
+  ],
+  "logs": []
+}
