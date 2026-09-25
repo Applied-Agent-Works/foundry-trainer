@@ -299,7 +299,7 @@
                 <div class="stage-result-summary">
                     <div class="section-kicker">CONGRATULATIONS · RESULTS IN PLAIN ENGLISH</div>
                     <p>@result.PlainEnglish</p>
-                    <p class="muted">This describes this exact approved suite. It is not a global claim and it does not automatically change policy.</p>
+                    <p class="muted">This describes this exact approved suite. It is not a general conclusion and it does not automatically change policy.</p>
                 </div>
             }
         </article>
@@ -310,7 +310,7 @@
 <section class="coverage-card">
     <div class="section-kicker">TEST COVERAGE PLAN</div>
     <h2>What evidence do we require?</h2>
-    <p class="muted">Select the scenarios this proposed run must cover. This is a planning checklist, not a claim that every selected test has already executed.</p>
+    <p class="muted">Select the scenarios this proposed run must cover. This is a planning checklist, not a statement that every selected test has already executed.</p>
     <div class="coverage-meter"><span style="width:@Workbench.CoveragePercent%"></span></div>
     <strong>@Workbench.CoverageCount of @Workbench.TestScenarios.Count scenarios selected · @Workbench.CoveragePercent%</strong>
     <div class="coverage-grid">
@@ -442,7 +442,18 @@
         ?? Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")
         ?? Workbench.RunStages.LastOrDefault(stage => stage.Status == "complete");
 
-    private void SelectReceiptStage(string stageId) => activeStageId = stageId;
+    private void SelectReceiptStage(string stageId)
+    {
+        var targetIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == stageId);
+        var completedIndex = Workbench.RunStages.ToList().FindLastIndex(stage => stage.Status == "complete");
+        if (targetIndex >= 0 && completedIndex > targetIndex)
+        {
+            Workbench.InvalidateStagesAfter(stageId);
+            activeRunId = null;
+            status = $"Returned to {stageId}. Future stages are invalid; run the approved experiment again.";
+        }
+        activeStageId = stageId;
+    }
 
     private static string GuidanceTitle(RunStage stage) => stage.Id switch
     {

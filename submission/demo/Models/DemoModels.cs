@@ -225,6 +225,18 @@ public sealed class WorkbenchState
         Plan.LastAction = action;
     }
 
+    public void InvalidateStagesAfter(string stageId)
+    {
+        var index = runStages.FindIndex(stage => stage.Id == stageId);
+        if (index < 0) return;
+        runStages = runStages.Select((stage, position) => position <= index
+            ? stage
+            : stage with { Status = "pending", Detail = "Must be rerun after returning to an earlier stage." }).ToList();
+        LastRunResult = null;
+        Plan.Status = "draft · rerun required";
+        Plan.LastAction = $"Returned to {runStages[index].Title}; future stages invalidated.";
+    }
+
     public void RecordRunResult(RunResultSummary result, string action)
     {
         LastRunResult = result;
