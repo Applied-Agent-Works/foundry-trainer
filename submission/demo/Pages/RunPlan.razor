@@ -5,7 +5,7 @@
 @inject WorkbenchState Workbench
 @inject HttpClient Backend
 
-<PageTitle>Run plan</PageTitle>
+<PageTitle>Relationship visualizer</PageTitle>
 
 <section class="screen-heading">
     <div class="section-kicker">SCREEN 02 · PLAN BEFORE EXECUTION</div>
@@ -18,7 +18,14 @@
     <div class="section-kicker">CARROT DETERMINISTIC AGENT · UNIFIED DECISION MAP</div>
     <h2>Where the knobs enter, and what the agent does next</h2>
     <p class="muted">Choose one parameter from the economic gate, then follow the runtime branches below. The parameter cards are the only editing surface; the action branches are read-only.</p>
-    <div class="gate-and-influence-layout @(economicGateFocused ? "visible" : "hidden")">
+    @if (priorityThreeModalOpen)
+    {
+    <div class="priority-three-card-host is-modal">
+        <button type="button" class="priority-three-modal-backdrop" aria-label="Close Priority 3 card" @onclick="ClosePriorityThreeModal"></button>
+    <div class="gate-and-influence-layout" role="dialog" aria-modal="true" aria-label="Priority 3 card">
+        <div class="priority-three-card-heading">
+            <div class="section-kicker">PRIORITY 3</div>
+        </div>
         <div class="gate-controls-column">
     @if (economicGateFocused)
     {
@@ -53,7 +60,7 @@
         </div>
     }
 
-    @if (economicGateFocused && showEditor && EditorParameterEvidence is { } inlineEvidence)
+    @if (EditorParameterEvidence is { } inlineEvidence)
     {
         <section class="inline-parameter-editor" aria-label="Inline parameter editor">
             <div class="inline-editor-heading">
@@ -61,11 +68,10 @@
                     <div class="section-kicker">EDIT ONE PARAMETER</div>
                     <h2>@inlineEvidence.Name</h2>
                 </div>
-                <button type="button" class="inline-editor-cancel" @onclick="CloseEditor">Cancel</button>
             </div>
-            <p class="muted">This is the only editing surface. The run contract accepts one parameter override; choosing another knob replaces this draft, while Cancel leaves the committed change untouched.</p>
+            <p class="muted">This is the only editing surface. The run contract accepts one parameter override; selecting a value commits it immediately.</p>
             <div class="inline-editor-grid">
-                <label>Proposed value<select @bind="editorProposedValue">
+                <label>Proposed value<select @bind="editorProposedValue" @bind:after="CommitEditor">
                     <option class="baseline-option" value="@editorBaselineValue">@(editorBaselineValue.ToString("0.####")) · baseline</option>
                     @foreach (var value in WorkbenchState.ProposedValuesFor(inlineEvidence))
                     {
@@ -78,15 +84,11 @@
                     <p class="muted"><b>In plain English:</b> @PlainEnglishEvidence(inlineEvidence)</p>
                 </div>
             </div>
-            <div class="inline-editor-actions">
-                <button type="button" class="wizard-button" @onclick="CloseEditor">Cancel</button>
-                <button type="button" class="wizard-button primary" @onclick="CommitEditor">Done</button>
-            </div>
         </section>
     }
         </div>
 
-    @if (economicGateFocused && showEditor && EditorParameterEvidence is { } focusedEvidence)
+    @if (EditorParameterEvidence is { } focusedEvidence)
     {
         var influence = WorkbenchState.InfluenceFor(focusedEvidence.Name);
         <section class="influence-card unified-influence-card">
@@ -94,37 +96,35 @@
             <h2>How the selected knob fits into the decision</h2>
             <div class="modal-influence-flow main-influence-flow">
                 <div class="modal-influence-group">
-                    <span class="relationship-label">UPSTREAM</span>
                     @foreach (var upstream in influence.Upstream)
                     {
-                        <button class="relation-chip kind-@upstream.Kind @(modalRelationLabel == upstream.Label ? "active" : "")" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
+                        <button class="relation-chip kind-@upstream.Kind" @onclick="() => FocusUpstream(upstream.Label)">@upstream.Label</button>
+                    }
+                    @foreach (var related in influence.Related.Where(node => node.Label != focusedEvidence.Name))
+                    {
+                        <button class="relation-chip kind-@related.Kind" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
                     }
                 </div>
                 <b aria-hidden="true">→</b>
-                <button class="relation-chip parameter-chip kind-parameter @(modalRelationKind == "parameter" ? "active" : "")" @onclick="() => FocusParameter(focusedEvidence.Name)">@focusedEvidence.Name</button>
+                <span class="parameter-chip kind-parameter">@focusedEvidence.Name</span>
                 <b aria-hidden="true">→</b>
                 <div class="modal-influence-group">
-                    <span class="relationship-label">DOWNSTREAM</span>
                     @foreach (var downstream in influence.Downstream)
                     {
-                        <button class="relation-chip kind-@downstream.Kind @(modalRelationLabel == downstream.Label ? "active" : "")" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
+                        <button class="relation-chip kind-@downstream.Kind" @onclick="() => FocusDownstream(downstream.Label)">@downstream.Label</button>
                     }
                 </div>
             </div>
-            @if (influence.Related.Any(node => node.Label != focusedEvidence.Name))
+            @if (modalRelationKind != "parameter")
             {
-                <div class="related-parameter-list">
-                    <span class="relationship-label">OTHER PARAMETERS IN THIS CALCULATION</span>
-                    @foreach (var related in influence.Related.Where(node => node.Label != focusedEvidence.Name))
-                    {
-                        <button class="relation-chip kind-@related.Kind @(modalRelationLabel == related.Label ? "active" : "")" @onclick="() => FocusRelated(related.Label)">@related.Label</button>
-                    }
-                </div>
+                <p class="relationship-detail"><b>@modalRelationLabel</b> — @RelationshipDetail(focusedEvidence, influence)</p>
             }
-            <p class="muted"><b>In plain English:</b> @RelationshipCaption(focusedEvidence, influence)</p>
         </section>
     }
     </div>
+        <button type="button" class="priority-three-modal-close" @onclick="ClosePriorityThreeModal">Close</button>
+    </div>
+    }
     <div class="control-flow-legend">
         <span><b class="legend-swatch decision-swatch"></b>decision point</span>
         <span><b class="legend-swatch action-swatch"></b>action taken when the answer is yes</span>
@@ -214,16 +214,6 @@
             <article class="control-flow-node pass-node"><span>NO</span><strong>PASS</strong><small>No safe or worthwhile action remains this turn.</small></article>
         </div>
     </div>
-    <div class="market-flow">
-        <div class="market-flow-label">MARKET ORDERS RUN ALONGSIDE THE FARMER ACTION</div>
-        <div class="market-flow-row">
-            <article class="control-flow-node market-node"><span>1</span><strong>Sell stored carrots</strong><small>If the shed has any.</small></article>
-            <span class="control-flow-arrow" aria-hidden="true">→</span>
-            <article class="control-flow-node market-node"><span>2</span><strong>Investing?</strong><small>No: stop after selling.</small></article>
-            <span class="control-flow-arrow" aria-hidden="true">→</span>
-            <article class="control-flow-node market-node"><span>3</span><strong>Buy seeds if legal</strong><small>Empty space, affordability, seed need, and season horizon must all pass.</small></article>
-        </div>
-    </div>
     <p class="form-note">This is a static reading aid, not a live execution trace. It separates “what influences the decision” from “what the agent does next.”</p>
 </section>
 
@@ -242,7 +232,7 @@
         @foreach (var stage in Workbench.RunStages)
         {
             var displayStatus = StageDisplayStatus(stage);
-            <button type="button" class="run-stage @displayStatus @(stage.Id == "packet" ? "final-stage" : "") @(activeStageId == stage.Id ? "stage-tab-active" : "")" @onclick="() => SelectReceiptStage(stage.Id)"><span class="stage-mark">@StageDisplayMark(displayStatus)</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(displayStatus)</em><small>@StageDisplayDetail(stage, displayStatus)</small></span></button>
+            <button type="button" class="run-stage @displayStatus @(stage.Id == "packet" ? "final-stage" : "") @(activeStageId == stage.Id ? "stage-tab-active" : "")" disabled="@(stage.Status == "pending")" @onclick="() => SelectReceiptStage(stage.Id)"><span class="stage-mark">@StageDisplayMark(displayStatus)</span><span><strong>@stage.Title</strong><em class="stage-state">@StageStateLabel(displayStatus)</em><small>@StageDisplayDetail(stage, displayStatus)</small></span></button>
         }
     </div>
     <div class="run-cycle-indicator">
@@ -257,6 +247,14 @@
             <h2>@GuidanceTitle(guidance)</h2>
             <p class="run-current-status"><strong>Currently:</strong> @CurrentRunStatus(guidance)</p>
             <p>@GuidanceText(guidance)</p>
+            <section class="market-orders-in-stage">
+                <div class="section-kicker">MARKET ORDERS ALONGSIDE THE FARMER ACTION</div>
+                <ol class="market-order-list">
+                    <li><strong>Sell stored carrots</strong><small>If the shed has any.</small></li>
+                    <li><strong>Investing?</strong><small>No: stop after selling.</small></li>
+                    <li><strong>Buy seeds if legal</strong><small>Empty space, affordability, seed need, and season horizon must all pass.</small></li>
+                </ol>
+            </section>
             @if (guidance.Id == "plan")
             {
                 <section class="plan-editor-panel">
@@ -274,18 +272,18 @@
                     </div>
                     <div class="execution-fields">
                         <div class="execution-control-grid">
-                            <label>Seeds<input @bind="Workbench.Plan.Seeds" @bind:after="ValidatePlanAsync" /></label>
-                            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" @bind:after="ValidatePlanAsync" /></label>
+                            <label>Seeds<input @bind="Workbench.Plan.Seeds" @bind:after="PlanChangedAsync" /></label>
+                            <label>Steps<input type="number" @bind="Workbench.Plan.Steps" @bind:after="PlanChangedAsync" /></label>
                             <div class="seat-table">
                                 <div class="seat-table-header"><span>Seat</span><span>Player assignment</span></div>
-                                <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole" @bind:after="ValidatePlanAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
-                                <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole" @bind:after="ValidatePlanAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
+                                <div class="seat-row"><strong>Seat 1</strong><select @bind="Workbench.Plan.SeatOneRole" @bind:after="PlanChangedAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
+                                <div class="seat-row"><strong>Seat 2</strong><select @bind="Workbench.Plan.SeatTwoRole" @bind:after="PlanChangedAsync"><option value="our_agent">Our Carrot agent</option><option value="opponent">Deterministic opponent</option></select></div>
                                 <small class="field-help">Assign exactly one tested agent and one opponent.</small>
                             </div>
-                            <label>Opponent model<select @bind="Workbench.Plan.OpponentMode" @bind:after="ValidatePlanAsync"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
-                            <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode" @bind:after="ValidatePlanAsync"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
-                            <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy" @bind:after="ValidatePlanAsync"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
-                            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" @bind:after="ValidatePlanAsync" /> Clean full-run audit required</label>
+                            <label>Opponent model<select @bind="Workbench.Plan.OpponentMode" @bind:after="PlanChangedAsync"><option value="deterministic_conveyor">Deterministic conveyor</option><option value="recorded_baseline">Recorded baseline receipt</option></select></label>
+                            <label>Execution mode<select @bind="Workbench.Plan.ExecutionMode" @bind:after="PlanChangedAsync"><option value="full_simulator">Full simulator run</option><option value="receipt_preview">Recorded receipt preview</option></select></label>
+                            <label>Divergence strategy<select @bind="Workbench.Plan.DivergenceStrategy" @bind:after="PlanChangedAsync"><option value="first_action_then_suffix">First divergence + suffix</option><option value="full_clean_only">Full clean run only</option><option value="no_replay">No replay optimization</option></select></label>
+                            <label class="audit-toggle"><input type="checkbox" @bind="Workbench.Plan.CleanAuditRequired" @bind:after="PlanChangedAsync" /> Clean full-run audit required</label>
                         </div>
                     </div>
                 </section>
@@ -330,6 +328,7 @@
     private string? activeRunId;
     private bool showEditor;
     private bool economicGateFocused;
+    private bool priorityThreeModalOpen;
     private string editorParameterName = string.Empty;
     private double editorBaselineValue;
     private double editorProposedValue;
@@ -362,6 +361,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        economicGateFocused = true;
+        SyncEditorToCommittedParameter();
         activeStageId = "plan";
         await ValidatePlanAsync();
     }
@@ -396,12 +397,27 @@
         }
     }
 
+    private async Task PlanChangedAsync()
+    {
+        Workbench.ResetAfterPlanChange();
+        activeRunId = null;
+        activeStageId = "plan";
+        status = "Plan changed. Later stages are locked until this plan is validated and run again.";
+        await ValidatePlanAsync();
+    }
+
     private void FocusEconomicGate()
     {
-        economicGateFocused = !economicGateFocused;
-        status = economicGateFocused
-            ? "Economic gate selected. Choose one parameter to inspect or test."
-            : "Economic gate choices hidden. The runtime branches remain unchanged.";
+        economicGateFocused = true;
+        priorityThreeModalOpen = true;
+        status = "Economic gate selected. Choose one parameter to inspect or test.";
+    }
+
+    private void ClosePriorityThreeModal()
+    {
+        SyncEditorToCommittedParameter();
+        priorityThreeModalOpen = false;
+        status = "Priority 3 card closed. The selected parameter remains ready to review.";
     }
 
     private void FocusRelation(string kind, string label, string nodeKind)
@@ -424,13 +440,30 @@
         _ => influence.Explanation,
     };
 
+    private string RelationshipDetail(ParameterEvidence focusedEvidence, ParameterInfluence influence)
+    {
+        var parameter = Workbench.ParametersForSelectedGraph.FirstOrDefault(item => item.Name == modalRelationLabel);
+        return parameter is not null
+            ? PlainEnglishEvidence(parameter)
+            : RelationshipCaption(focusedEvidence, influence);
+    }
+
     private ParameterEvidence? FocusedEvidence => EditorParameterEvidence ?? Workbench.SelectedParameterEvidence;
 
     private static string PlainEnglishEvidence(ParameterEvidence evidence) => evidence.Name switch
     {
-        "seed_opportunity_value" => "This changes how valuable the agent thinks an available seed opportunity is. In this recorded suite, larger values changed some decisions and rewards, so this is a useful knob to test carefully. The result applies to this suite; it is not a universal rule.",
-        "pass_utility" => "This changes how attractive it feels to pass instead of planting. Positive values made the agent pass in situations where planting could still pay off in the recorded suite. That is why this knob is interesting, not proof that every positive value is bad.",
-        _ when evidence.Result.Contains("inert", StringComparison.OrdinalIgnoreCase) => "The tested change did not make the agent choose a different action in this recorded suite. In other words, we moved this knob but the visible behavior stayed the same. That makes it lower priority for the next test, not permanently useless.",
+        "supply_high_given_zero_ripe" => "This is the agent’s belief that supply is high when it sees no ripe opponent carrots. Raising it makes the market look more crowded and can lower the expected sale price; the recorded ±10% screen did not change actions.",
+        "supply_high_given_one_to_three_ripe" => "This is the high-supply belief for one to three ripe opponent carrots. It changes the price estimate indirectly; the recorded ±10% screen did not move the final decision.",
+        "supply_high_given_four_plus_ripe" => "This is the high-supply belief for four or more ripe opponent carrots. Raising it makes a crowded market more likely in the model; the recorded ±10% screen was action-inert.",
+        "low_price_multiplier" => "This scales the payout used for the low-price case. It matters only when that case has probability; the recorded ±10% screen produced no decision divergence.",
+        "high_price_multiplier" => "This scales the payout used for the high-price case. It changes expected value through that branch rather than directly choosing plant or pass; the recorded ±10% screen was inert.",
+        "low_price_base" => "This is the starting price for the low-price case before supply and demand adjustments. It feeds the expected sale price; the recorded ±10% screen produced no visible action change.",
+        "low_price_supply_weight" => "This controls how strongly supply clues affect the low-price estimate. A larger weight makes supply evidence matter more in that branch; the recorded ±10% screen was inert.",
+        "high_price_base" => "This is the starting price for the high-price case before adjustments. It affects planting only through the expected sale value; the recorded ±10% screen produced no decision divergence.",
+        "high_price_demand_weight" => "This controls how strongly known and future demand affect the high-price estimate. It changes the price model indirectly; the recorded ±10% screen was inert.",
+        "high_price_supply_penalty" => "This controls how much crowded supply penalizes the high-price case. A larger penalty makes high-price outcomes harder to justify; the recorded ±10% screen was inert.",
+        "seed_opportunity_value" => "This is the value of keeping an owned seed for a better opportunity later. Raising it makes planting today harder to justify; wider tested values changed decisions and rewards in the recorded suite.",
+        "pass_utility" => "This is an extra score for passing instead of planting. Raising it makes passing win more borderline decisions; positive tested values removed profitable planting in the recorded suite.",
         _ => $"The tested change produced this recorded result: {evidence.Result}. It tells us how the agent behaved in this bounded suite, but not how it must behave in every possible game.",
     };
 
@@ -444,15 +477,8 @@
 
     private void SelectReceiptStage(string stageId)
     {
-        var targetIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == stageId);
-        var completedIndex = Workbench.RunStages.ToList().FindLastIndex(stage => stage.Status == "complete");
-        if (targetIndex >= 0 && completedIndex > targetIndex)
-        {
-            Workbench.InvalidateStagesAfter(stageId);
-            activeRunId = null;
-            status = $"Returned to {stageId}. Future stages are invalid; run the approved experiment again.";
-        }
         activeStageId = stageId;
+        status = $"Viewing {Workbench.RunStages.FirstOrDefault(stage => stage.Id == stageId)?.Title ?? stageId}. Selecting a stage does not change execution state.";
     }
 
     private static string GuidanceTitle(RunStage stage) => stage.Id switch
@@ -526,26 +552,7 @@
         status = "Preparing the approved Carrot run…";
         try
         {
-            if (string.IsNullOrWhiteSpace(activeRunId))
-            {
-                var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps);
-                using var response = await Backend.PostAsJsonAsync("api/runs", request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var refusal = await response.Content.ReadAsStringAsync();
-                    status = $"The runner refused the request ({(int)response.StatusCode}). {DescribeBackendRefusal(refusal)}";
-                    return;
-                }
-                var planResult = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
-                if (planResult?.Receipt is null)
-                {
-                    status = "The backend returned no staged run receipt.";
-                    return;
-                }
-                activeRunId = planResult.RunId;
-                Workbench.ApplyStageReceipt(planResult.Receipt.Stages, "Plan validated; beginning the staged run.");
-                activeStageId = planResult.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? "baseline";
-            }
+            if (!await EnsureStagedRunAsync()) return;
             for (var step = 0; step < 6 && activeStageId != "foundry"; step++)
             {
                 if (!await AdvanceRunStageAsync()) return;
@@ -562,10 +569,52 @@
         }
     }
 
-    private async Task<bool> AdvanceRunStageAsync()
+    private async Task<bool> EnsureStagedRunAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(activeRunId)) return true;
+        var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps);
+        using var response = await Backend.PostAsJsonAsync("api/runs", request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var refusal = await response.Content.ReadAsStringAsync();
+            status = $"The runner refused the request ({(int)response.StatusCode}). {DescribeBackendRefusal(refusal)}";
+            return false;
+        }
+        var planResult = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+        if (planResult?.Receipt is null)
+        {
+            status = "The backend returned no staged run receipt.";
+            return false;
+        }
+        activeRunId = planResult.RunId;
+        Workbench.ApplyStageReceipt(planResult.Receipt.Stages, "Plan validated; beginning the staged run.");
+        activeStageId = planResult.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? "baseline";
+        return true;
+    }
+
+    private async Task<bool> RewindBackendBeforeExecuting(string stageId)
     {
         if (string.IsNullOrWhiteSpace(activeRunId)) return false;
-        status = $"Executing {activeStageId}…";
+        var selectedIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == stageId);
+        var restartAt = selectedIndex <= 0 ? "plan" : Workbench.RunStages[selectedIndex - 1].Id;
+        using var response = await Backend.PostAsJsonAsync($"api/runs/{activeRunId}/restart", new BackendStageRestartRequest(restartAt));
+        var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
+        if (!response.IsSuccessStatusCode || result?.Receipt is null)
+        {
+            status = "The selected stage could not be prepared for execution.";
+            return false;
+        }
+        activeRunId = result.RunId;
+        return true;
+    }
+
+    private async Task<bool> AdvanceRunStageAsync(string? stageBeingExecuted = null)
+    {
+        if (string.IsNullOrWhiteSpace(activeRunId)) return false;
+        var completedStageId = stageBeingExecuted
+            ?? Workbench.RunStages.FirstOrDefault(stage => stage.Status == "current")?.Id
+            ?? activeStageId;
+        status = $"Executing {completedStageId}…";
         using var response = await Backend.PostAsync($"api/runs/{activeRunId}/advance", null);
         var result = await response.Content.ReadFromJsonAsync<BackendRunValidation>();
         if (!response.IsSuccessStatusCode || result?.Receipt is null)
@@ -573,7 +622,7 @@
             status = "The next execution stage could not be completed.";
             return false;
         }
-        Workbench.ApplyStageReceipt(result.Receipt.Stages, $"Completed {activeStageId}.");
+        Workbench.ApplyStageReceipt(result.Receipt.Stages, $"Completed {completedStageId}.");
         activeStageId = result.Receipt.Stages.FirstOrDefault(stage => stage.Status == "current")?.Id ?? activeStageId;
         if (result.Receipt.CandidateResults is { Length: > 0 } && result.Receipt.PacketPath is not null)
         {
@@ -584,6 +633,7 @@
     }
 
     private sealed record BackendRunRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps);
+    private sealed record BackendStageRestartRequest(string StageId);
     private sealed record BackendRunValidation(bool Valid, string RunId, string[] Errors, BackendRunReceipt? Receipt);
     private sealed record BackendCandidateResult(double CandidateValue, int MatchCount, double MeanPairedDecisionDelta, int DivergentMatchCount, bool AllAuditsPassed);
     private sealed record BackendRunReceipt(string RunId, string GraphId, string ExecutionMode, string Status, bool SourceMutation, RunStage[] Stages, string? TargetRevision, string? PacketPath, string? PacketSha256, int MatchCount, int CandidateCount, bool AuditsPassed, BackendCandidateResult[]? CandidateResults);
@@ -616,11 +666,20 @@
 
     private async Task ForwardOneStep()
     {
-        if (string.IsNullOrWhiteSpace(activeRunId))
+        if (!await EnsureStagedRunAsync()) return;
+
+        var selectedIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Id == activeStageId);
+        var currentIndex = Workbench.RunStages.ToList().FindIndex(stage => stage.Status == "current");
+        var laterCompleted = selectedIndex >= 0
+            && Workbench.RunStages.Skip(selectedIndex + 1).Any(stage => stage.Status == "complete");
+        if (selectedIndex >= 0 && ((currentIndex > selectedIndex) || (currentIndex < 0 && laterCompleted)))
         {
-            status = "Run the validated plan first; there is no staged run to advance.";
+            var executableStageId = activeStageId == "plan" ? "baseline" : activeStageId;
+            if (!await RewindBackendBeforeExecuting(executableStageId)) return;
+            await AdvanceRunStageAsync(executableStageId);
             return;
         }
+
         await AdvanceRunStageAsync();
     }
 
@@ -651,7 +710,23 @@
 
     private void CloseEditor()
     {
-        showEditor = false;
+        SyncEditorToCommittedParameter();
+        status = $"Draft canceled. {Workbench.Plan.ParameterName} remains the selected parameter.";
+        ResetRelationToCommitted();
+    }
+
+    private void SyncEditorToCommittedParameter()
+    {
+        var committed = Workbench.SelectedParameterEvidence
+            ?? Workbench.ParametersForSelectedGraph.FirstOrDefault();
+        if (committed is null || !double.TryParse(committed.Baseline, out var baseline)) return;
+
+        editorParameterName = committed.Name;
+        editorBaselineValue = baseline;
+        editorProposedValue = Workbench.Plan.ParameterName == committed.Name
+            ? Workbench.Plan.ProposedValue
+            : baseline;
+        showEditor = true;
         ResetRelationToCommitted();
     }
 
@@ -665,23 +740,12 @@
     private async Task CommitEditor()
     {
         if (EditorParameterEvidence is null) return;
-        var existingModification = Workbench.SelectedParameterEvidence is { } current
-            && IsModified(current);
-        if (existingModification && editorParameterName != Workbench.Plan.ParameterName && !IsEditorModified)
-        {
-            // Opening another parameter is only a draft. Done without a new
-            // value must not erase the already committed modification.
-            status = $"No new value committed. {Workbench.Plan.ParameterName} remains the modified parameter.";
-            showEditor = false;
-            ResetRelationToCommitted();
-            return;
-        }
         Workbench.Plan.ParameterName = editorParameterName;
         Workbench.Plan.BaselineValue = editorBaselineValue;
         Workbench.Plan.ProposedValue = editorProposedValue;
         Workbench.Plan.LastAction = $"Committed one-parameter change: {editorParameterName} = {editorProposedValue:0.####}";
         status = $"Committed {editorParameterName} at {editorProposedValue:0.####}. Only this parameter will be sent to the runner.";
-        showEditor = false;
+        showEditor = true;
         ResetRelationToCommitted();
         await ValidatePlanAsync();
     }
@@ -693,7 +757,7 @@
         Workbench.Plan.LastAction = "Seat selection changed; no execution performed";
     }
 
-    private void GraphChanged(ChangeEventArgs args)
+    private async Task GraphChanged(ChangeEventArgs args)
     {
         Workbench.Plan.GraphId = args.Value?.ToString() ?? Workbench.Plan.GraphId;
         var graph = Workbench.Graphs.FirstOrDefault(item => item.Id == Workbench.Plan.GraphId);
@@ -707,7 +771,10 @@
             Workbench.Plan.BaselineValue = baseline;
             Workbench.Plan.ProposedValue = baseline;
         }
+        economicGateFocused = true;
+        SyncEditorToCommittedParameter();
         status = $"Selected {graph.DisplayName} graph. Review the parameter envelope before saving.";
+        await PlanChangedAsync();
     }
 
     private void ToggleScenario(string id)
@@ -720,6 +787,10 @@
             var mutable = Workbench.TestScenarios.ToList();
             mutable[index] = replacement;
             Workbench.ReplaceScenarios(mutable);
+            Workbench.ResetAfterPlanChange();
+            activeRunId = null;
+            activeStageId = "plan";
+            status = "Coverage plan changed. Later stages are locked until the plan is run again.";
         }
     }
 }

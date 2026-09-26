@@ -237,6 +237,18 @@ public sealed class WorkbenchState
         Plan.LastAction = $"Returned to {runStages[index].Title}; future stages invalidated.";
     }
 
+    public void ResetAfterPlanChange()
+    {
+        runStages = runStages.Select((stage, index) => index == 0
+            ? stage with { Status = "complete", Detail = "The proposed envelope must be revalidated after this plan change." }
+            : index == 1
+                ? stage with { Status = "current", Detail = "Ready to submit the changed plan." }
+                : stage with { Status = "pending", Detail = "Locked until the changed plan is run." }).ToList();
+        LastRunResult = null;
+        Plan.Status = "draft · rerun required";
+        Plan.LastAction = "Plan changed; future stages locked until rerun.";
+    }
+
     public void RecordRunResult(RunResultSummary result, string action)
     {
         LastRunResult = result;
