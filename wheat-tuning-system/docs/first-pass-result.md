@@ -83,3 +83,13 @@ The next useful step is not automatic search. Choose one of:
 
 Each choice requires a new contract. Keep animal-feed value and multi-crop
 selection outside this crop-only first pass.
+
+## Latest re-pinned reproduction
+
+On 2026-09-26 the same approved envelope was rerun against the current
+Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`, without
+changing its candidates, controls, or policy source. The fresh receipt is
+[`wheat-future-price-multiplier-smoke-v1.json`](../../var/wheat-tuning-system/runs/20260926-repin-003649/report/wheat-future-price-multiplier-smoke-v1.json).
+All four candidate/seat matches passed their clean audits and the aggregate
+results were identical to the historical receipt. The 2026-09-24 receipt is
+retained as historical evidence.

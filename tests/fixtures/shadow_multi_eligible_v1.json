@@ -1,0 +1,41 @@
+[
+  {
+    "seed": 0,
+    "seat": 0,
+    "turn": 0,
+    "observation": {
+      "day": 0,
+      "player": 0,
+      "farms": [{"money": 3000, "farmer": [0, 0], "tiles": [[null]]}, {"money": 3000, "farmer": [0, 0], "tiles": [[null]]}],
+      "private": {"seeds": {}, "shed": {}},
+      "market": {"prices": {"CARROT": 35, "WHEAT": 25, "MELON": 250, "TOMATO": 60, "STRAWBERRY": 120}},
+      "town": {"unlocked_shops": []}
+    }
+  },
+  {
+    "seed": 0,
+    "seat": 0,
+    "turn": 1,
+    "observation": {
+      "day": 0,
+      "player": 0,
+      "farms": [{"money": 3000, "farmer": [0, 0], "tiles": [[null]]}, {"money": 3000, "farmer": [0, 0], "tiles": [[null]]}],
+      "private": {"seeds": {}, "shed": {}},
+      "market": {"prices": {"CARROT": 35, "WHEAT": 25, "MELON": 10, "TOMATO": 60, "STRAWBERRY": 120}},
+      "town": {"unlocked_shops": []}
+    }
+  },
+  {
+    "seed": 0,
+    "seat": 0,
+    "turn": 2,
+    "observation": {
+      "day": 0,
+      "player": 0,
+      "farms": [{"money": 3000, "farmer": [0, 0], "tiles": [[null]]}, {"money": 3000, "farmer": [0, 0], "tiles": [[null]]}],
+      "private": {"seeds": {}, "shed": {}},
+      "market": {"prices": {"CARROT": 1, "WHEAT": 1, "MELON": 250, "TOMATO": 1, "STRAWBERRY": 1}},
+      "town": {"unlocked_shops": []}
+    }
+  }
+]

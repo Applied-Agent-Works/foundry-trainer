@@ -22,8 +22,9 @@ the core mechanical invariant before adding evidence-analyst or Foundry work.
 The observed outcome is preserved in the
 [first-pass result](./first-pass-result.md).
 
-The current generated receipt path is
-[`melon-future-price-multiplier-smoke-v1.json`](../../var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
+The latest re-pinned generated receipt path is
+[`melon-future-price-multiplier-smoke-v1.json`](../../var/watermelon-tuning-system/runs/20260926-repin-003649/report/melon-future-price-multiplier-smoke-v1.json),
+against Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`.
 It is ignored run output and is absent from a fresh checkout until the
 approved command generates it.
 Earlier generated receipts are historical/superseded and remain disposable.

@@ -34,9 +34,10 @@ The generated report and baseline caches are disposable and ignored under
 report at the same path and validates the target revision plus all three
 source hashes before using a cache.
 
-The canonical local receipt from the reviewed run is
-`var/strawberry-tuning-system/runs/20260925-strawberry-v3/report/strawberry-future-price-multiplier-smoke-v1.json`.
-The earlier `20260925-strawberry-v2` receipt is historical and superseded.
+The latest re-pinned local receipt is
+`var/strawberry-tuning-system/runs/20260926-ongoing-004808/report/strawberry-future-price-multiplier-smoke-v1.json`,
+against Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`.
+The earlier receipts are historical and superseded.
 
 The original draft contract remains fail-closed for historical comparison at
 `experiments/draft/strawberry_crop/future_price_multiplier_smoke_v1.json`.

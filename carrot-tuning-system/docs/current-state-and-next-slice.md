@@ -18,6 +18,15 @@ then use this page to resume the immediate implementation sequence.
 > paragraphs intentionally preserve deployment, rollback, and telemetry
 > history; they are not current inventory.
 
+> **Local shadow-integration marker — 2026-09-26:** Carrot, Wheat,
+> Watermelon/MELON, Tomato, and Strawberry now have a descriptive graph
+> registry and a non-mutating shadow-proposal seam in `src/kaggriculture_eval`.
+> This slice does not choose
+> between crops, change the applied game action, or alter the Foundry packet
+> path. Their approved smoke contracts are now re-pinned to the current
+> Kaggriculture revision, with fresh clean-audited receipts recorded separately
+> from the historical runs.
+
 ## What is already real and trusted
 
 ### 1. Local Kaggriculture evidence engine

@@ -67,3 +67,13 @@ selection; they remain covered by the normal fast suite.
 Review the adapter seam and approve a larger held-out seed suite before treating
 the 0.05 result as anything more than a demonstration that the melon policy's
 plant threshold can be crossed.
+
+## Latest re-pinned reproduction
+
+On 2026-09-26 the same approved envelope was rerun against the current
+Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`, without
+changing its candidates, controls, or policy source. The fresh receipt is
+[`melon-future-price-multiplier-smoke-v1.json`](../../var/watermelon-tuning-system/runs/20260926-repin-003649/report/melon-future-price-multiplier-smoke-v1.json).
+All four candidate/seat matches passed their clean audits and the aggregate
+results were identical to the historical receipt. The 2026-09-24 receipt is
+retained as historical evidence.

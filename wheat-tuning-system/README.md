@@ -47,8 +47,11 @@ and next decision are in
 The pinned checkout and dirty-source warning are recorded in
 [docs/source-provenance.md](./docs/source-provenance.md).
 
-The current generated receipt path is
-[`wheat-future-price-multiplier-smoke-v1.json`](../var/wheat-tuning-system/canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json).
+The latest re-pinned generated receipt path is
+[`wheat-future-price-multiplier-smoke-v1.json`](../var/wheat-tuning-system/runs/20260926-repin-003649/report/wheat-future-price-multiplier-smoke-v1.json).
+It was reproduced against Kaggriculture revision
+`3d8249e0de84002156500c6ee708d51925133169`; the older
+`canonical-20260924` receipt remains historical.
 Because `var/` is ignored, a fresh checkout does not contain this receipt
 until the approved command generates it; no new reproduction is implied here.
 Earlier `first-pass/` and `repair-first-pass/` receipts are

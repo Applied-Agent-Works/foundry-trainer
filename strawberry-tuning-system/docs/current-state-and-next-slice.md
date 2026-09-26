@@ -12,8 +12,10 @@ The approved first pass is complete for its narrow local scope:
 - independent clean audits; and
 - immutable local receipt under the ignored `var/` tree.
 
-The canonical reviewed receipt is
-`var/strawberry-tuning-system/runs/20260925-strawberry-v3/report/strawberry-future-price-multiplier-smoke-v1.json`.
+The latest re-pinned reviewed receipt is
+`var/strawberry-tuning-system/runs/20260926-ongoing-004808/report/strawberry-future-price-multiplier-smoke-v1.json`
+and records Kaggriculture revision
+`3d8249e0de84002156500c6ee708d51925133169`.
 
 ## Observed first-pass facts
 

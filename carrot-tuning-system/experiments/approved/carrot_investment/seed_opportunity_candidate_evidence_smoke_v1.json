@@ -16,7 +16,7 @@
   },
   "target": {
     "binding_mode": "explicit_sibling_target",
-    "expected_revision": "6ace5fed9018fef45642b41ea11d0bd741a508a4",
+    "expected_revision": "3d8249e0de84002156500c6ee708d51925133169",
     "expected_shared_sha256": "9abb01678ad20a30927594a92c5234d8db798c85a2e8bc85391fbb72b4bf5a36",
     "expected_engine_sha256": "bc8a54879ef02c7ea64b8b333d6a976f0ea65c4949149d01f463f23bccee653e"
   },

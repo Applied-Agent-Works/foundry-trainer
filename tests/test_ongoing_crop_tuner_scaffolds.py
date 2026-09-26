@@ -133,7 +133,7 @@ def test_approved_contracts_authorize_the_same_bounded_operations(case: dict) ->
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["name"])
 def test_explicit_binding_matches_complete_recorded_provenance(case: dict) -> None:
-    specification, _ = _read_contract(case)
+    specification = json.loads(case["approved_spec"].read_text(encoding="utf-8"))
     binding = bind_target(TARGET, adapter=case["adapter"])
 
     assert binding.adapter is case["adapter"]

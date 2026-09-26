@@ -14,3 +14,9 @@ Strawberry conveyor, seeds 42/43, both seats, 720 turns, and
 The low candidate crossed the observed plant/pass threshold; the moderate
 candidates did not. This is a four-match infrastructure proof, not evidence
 that the baseline is globally optimal.
+
+The same approved envelope was re-pinned and rerun on 2026-09-26 against
+Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`. The fresh
+receipt is under
+`var/strawberry-tuning-system/runs/20260926-ongoing-004808/report/` and all
+four candidate-match audits passed.

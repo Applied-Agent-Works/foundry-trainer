@@ -48,7 +48,7 @@ def test_documented_first_pass_command_uses_unique_receipt_paths() -> None:
     assert "RUN_ID=20260924-next" in readme
     assert "var/wheat-tuning-system/runs/$RUN_ID/cache" in readme
     assert "var/wheat-tuning-system/runs/$RUN_ID/report" in readme
-    assert "canonical-20260924/report/wheat-future-price-multiplier-smoke-v1.json" in readme
+    assert "runs/20260926-repin-003649/report/wheat-future-price-multiplier-smoke-v1.json" in readme
 
 
 def test_wheat_contract_rejects_baseline_candidate() -> None:

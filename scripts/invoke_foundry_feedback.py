@@ -51,6 +51,7 @@ def build_redacted_brief(packet: dict) -> dict:
         "experiment_id": packet.get("experiment_id"),
         "parameter_name": packet.get("parameter_name"),
         "baseline_value": packet.get("baseline_value"),
+        "candidate_values": packet.get("candidate_values"),
         "interventions": [
             {"step": item.get("turn"), "value": item.get("override", {}).get(packet.get("parameter_name"))}
             for item in packet.get("interventions", [])

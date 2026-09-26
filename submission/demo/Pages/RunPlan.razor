@@ -267,6 +267,7 @@
                             <div><span>Changed parameter</span><strong>@Workbench.Plan.ParameterName</strong></div>
                             <div><span>Baseline</span><strong>@Workbench.Plan.BaselineValue.ToString("0.####")</strong></div>
                             <div><span>Proposed value</span><strong>@Workbench.Plan.ProposedValue.ToString("0.####")</strong></div>
+                            <div><span>Values being tested</span><strong>@string.Join(" · ", CandidateValuesForRun().Select(value => value.ToString("0.####")))</strong></div>
                         </div>
                         @if (CurrentRunEvidence is { } runEvidence)
                         {
@@ -487,7 +488,8 @@
                 [42],
                 [0, 1],
                 Workbench.Plan.Steps,
-                BuildInterventions()));
+                BuildInterventions(),
+                CandidateValuesForRun().ToArray()));
             if (response.IsSuccessStatusCode)
             {
                 planValidationValid = true;
@@ -748,6 +750,11 @@
             .Select(item => new TemporalInterventionRequest(item.Step, Workbench.Plan.ProposedValue))
             .ToArray();
 
+    private IReadOnlyList<double> CandidateValuesForRun() =>
+        Workbench.Plan.ParameterName == "seed_opportunity_value"
+            ? [10, 40, 60, 80]
+            : Workbench.ProposedValuesForSelectedParameter;
+
     private async Task AddIntervention()
     {
         var lastStep = Workbench.Plan.Interventions.Max(item => item.Step);
@@ -772,7 +779,7 @@
     private async Task<bool> EnsureStagedRunAsync()
     {
         if (!string.IsNullOrWhiteSpace(activeRunId)) return true;
-        var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps, BuildInterventions());
+        var request = new BackendRunRequest(Workbench.Plan.GraphId, Workbench.Plan.ParameterName, Workbench.Plan.BaselineValue, Workbench.Plan.ProposedValue, [42], [0, 1], Workbench.Plan.Steps, BuildInterventions(), CandidateValuesForRun().ToArray());
         using var response = await Backend.PostAsJsonAsync("api/runs", request);
         if (!response.IsSuccessStatusCode)
         {
@@ -854,7 +861,7 @@
         return true;
     }
 
-    private sealed record BackendRunRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps, TemporalInterventionRequest[] Interventions);
+    private sealed record BackendRunRequest(string GraphId, string ParameterName, double BaselineValue, double ProposedValue, int[] Seeds, int[] Seats, int Steps, TemporalInterventionRequest[] Interventions, double[] CandidateValues);
     private sealed record TemporalInterventionRequest(int Step, double Value);
     private sealed record BackendStageRestartRequest(string StageId);
     private sealed record BackendRunValidation(bool Valid, string RunId, string[] Errors, BackendRunReceipt? Receipt);

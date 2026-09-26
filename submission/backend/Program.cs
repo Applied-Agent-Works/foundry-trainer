@@ -100,7 +100,8 @@ public sealed record RunPlanRequest(
     int[] Seeds,
     int[] Seats,
     int Steps,
-    TemporalInterventionRequest[]? Interventions = null);
+    TemporalInterventionRequest[]? Interventions = null,
+    double[]? CandidateValues = null);
 public sealed record TemporalInterventionRequest(int Step, double Value);
 public sealed record RunStageRestartRequest(string StageId);
 
@@ -139,6 +140,13 @@ public sealed class RunCoordinator
         if (!plan.Seeds.SequenceEqual([42])) errors.Add("the approved smoke envelope uses seed 42");
         if (!plan.Seats.SequenceEqual([0, 1])) errors.Add("the approved smoke envelope uses seats 0 and 1");
         if (plan.Steps != 720) errors.Add("the approved smoke envelope uses 720 steps");
+        var candidateValues = plan.CandidateValues is { Length: > 0 }
+            ? plan.CandidateValues
+            : [plan.ProposedValue];
+        if (candidateValues.Any(value => value is not (10 or 40 or 60 or 80)))
+            errors.Add("candidate values must be one of the approved Carrot candidates: 10, 40, 60, or 80");
+        if (!candidateValues.Contains(plan.ProposedValue))
+            errors.Add("the selected proposed value must be included in the candidate range");
         var interventions = plan.Interventions is { Length: > 0 }
             ? plan.Interventions
             : [new TemporalInterventionRequest(0, plan.ProposedValue)];
@@ -327,6 +335,7 @@ public sealed class RunCoordinator
         start.ArgumentList.Add("--report-dir"); start.ArgumentList.Add(reportRoot);
         start.ArgumentList.Add("--candidate-value"); start.ArgumentList.Add(plan.ProposedValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
         start.ArgumentList.Add("--schedule"); start.ArgumentList.Add(JsonSerializer.Serialize((plan.Interventions ?? []).Select(item => new { step = item.Step, value = item.Value })));
+        start.ArgumentList.Add("--candidate-values"); start.ArgumentList.Add(JsonSerializer.Serialize(plan.CandidateValues is { Length: > 0 } ? plan.CandidateValues : [plan.ProposedValue]));
         start.ArgumentList.Add("--stage"); start.ArgumentList.Add(stage == "simulate" ? "inner-loop" : stage);
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start the staged Carrot runner process.");
         var stdout = process.StandardOutput.ReadToEnd(); var stderr = process.StandardError.ReadToEnd(); process.WaitForExit();

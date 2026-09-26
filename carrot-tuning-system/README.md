@@ -7,6 +7,11 @@ experimenting with Kaggriculture's explicit carrot-policy parameters. It is
 not an automatic policy editor, an unconstrained optimization loop, or a
 replacement for Kaggriculture. Kaggriculture remains the system under test.
 
+The first local multi-graph preparation slice is documented in
+[shadow-graph-integration.md](./docs/shadow-graph-integration.md). It
+registers the five current crop graphs for non-mutating shadow proposals; it
+does not add a crop selector or change the Foundry packet path.
+
 Before implementing, evaluating, or proposing an experiment, read this whole
 document and then the cited evaluation documents in the parent project. The
 detail is intentional. The project owner needs enough reconstruction of the

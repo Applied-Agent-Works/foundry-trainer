@@ -12,8 +12,9 @@ The approved first pass is complete for its narrow local scope:
 - independent clean audits; and
 - immutable local receipt under the ignored `var/` tree.
 
-The canonical reviewed receipt is under
-`var/tomato-tuning-system/first-pass-20260925/report/`.
+The latest re-pinned reviewed receipt is under
+`var/tomato-tuning-system/runs/20260926-ongoing-004808/report/` and records
+Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`.
 
 ## Observed first-pass facts
 

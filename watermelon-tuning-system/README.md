@@ -75,8 +75,11 @@ The recorded first proof is summarized in
 [`first-pass-result.md`](./docs/first-pass-result.md); the ignored JSON report
 contains the per-match details.
 
-The current generated receipt path is
-[`melon-future-price-multiplier-smoke-v1.json`](../var/watermelon-tuning-system/canonical-20260924/report/melon-future-price-multiplier-smoke-v1.json).
+The latest re-pinned generated receipt path is
+[`melon-future-price-multiplier-smoke-v1.json`](../var/watermelon-tuning-system/runs/20260926-repin-003649/report/melon-future-price-multiplier-smoke-v1.json).
+It was reproduced against Kaggriculture revision
+`3d8249e0de84002156500c6ee708d51925133169`; the older
+`canonical-20260924` receipt remains historical.
 Because `var/` is ignored, a fresh checkout does not contain this receipt
 until the approved command generates it; no new reproduction is implied here.
 Earlier `first-pass/`, `first-pass-v2/`, and `repair-pass-20260924/` receipts

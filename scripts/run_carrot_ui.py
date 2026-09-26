@@ -32,11 +32,19 @@ def _context(args: argparse.Namespace):
     adapter = LocalInnerLoopAdapter()
     specification = adapter.read_and_validate_spec(args.spec)
     declared = tuple(specification["parameter"]["candidate_values"])
-    if args.candidate_value not in declared:
-        raise ValueError(f"candidate {args.candidate_value} is not declared: {declared}")
+    if args.candidate_values:
+        try:
+            selected_values = tuple(float(value) for value in json.loads(args.candidate_values))
+        except (TypeError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError("candidate values must be a JSON array of numbers") from error
+    else:
+        selected_values = (args.candidate_value,)
+    if not selected_values or any(value not in declared for value in selected_values):
+        raise ValueError(f"candidate values must be a non-empty subset of the declared envelope: {declared}")
+    if args.candidate_value not in selected_values:
+        raise ValueError("the selected candidate value must be included in the candidate range")
     specification = deepcopy(specification)
-    if not args.schedule:
-        specification["parameter"]["candidate_values"] = [args.candidate_value]
+    specification["parameter"]["candidate_values"] = list(selected_values)
     adapter.authorize_execution_operation(specification, "candidate_evidence_run")
     binding = adapter.bind_and_validate_target(specification, args.target_root)
     adapter.authorize_lifecycle(specification)
@@ -81,6 +89,7 @@ def _write_temporal_packet(
     specification: dict,
     binding,
     schedule: list[dict],
+    candidate_values: tuple[float, ...],
     baseline_outcomes: dict[str, dict],
     audited_results: list[dict],
 ) -> tuple[Path, str]:
@@ -98,6 +107,7 @@ def _write_temporal_packet(
         "baseline_value": specification["parameter"]["baseline_value"],
         "suite": specification["suite"],
         "interventions": schedule,
+        "candidate_values": candidate_values,
         "baseline_outcomes": baseline_outcomes,
         "audited_results": audited_results,
         "all_audits_passed": all(result.get("audit_status") == "passed" for result in audited_results),
@@ -118,6 +128,7 @@ def _write_temporal_packet(
 def run_stage(args: argparse.Namespace) -> dict:
     adapter, specification, binding, plan = _context(args)
     schedule = _read_interventions(args, specification)
+    candidate_values = tuple(float(value) for value in specification["parameter"]["candidate_values"])
     stage_dir = args.report_dir / "stages"
     state_path = stage_dir / "inner-loop.json"
     if args.stage == "baseline":
@@ -146,15 +157,20 @@ def run_stage(args: argparse.Namespace) -> dict:
 
     if args.stage == "inner-loop":
         if schedule:
-            fast_results = [
-                evaluate_scheduled_cached(
-                    binding,
-                    read_baseline(entries_by_key[(seed, seat)].path),
-                    schedule,
-                    opponent=binding.shared.carrot_conveyor_agent,
-                )
-                for seed, seat in entries_by_key
-            ]
+            parameter_name = specification["parameter"]["name"]
+            fast_results = []
+            for candidate_value in candidate_values:
+                candidate_schedule = [
+                    {"turn": item["turn"], "override": {parameter_name: candidate_value}}
+                    for item in schedule
+                ]
+                for seed, seat in entries_by_key:
+                    fast_results.append(evaluate_scheduled_cached(
+                        binding,
+                        read_baseline(entries_by_key[(seed, seat)].path),
+                        candidate_schedule,
+                        opponent=binding.shared.carrot_conveyor_agent,
+                    ))
         else:
             fast_results = [
                 evaluate_declared_candidate_from_cache(
@@ -165,8 +181,8 @@ def run_stage(args: argparse.Namespace) -> dict:
                 )
                 for seed, seat in entries_by_key
             ]
-        _write_json(state_path, {"baseline_outcomes": baseline_outcomes, "fast_results": fast_results, "schedule": schedule})
-        return {"stage": "inner-loop", "status": "completed", "match_count": len(fast_results)}
+        _write_json(state_path, {"baseline_outcomes": baseline_outcomes, "fast_results": fast_results, "schedule": schedule, "candidate_values": candidate_values})
+        return {"stage": "inner-loop", "status": "completed", "match_count": len(fast_results), "candidate_count": len(candidate_values)}
 
     state_payload = _read_json(state_path)
     fast_results = state_payload["fast_results"]
@@ -177,7 +193,7 @@ def run_stage(args: argparse.Namespace) -> dict:
     if args.stage == "audit":
         audited_results = (
             [
-                audit_scheduled_cached(binding, result, schedule, opponent=binding.shared.carrot_conveyor_agent)
+                audit_scheduled_cached(binding, result, result["interventions"], opponent=binding.shared.carrot_conveyor_agent)
                 for result in fast_results
             ]
             if schedule
@@ -198,32 +214,35 @@ def run_stage(args: argparse.Namespace) -> dict:
                 specification,
                 binding,
                 state_payload["schedule"],
+                tuple(state_payload.get("candidate_values", [args.candidate_value])),
                 state_payload["baseline_outcomes"],
                 audited_results,
             )
-            parameter_name = specification["parameter"]["name"]
-            final_value = state_payload["schedule"][-1]["override"][parameter_name]
             baseline_by_match = state_payload["baseline_outcomes"]
-            mean_delta = sum(
-                result["outcome"]["decision_reward"]
-                - baseline_by_match[f"{result['match']['seed']}:{result['match']['decision_player']}"]["decision_reward"]
-                for result in audited_results
-            ) / len(audited_results)
+            aggregates = []
+            for candidate_value in state_payload.get("candidate_values", [args.candidate_value]):
+                results = [result for result in audited_results if result["candidate"]["new_value"] == candidate_value]
+                mean_delta = sum(
+                    result["outcome"]["decision_reward"]
+                    - baseline_by_match[f"{result['match']['seed']}:{result['match']['decision_player']}"]["decision_reward"]
+                    for result in results
+                ) / len(results)
+                aggregates.append({
+                    "candidate_value": candidate_value,
+                    "match_count": len(results),
+                    "mean_paired_decision_delta": mean_delta,
+                    "divergent_match_count": sum(result["first_divergence_turn"] is not None for result in results),
+                    "all_audits_passed": all(result["audit_status"] == "passed" for result in results),
+                })
             return {
                 "stage": "packet",
                 "status": "completed",
                 "packet_path": str(written_path),
                 "packet_sha256": written_sha256,
                 "match_count": len(audited_results),
-                "candidate_count": 1,
+                "candidate_count": len(aggregates),
                 "audits_passed": True,
-                "aggregates": [{
-                    "candidate_value": final_value,
-                    "match_count": len(audited_results),
-                    "mean_paired_decision_delta": mean_delta,
-                    "divergent_match_count": sum(result["first_divergence_turn"] is not None for result in audited_results),
-                    "all_audits_passed": True,
-                }],
+                "aggregates": aggregates,
                 "intervention_schedule": state_payload["schedule"],
             }
         baseline = {
@@ -261,6 +280,7 @@ def main() -> int:
     parser.add_argument("--cache-root", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--candidate-value", type=float, required=True)
+    parser.add_argument("--candidate-values", help="JSON array of approved candidate values to run")
     parser.add_argument("--schedule", help='JSON intervention schedule, e.g. [{"step": 0, "value": 40}]')
     parser.add_argument("--stage", choices=["full", "baseline", "inner-loop", "divergence", "audit", "packet"], default="full")
     args = parser.parse_args()

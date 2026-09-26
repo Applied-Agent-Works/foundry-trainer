@@ -1,0 +1,14 @@
+[
+  {"id": "all-favorable", "prices": {"CARROT": 35, "WHEAT": 25, "MELON": 250, "TOMATO": 60, "STRAWBERRY": 120}},
+  {"id": "melon-suppressed", "prices": {"CARROT": 35, "WHEAT": 25, "MELON": 10, "TOMATO": 60, "STRAWBERRY": 120}},
+  {"id": "melon-favored", "prices": {"CARROT": 1, "WHEAT": 1, "MELON": 250, "TOMATO": 1, "STRAWBERRY": 1}},
+  {"id": "carrot-only", "prices": {"CARROT": 35, "WHEAT": 1, "MELON": 1, "TOMATO": 1, "STRAWBERRY": 1}},
+  {"id": "wheat-only", "prices": {"CARROT": 1, "WHEAT": 25, "MELON": 1, "TOMATO": 1, "STRAWBERRY": 1}},
+  {"id": "tomato-only", "prices": {"CARROT": 1, "WHEAT": 1, "MELON": 1, "TOMATO": 60, "STRAWBERRY": 1}},
+  {"id": "strawberry-only", "prices": {"CARROT": 1, "WHEAT": 1, "MELON": 1, "TOMATO": 1, "STRAWBERRY": 120}},
+  {"id": "all-unattractive", "prices": {"CARROT": 1, "WHEAT": 1, "MELON": 1, "TOMATO": 1, "STRAWBERRY": 1}},
+  {"id": "late-season", "day": 28, "prices": {"CARROT": 35, "WHEAT": 25, "MELON": 250, "TOMATO": 60, "STRAWBERRY": 120}},
+  {"id": "no-empty-tile", "prices": {"CARROT": 35, "WHEAT": 25, "MELON": 250, "TOMATO": 60, "STRAWBERRY": 120}, "tiles": [[{"kind": "PLANT", "crop": "CARROT", "planted_day": 0, "watered_today": true, "yield_units": 0}]]},
+  {"id": "no-money-or-seed", "prices": {"CARROT": 35, "WHEAT": 25, "MELON": 250, "TOMATO": 60, "STRAWBERRY": 120}, "money": 0},
+  {"id": "mid-season", "day": 8, "prices": {"CARROT": 35, "WHEAT": 25, "MELON": 250, "TOMATO": 60, "STRAWBERRY": 120}}
+]

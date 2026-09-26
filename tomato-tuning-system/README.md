@@ -26,7 +26,8 @@ directory:
   --report-dir var/tomato-tuning-system/first-pass-20260925/report
 ```
 
-The canonical local receipt from the approved run is
-`var/tomato-tuning-system/first-pass-20260925/report/`.
+The latest re-pinned local receipt is
+`var/tomato-tuning-system/runs/20260926-ongoing-004808/report/tomato-future-price-multiplier-smoke-v1.json`,
+against Kaggriculture revision `3d8249e0de84002156500c6ee708d51925133169`.
 The run does not mutate Kaggriculture or automatically promote a candidate;
 human review is still required before changing any policy baseline.
